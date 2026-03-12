@@ -347,11 +347,11 @@ function StatusRow({ label, value, ok }: StatusRowProps) {
     <div className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-[color:var(--color-surface-border)] bg-[var(--color-surface)] px-3 py-2.5">
       <div>
         <p className="text-xs font-medium text-[var(--color-text)]">{label}</p>
-        <p className="mt-0.5 text-[11px] text-[var(--color-text-subtle)]">{value}</p>
+        <p className="mt-0.5 text-xs text-[var(--color-text-subtle)]">{value}</p>
       </div>
       <span
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold",
+          "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold",
           ok
             ? "bg-emerald-500/10 text-emerald-600"
             : "bg-[var(--color-surface-muted)] text-[var(--color-text-subtle)]",
@@ -385,7 +385,7 @@ function OverviewMetrics({ items }: { items: OverviewMetric[] }) {
                 <Icon className="h-4.5 w-4.5" />
               </div>
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text-subtle)]">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-text-subtle)]">
                   {item.label}
                 </p>
                 <p className="mt-0.5 text-base font-semibold text-[var(--color-heading)]">
@@ -1791,7 +1791,7 @@ export function XWorkmateWorkspacePage({
                   <p className="truncate text-base font-semibold text-[var(--color-heading)]">
                     XWorkmate
                   </p>
-                  <p className="mt-0.5 truncate text-[11px] text-[var(--color-text-subtle)]">
+                  <p className="mt-0.5 truncate text-xs text-[var(--color-text-subtle)]">
                     {pickCopy(
                       isChinese,
                       "Online Workspace",
@@ -1882,48 +1882,38 @@ export function XWorkmateWorkspacePage({
         ) : null}
 
         <section className="flex min-w-0 flex-1 flex-col">
-          <header
-            className={cn(
-              "border-b border-[color:var(--color-surface-border)] px-3.5",
-              activeSection === "assistant" ? "py-2" : "py-3",
-            )}
-          >
+          {activeSection !== "assistant" ? (
+            <header
+              className={cn(
+                "border-b border-[color:var(--color-surface-border)] px-3.5",
+                "py-3",
+              )}
+            >
             <div
               className={cn(
                 "flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between",
-                activeSection === "assistant" ? "lg:items-center" : "",
               )}
             >
               <div
                 className={cn(
                   "space-y-2",
-                  activeSection === "assistant" ? "space-y-0" : "",
                 )}
               >
-                {activeSection !== "assistant" ? (
-                  <div className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-surface-border)] bg-[var(--color-surface-muted)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text-subtle)]">
-                    {pickCopy(isChinese, "XWorkmate 在线版", "XWorkmate Online")}
-                  </div>
-                ) : null}
+                <div className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-surface-border)] bg-[var(--color-surface-muted)] px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-text-subtle)]">
+                  {pickCopy(isChinese, "XWorkmate 在线版", "XWorkmate Online")}
+                </div>
                 <div>
-                  <h1
-                    className={cn(
-                      "font-semibold text-[var(--color-heading)]",
-                      activeSection === "assistant" ? "text-lg" : "text-2xl",
-                    )}
-                  >
+                  <h1 className="text-2xl font-semibold text-[var(--color-heading)]">
                     {activeDefinition.label}
                   </h1>
-                  {activeSection !== "assistant" ? (
-                    <p className="mt-2 max-w-3xl text-sm text-[var(--color-text-subtle)]">
-                      {activeDefinition.description}
-                    </p>
-                  ) : null}
+                  <p className="mt-2 max-w-3xl text-sm text-[var(--color-text-subtle)]">
+                    {activeDefinition.description}
+                  </p>
                 </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                {sidebarState !== "hidden" && activeSection !== "assistant" ? (
+                {sidebarState !== "hidden" ? (
                   <button
                     type="button"
                     onClick={() =>
@@ -1941,35 +1931,31 @@ export function XWorkmateWorkspacePage({
                     {pickCopy(isChinese, "收展侧栏", "Toggle sidebar")}
                   </button>
                 ) : null}
-                {activeSection !== "assistant" ? (
-                  <>
-                    <Link
-                      href="/panel"
-                      className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-surface-border)] px-3.5 py-2 text-sm font-medium text-[var(--color-text)] transition hover:border-[color:var(--color-primary-border)] hover:bg-[var(--color-surface-muted)]"
-                    >
-                      Console
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveSection("settings");
-                        setActiveTabs((current) => ({
-                          ...current,
-                          settings: "integrations",
-                        }));
-                      }}
-                      className="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-3.5 py-2 text-sm font-semibold text-[var(--color-primary-foreground)]"
-                    >
-                      {pickCopy(isChinese, "融合设置", "Integration settings")}
-                      <ArrowRight className="h-4 w-4" />
-                    </button>
-                  </>
-                ) : null}
+                <Link
+                  href="/panel"
+                  className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-surface-border)] px-3.5 py-2 text-sm font-medium text-[var(--color-text)] transition hover:border-[color:var(--color-primary-border)] hover:bg-[var(--color-surface-muted)]"
+                >
+                  Console
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveSection("settings");
+                    setActiveTabs((current) => ({
+                      ...current,
+                      settings: "integrations",
+                    }));
+                  }}
+                  className="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-3.5 py-2 text-sm font-semibold text-[var(--color-primary-foreground)]"
+                >
+                  {pickCopy(isChinese, "融合设置", "Integration settings")}
+                  <ArrowRight className="h-4 w-4" />
+                </button>
               </div>
             </div>
 
-            {activeDefinition.tabs.length > 0 && activeSection !== "assistant" ? (
+            {activeDefinition.tabs.length > 0 ? (
               <div className="mt-3 flex flex-wrap gap-2">
                 {activeDefinition.tabs.map((tab) => (
                   <button
@@ -1988,11 +1974,13 @@ export function XWorkmateWorkspacePage({
                 ))}
               </div>
             ) : null}
-          </header>
+            </header>
+          ) : null}
 
           <div
             className={cn(
-              "min-h-0 flex-1 p-3",
+              "min-h-0 flex-1",
+              activeSection === "assistant" ? "p-0" : "p-3",
               activeSection === "assistant" ? "overflow-hidden" : "overflow-auto",
             )}
           >

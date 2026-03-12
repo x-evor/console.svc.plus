@@ -65,6 +65,17 @@
   --radius-lg: 0.875rem;
   --radius-xl: 1.125rem;
   --radius-pill: 999px;
+
+  --type-body-size: 1rem;
+  --type-body-line-height: 1.5;
+  --type-sidebar-size: 0.875rem;
+  --type-sidebar-line-height: 1.5;
+  --type-meta-size: 0.75rem;
+  --type-meta-line-height: 1.4;
+  --type-heading-1-size: 1.75rem;
+  --type-heading-2-size: 1.5rem;
+  --type-heading-3-size: 1.25rem;
+  --type-heading-line-height: 1.25;
 }
 
 html {
@@ -74,8 +85,8 @@ html {
 
 body {
   font-family: var(--font-geist-sans);
-  font-size: 1rem;
-  line-height: 1.5;
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line-height);
   background-color: var(--color-background);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
@@ -97,7 +108,7 @@ input,
 textarea,
 select,
 button {
-  line-height: 1.5;
+  line-height: var(--type-body-line-height);
 }
 
 @layer base {
@@ -109,25 +120,25 @@ button {
   h6 {
     color: var(--color-heading);
     font-weight: 600;
-    line-height: 1.25;
+    line-height: var(--type-heading-line-height);
     letter-spacing: -0.02em;
   }
 
   h1 {
-    font-size: 1.75rem;
+    font-size: var(--type-heading-1-size);
   }
 
   h2 {
-    font-size: 1.5rem;
+    font-size: var(--type-heading-2-size);
   }
 
   h3 {
-    font-size: 1.25rem;
+    font-size: var(--type-heading-3-size);
   }
 
   small {
-    font-size: 0.8125rem;
-    line-height: 1.4;
+    font-size: var(--type-meta-size);
+    line-height: var(--type-meta-line-height);
   }
 
   ::selection {
