@@ -1893,7 +1893,7 @@ export function XWorkmateWorkspacePage({
   }
 
   return (
-    <div className="relative h-full min-h-0 overflow-hidden rounded-[var(--radius-xl)] border border-[color:var(--color-surface-border)] bg-[var(--color-surface-elevated)] shadow-[var(--shadow-md)]">
+    <div className="relative h-full min-h-0 overflow-hidden rounded-[var(--radius-lg)] border border-[color:var(--color-surface-border)] bg-[var(--color-surface-elevated)] shadow-[var(--shadow-md)]">
       {sidebarState === "hidden" ? (
         <div className="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-start p-4">
           <button
@@ -1911,7 +1911,7 @@ export function XWorkmateWorkspacePage({
         {sidebarState !== "hidden" ? (
           <aside
             className={cn(
-              "flex h-full shrink-0 flex-col border-r border-[color:var(--color-surface-border)] bg-[var(--color-background)]/90 px-2.5 py-3 backdrop-blur transition-[width] duration-200",
+              "flex h-full shrink-0 flex-col border-r border-[color:var(--color-surface-border)] bg-[var(--color-background)]/90 px-2 py-2.5 backdrop-blur transition-[width] duration-200",
               collapsed ? "w-[88px]" : "w-[292px]",
             )}
           >
@@ -2027,8 +2027,8 @@ export function XWorkmateWorkspacePage({
         <section className="flex min-w-0 flex-1 flex-col">
           <header
             className={cn(
-              "border-b border-[color:var(--color-surface-border)] px-4",
-              activeSection === "assistant" ? "py-2.5" : "py-4",
+              "border-b border-[color:var(--color-surface-border)] px-3.5",
+              activeSection === "assistant" ? "py-2" : "py-3",
             )}
           >
             <div
@@ -2109,7 +2109,7 @@ export function XWorkmateWorkspacePage({
             </div>
 
             {activeDefinition.tabs.length > 0 ? (
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-3 flex flex-wrap gap-2">
                 {activeDefinition.tabs.map((tab) => (
                   <button
                     key={tab.key}
@@ -2131,11 +2131,11 @@ export function XWorkmateWorkspacePage({
 
           <div
             className={cn(
-              "min-h-0 flex-1 p-4",
+              "min-h-0 flex-1 p-3",
               activeSection === "assistant" ? "overflow-hidden" : "overflow-auto",
             )}
           >
-            <div className={cn("space-y-4", activeSection === "assistant" ? "h-full min-h-0" : "")}>
+            <div className={cn("space-y-3", activeSection === "assistant" ? "h-full min-h-0" : "")}>
               {renderSectionOverview()}
               {renderMainContent()}
             </div>

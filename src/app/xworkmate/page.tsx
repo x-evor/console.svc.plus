@@ -13,7 +13,7 @@ export default function XWorkmatePage() {
   const defaults = getConsoleIntegrationDefaults();
 
   return (
-    <div className="h-[calc(100vh-var(--app-shell-nav-offset))] w-full p-4">
+    <div className="h-[calc(100vh-var(--app-shell-nav-offset))] w-full">
       <Suspense fallback={<XWorkmateLoading />}>
         <XWorkmateWorkspacePage defaults={defaults} />
       </Suspense>
