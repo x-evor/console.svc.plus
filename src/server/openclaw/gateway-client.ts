@@ -161,6 +161,20 @@ export class OpenClawGatewayClient {
     clientMode?: string
     clientLabel?: string
   }): Promise<{ mainSessionKey: string; deviceId: string }> {
+    return this.connectWithRetry(params, true)
+  }
+
+  private async connectWithRetry(
+    params: {
+      gatewayUrl: string
+      gatewayOrigin?: string
+      gatewayToken: string
+      clientId?: string
+      clientMode?: string
+      clientLabel?: string
+    },
+    allowSharedTokenFallback: boolean,
+  ): Promise<{ mainSessionKey: string; deviceId: string }> {
     const url = resolveGatewayUrl(params.gatewayUrl)
     const origin = params.gatewayOrigin?.trim()
     const socket = new WebSocket(url, {
@@ -204,8 +218,8 @@ export class OpenClawGatewayClient {
       role: 'operator',
     })
     const sharedGatewayToken = params.gatewayToken.trim()
-    const authToken = sharedGatewayToken || storedDeviceToken
-    const authDeviceToken = storedDeviceToken
+    const usingDeviceToken = Boolean(storedDeviceToken)
+    const authToken = usingDeviceToken ? storedDeviceToken : sharedGatewayToken
 
     try {
       const nonce = await this.waitForConnectChallenge(socket)
@@ -245,11 +259,10 @@ export class OpenClawGatewayClient {
           caps: ['tool-events'],
           commands: [],
           permissions: {},
-          ...((authToken || authDeviceToken)
+          ...(authToken
             ? {
                 auth: {
-                  ...(authToken ? { token: authToken } : {}),
-                  ...(authDeviceToken ? { deviceToken: authDeviceToken } : {}),
+                  ...(usingDeviceToken ? { deviceToken: authToken } : { token: authToken }),
                 },
               }
             : {}),
@@ -287,11 +300,26 @@ export class OpenClawGatewayClient {
       const gatewayError = error instanceof OpenClawGatewayError ? error : null
       const detailCode = stringValue(asRecord(gatewayError?.details).code)
 
-      if (detailCode === 'AUTH_DEVICE_TOKEN_MISMATCH' && !sharedGatewayToken && authDeviceToken) {
+      if (storedDeviceToken && detailCode === 'AUTH_DEVICE_TOKEN_MISMATCH') {
         await clearOpenClawDeviceToken({
           deviceId: identity.deviceId,
           role: 'operator',
         })
+      }
+
+      const shouldRetryWithSharedToken =
+        allowSharedTokenFallback &&
+        Boolean(sharedGatewayToken) &&
+        Boolean(storedDeviceToken) &&
+        (detailCode === 'AUTH_DEVICE_TOKEN_MISMATCH' || detailCode === 'PAIRING_REQUIRED')
+
+      if (shouldRetryWithSharedToken) {
+        await clearOpenClawDeviceToken({
+          deviceId: identity.deviceId,
+          role: 'operator',
+        })
+        await this.close()
+        return this.connectWithRetry(params, false)
       }
 
       throw error
