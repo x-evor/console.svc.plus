@@ -37,6 +37,7 @@ import {
   type GatewayChatAttachmentPayload,
   type GatewayChatMessage,
   type GatewaySessionSummary,
+  type GatewayTokenSource,
   type IntegrationDefaults,
   type OpenClawBootstrapResponse,
   type OpenClawStreamEvent,
@@ -211,9 +212,8 @@ export function OpenClawAssistantPane({
   const [gatewayHealth, setGatewayHealth] = useState<Record<string, unknown>>(
     {},
   );
-  const [gatewayTokenSource, setGatewayTokenSource] = useState<
-    "env" | "request" | "none"
-  >("none");
+  const [gatewayTokenSource, setGatewayTokenSource] =
+    useState<GatewayTokenSource>("none");
   const [mainSessionKey, setMainSessionKey] = useState("main");
   const [messages, setMessages] = useState<GatewayChatMessage[]>([]);
   const [sessions, setSessions] = useState<GatewaySessionSummary[]>([]);
@@ -231,6 +231,17 @@ export function OpenClawAssistantPane({
   const applyDefaults = useOpenClawConsoleStore((state) => state.applyDefaults);
   const openclawUrl = useOpenClawConsoleStore((state) => state.openclawUrl);
   const openclawToken = useOpenClawConsoleStore((state) => state.openclawToken);
+  const vaultUrl = useOpenClawConsoleStore((state) => state.vaultUrl);
+  const vaultNamespace = useOpenClawConsoleStore(
+    (state) => state.vaultNamespace,
+  );
+  const vaultToken = useOpenClawConsoleStore((state) => state.vaultToken);
+  const vaultSecretPath = useOpenClawConsoleStore(
+    (state) => state.vaultSecretPath,
+  );
+  const vaultSecretKey = useOpenClawConsoleStore(
+    (state) => state.vaultSecretKey,
+  );
   const assistantMode = useOpenClawConsoleStore((state) => state.assistantMode);
   const thinking = useOpenClawConsoleStore((state) => state.thinking);
   const selectedAgentId = useOpenClawConsoleStore(
@@ -313,6 +324,7 @@ export function OpenClawAssistantPane({
       ),
       envToken: pickCopy(isChinese, "环境变量令牌", "env token"),
       sessionToken: pickCopy(isChinese, "会话令牌", "session token"),
+      vaultToken: pickCopy(isChinese, "Vault 令牌", "vault token"),
       noToken: pickCopy(isChinese, "无令牌", "no token"),
       mainAgent: pickCopy(isChinese, "主助手", "Main agent"),
       reconnect: pickCopy(isChinese, "重新连接", "Reconnect"),
@@ -425,6 +437,11 @@ export function OpenClawAssistantPane({
             action: "bootstrap",
             gatewayUrl: openclawUrl,
             gatewayToken: openclawToken,
+            vaultUrl,
+            vaultNamespace,
+            vaultToken,
+            vaultSecretPath,
+            vaultSecretKey,
             agentId: nextAgentId ?? selectedAgentId,
             sessionKey: nextSessionKey ?? selectedSessionKey,
           }),
@@ -463,6 +480,11 @@ export function OpenClawAssistantPane({
       copy.serverMissing,
       openclawToken,
       openclawUrl,
+      vaultNamespace,
+      vaultSecretKey,
+      vaultSecretPath,
+      vaultToken,
+      vaultUrl,
       selectedAgentId,
       selectedSessionKey,
       setSelectedSessionKey,
@@ -564,6 +586,11 @@ export function OpenClawAssistantPane({
             action: "send",
             gatewayUrl: openclawUrl,
             gatewayToken: openclawToken,
+            vaultUrl,
+            vaultNamespace,
+            vaultToken,
+            vaultSecretPath,
+            vaultSecretKey,
             agentId: effectiveAgentId,
             sessionKey: effectiveSessionKey,
             message: prompt,
@@ -642,6 +669,11 @@ export function OpenClawAssistantPane({
       mainSessionKey,
       openclawToken,
       openclawUrl,
+      vaultNamespace,
+      vaultSecretKey,
+      vaultSecretPath,
+      vaultToken,
+      vaultUrl,
       selectedAgentId,
       selectedSessionKey,
       setSelectedAgentId,
@@ -731,6 +763,8 @@ export function OpenClawAssistantPane({
           <span className="text-[var(--color-text-subtle)]/60">·</span>
           {gatewayTokenSource === "env"
             ? copy.envToken
+            : gatewayTokenSource === "vault"
+              ? copy.vaultToken
             : gatewayTokenSource === "request"
               ? copy.sessionToken
               : copy.noToken}

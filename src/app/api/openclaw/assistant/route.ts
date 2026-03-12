@@ -19,6 +19,11 @@ type BootstrapBody = {
   action: 'bootstrap'
   gatewayUrl?: string
   gatewayToken?: string
+  vaultUrl?: string
+  vaultNamespace?: string
+  vaultToken?: string
+  vaultSecretPath?: string
+  vaultSecretKey?: string
   agentId?: string
   sessionKey?: string
 }
@@ -27,6 +32,11 @@ type SendBody = {
   action: 'send'
   gatewayUrl?: string
   gatewayToken?: string
+  vaultUrl?: string
+  vaultNamespace?: string
+  vaultToken?: string
+  vaultSecretPath?: string
+  vaultSecretKey?: string
   agentId?: string
   sessionKey?: string
   message?: string
@@ -62,13 +72,17 @@ function stringValue(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim().length > 0 ? value : undefined
 }
 
+function gatewayErrorCode(error: OpenClawGatewayError | null): string | undefined {
+  return error?.code ?? stringValue(asRecord(error?.details).code)
+}
+
 function formatGatewayError(error: OpenClawGatewayError | null, client: OpenClawGatewayClient): string {
   if (!error) {
     return 'Failed to connect to OpenClaw gateway.'
   }
 
   const details = asRecord(error.details)
-  const detailCode = stringValue(details.code)
+  const detailCode = gatewayErrorCode(error)
   if (detailCode === 'PAIRING_REQUIRED') {
     const requestId = stringValue(details.requestId)
     const reason = stringValue(details.reason)
@@ -99,9 +113,14 @@ function resolveSessionKey(params: {
 }
 
 async function handleBootstrap(body: BootstrapBody): Promise<Response> {
-  const gateway = resolveOpenClawGatewayConfig({
+  const gateway = await resolveOpenClawGatewayConfig({
     gatewayUrl: body.gatewayUrl,
     gatewayToken: body.gatewayToken,
+    vaultUrl: body.vaultUrl,
+    vaultToken: body.vaultToken,
+    vaultNamespace: body.vaultNamespace,
+    vaultSecretPath: body.vaultSecretPath,
+    vaultSecretKey: body.vaultSecretKey,
   })
 
   if (!gateway.gatewayUrl) {
@@ -149,8 +168,8 @@ async function handleBootstrap(body: BootstrapBody): Promise<Response> {
     const gatewayError = error instanceof OpenClawGatewayError ? error : null
     return jsonError(
       formatGatewayError(gatewayError, client),
-      gatewayError?.code === 'OFFLINE' ? 503 : 502,
-      gatewayError?.code,
+      gatewayErrorCode(gatewayError) === 'OFFLINE' ? 503 : 502,
+      gatewayErrorCode(gatewayError),
       gatewayError?.details ?? null,
       client.deviceId || undefined,
     )
@@ -160,9 +179,14 @@ async function handleBootstrap(body: BootstrapBody): Promise<Response> {
 }
 
 async function handleSend(body: SendBody): Promise<Response> {
-  const gateway = resolveOpenClawGatewayConfig({
+  const gateway = await resolveOpenClawGatewayConfig({
     gatewayUrl: body.gatewayUrl,
     gatewayToken: body.gatewayToken,
+    vaultUrl: body.vaultUrl,
+    vaultToken: body.vaultToken,
+    vaultNamespace: body.vaultNamespace,
+    vaultSecretPath: body.vaultSecretPath,
+    vaultSecretKey: body.vaultSecretKey,
   })
 
   if (!gateway.gatewayUrl) {

@@ -2,7 +2,7 @@ export type AssistantMode = 'ask' | 'craft' | 'plan'
 
 export type ThinkingLevel = 'low' | 'medium' | 'high' | 'max'
 
-export type GatewayTokenSource = 'env' | 'request' | 'none'
+export type GatewayTokenSource = 'env' | 'request' | 'vault' | 'none'
 
 export type GatewayAgentSummary = {
   id: string
@@ -83,6 +83,8 @@ export type IntegrationDefaults = {
   vaultUrl: string
   vaultNamespace: string
   vaultTokenConfigured: boolean
+  vaultSecretPath: string
+  vaultSecretKey: string
   apisixUrl: string
   apisixTokenConfigured: boolean
 }

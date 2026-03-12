@@ -14,6 +14,8 @@ type StoredDeviceIdentity = {
 const OPENCLAW_STATE_DIR = path.join(process.cwd(), '.console-state', 'openclaw')
 const DEVICE_IDENTITY_FILE = path.join(OPENCLAW_STATE_DIR, 'gateway-device-identity.json')
 let deviceIdentityPromise: Promise<StoredDeviceIdentity> | null = null
+let memoryDeviceIdentity: StoredDeviceIdentity | null = null
+const memoryDeviceTokens = new Map<string, string>()
 
 function asStoredDeviceIdentity(value: unknown): StoredDeviceIdentity | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -67,12 +69,17 @@ async function writeIdentity(identity: StoredDeviceIdentity): Promise<void> {
 }
 
 export async function loadOrCreateOpenClawDeviceIdentity(): Promise<StoredDeviceIdentity> {
+  if (memoryDeviceIdentity) {
+    return memoryDeviceIdentity
+  }
+
   if (!deviceIdentityPromise) {
     deviceIdentityPromise = (async () => {
       try {
         const raw = await readFile(DEVICE_IDENTITY_FILE, 'utf8')
         const parsed = asStoredDeviceIdentity(JSON.parse(raw))
         if (parsed) {
+          memoryDeviceIdentity = parsed
           return parsed
         }
       } catch {
@@ -94,7 +101,15 @@ export async function loadOrCreateOpenClawDeviceIdentity(): Promise<StoredDevice
         createdAtMs: Date.now(),
       }
 
-      await writeIdentity(identity)
+      memoryDeviceIdentity = identity
+
+      try {
+        await writeIdentity(identity)
+      } catch {
+        // Serverless/preview runtimes may not allow persistent filesystem writes.
+        // Keep an in-memory identity so pairing can still proceed for the current instance.
+      }
+
       return identity
     })()
   }
@@ -111,6 +126,11 @@ export async function loadOpenClawDeviceToken(params: {
   deviceId: string
   role?: string
 }): Promise<string> {
+  const memoryToken = memoryDeviceTokens.get(`${params.deviceId}:${params.role?.trim() || 'operator'}`)
+  if (memoryToken) {
+    return memoryToken
+  }
+
   try {
     const value = await readFile(deviceTokenFile(params.deviceId, params.role), 'utf8')
     return value.trim()
@@ -124,14 +144,23 @@ export async function saveOpenClawDeviceToken(params: {
   role?: string
   token: string
 }): Promise<void> {
-  await ensureStateDirectory()
-  await writeFile(deviceTokenFile(params.deviceId, params.role), `${params.token.trim()}\n`, 'utf8')
+  const key = `${params.deviceId}:${params.role?.trim() || 'operator'}`
+  memoryDeviceTokens.set(key, params.token.trim())
+
+  try {
+    await ensureStateDirectory()
+    await writeFile(deviceTokenFile(params.deviceId, params.role), `${params.token.trim()}\n`, 'utf8')
+  } catch {
+    // Keep the token in memory when the runtime does not permit filesystem writes.
+  }
 }
 
 export async function clearOpenClawDeviceToken(params: {
   deviceId: string
   role?: string
 }): Promise<void> {
+  memoryDeviceTokens.delete(`${params.deviceId}:${params.role?.trim() || 'operator'}`)
+
   try {
     await rm(deviceTokenFile(params.deviceId, params.role), { force: true })
   } catch {

@@ -24,6 +24,9 @@ type ProbeState = {
   tokenSource?: string;
   body?: string;
   error?: string;
+  code?: string;
+  details?: Record<string, unknown> | null;
+  deviceId?: string;
 };
 
 type IntegrationsConsoleProps = {
@@ -80,12 +83,18 @@ function inputClassName(type: "input" | "textarea" = "input"): string {
     .join(" ");
 }
 
+function stringValue(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+}
+
 const EMPTY_DEFAULTS: IntegrationDefaults = {
   openclawUrl: "",
   openclawTokenConfigured: false,
   vaultUrl: "",
   vaultNamespace: "",
   vaultTokenConfigured: false,
+  vaultSecretPath: "",
+  vaultSecretKey: "",
   apisixUrl: "",
   apisixTokenConfigured: false,
 };
@@ -115,6 +124,12 @@ export function IntegrationsConsole({
     (state) => state.vaultNamespace,
   );
   const vaultToken = useOpenClawConsoleStore((state) => state.vaultToken);
+  const vaultSecretPath = useOpenClawConsoleStore(
+    (state) => state.vaultSecretPath,
+  );
+  const vaultSecretKey = useOpenClawConsoleStore(
+    (state) => state.vaultSecretKey,
+  );
   const apisixUrl = useOpenClawConsoleStore((state) => state.apisixUrl);
   const apisixToken = useOpenClawConsoleStore((state) => state.apisixToken);
   const setOpenclawUrl = useOpenClawConsoleStore(
@@ -128,6 +143,12 @@ export function IntegrationsConsole({
     (state) => state.setVaultNamespace,
   );
   const setVaultToken = useOpenClawConsoleStore((state) => state.setVaultToken);
+  const setVaultSecretPath = useOpenClawConsoleStore(
+    (state) => state.setVaultSecretPath,
+  );
+  const setVaultSecretKey = useOpenClawConsoleStore(
+    (state) => state.setVaultSecretKey,
+  );
   const setApisixUrl = useOpenClawConsoleStore((state) => state.setApisixUrl);
   const setApisixToken = useOpenClawConsoleStore(
     (state) => state.setApisixToken,
@@ -175,6 +196,7 @@ export function IntegrationsConsole({
         configured: Boolean(openclawUrl.trim()),
         tokenConfigured:
           resolvedDefaults.openclawTokenConfigured ||
+          Boolean(vaultSecretPath.trim() && (vaultToken.trim() || resolvedDefaults.vaultTokenConfigured)) ||
           Boolean(openclawToken.trim()),
       },
       {
@@ -201,6 +223,7 @@ export function IntegrationsConsole({
       resolvedDefaults.openclawTokenConfigured,
       resolvedDefaults.vaultTokenConfigured,
       vaultToken,
+      vaultSecretPath,
       vaultUrl,
     ],
   );
@@ -219,7 +242,10 @@ export function IntegrationsConsole({
           gatewayUrl: openclawUrl,
           gatewayToken: openclawToken,
           vaultUrl,
+          vaultNamespace,
           vaultToken,
+          vaultSecretPath,
+          vaultSecretKey,
           apisixUrl,
           apisixToken,
         }),
@@ -230,10 +256,13 @@ export function IntegrationsConsole({
         ...current,
         [target]: {
           ok: Boolean(payload.ok),
-          status: payload.status,
+          status: payload.status ?? response.status,
           tokenSource: payload.tokenSource,
           body: payload.body,
           error: payload.error,
+          code: payload.code,
+          details: payload.details ?? null,
+          deviceId: payload.deviceId,
         },
       }));
     } catch (error) {
@@ -242,6 +271,7 @@ export function IntegrationsConsole({
         [target]: {
           ok: false,
           error: error instanceof Error ? error.message : "Probe failed.",
+          details: null,
         },
       }));
     } finally {
@@ -376,15 +406,84 @@ export function IntegrationsConsole({
           <span className="text-xs text-[var(--color-text-subtle)]">
             token source:{" "}
             {probeResults.openclaw.tokenSource ||
-              (resolvedDefaults.openclawTokenConfigured ? "env" : "session")}
+              (openclawToken.trim()
+                ? "request"
+                : resolvedDefaults.openclawTokenConfigured
+                  ? "env"
+                  : vaultSecretPath.trim() &&
+                      (vaultToken.trim() || resolvedDefaults.vaultTokenConfigured)
+                    ? "vault"
+                    : "none")}
           </span>
         </div>
 
         {probeResults.openclaw.error ? (
-          <div className="rounded-[var(--radius-xl)] border border-[color:var(--color-danger-border)] bg-[var(--color-danger-muted)]/40 px-4 py-3 text-sm text-[var(--color-danger-foreground)]">
-            {probeResults.openclaw.error}
+          <div className="space-y-2 rounded-[var(--radius-xl)] border border-[color:var(--color-danger-border)] bg-[var(--color-danger-muted)]/40 px-4 py-3 text-sm text-[var(--color-danger-foreground)]">
+            <p>{probeResults.openclaw.error}</p>
+            {probeResults.openclaw.code ? (
+              <p className="text-xs opacity-80">code: {probeResults.openclaw.code}</p>
+            ) : null}
+            {probeResults.openclaw.deviceId ? (
+              <p className="text-xs opacity-80">
+                deviceId: {probeResults.openclaw.deviceId}
+              </p>
+            ) : null}
+            {stringValue(probeResults.openclaw.details?.requestId) ? (
+              <p className="text-xs opacity-80">
+                requestId: {stringValue(probeResults.openclaw.details?.requestId)}
+              </p>
+            ) : null}
+            {stringValue(probeResults.openclaw.details?.reason) ? (
+              <p className="text-xs opacity-80">
+                reason: {stringValue(probeResults.openclaw.details?.reason)}
+              </p>
+            ) : null}
           </div>
         ) : null}
+      </Card>
+
+      <Card className="space-y-5">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--color-primary-muted)] text-[var(--color-primary)]">
+            <ShieldCheck className="h-5 w-5" />
+          </div>
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold text-[var(--color-heading)]">
+              Vault-backed token lookup
+            </h2>
+            <p className="text-sm text-[var(--color-text-subtle)]">
+              统一从 Vault 读取 OpenClaw / APISIX 等 token。当前会话值仍然优先。
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
+          <Field
+            label="Vault Secret Path"
+            hint="例如 kv/openclaw。留空则不从 Vault secret 读取 token。"
+          >
+            <input
+              type="text"
+              value={vaultSecretPath}
+              onChange={(event) => setVaultSecretPath(event.target.value)}
+              className={inputClassName()}
+              placeholder="kv/openclaw"
+            />
+          </Field>
+
+          <Field
+            label="Vault Secret Key"
+            hint="可选。默认会优先尝试服务默认 key，再回退到 token。"
+          >
+            <input
+              type="text"
+              value={vaultSecretKey}
+              onChange={(event) => setVaultSecretKey(event.target.value)}
+              className={inputClassName()}
+              placeholder="token"
+            />
+          </Field>
+        </div>
       </Card>
 
       <div className="grid gap-6 xl:grid-cols-2">

@@ -15,7 +15,10 @@ type ProbeBody = {
   gatewayUrl?: string
   gatewayToken?: string
   vaultUrl?: string
+  vaultNamespace?: string
   vaultToken?: string
+  vaultSecretPath?: string
+  vaultSecretKey?: string
   apisixUrl?: string
   apisixToken?: string
 }
@@ -34,13 +37,17 @@ function stringValue(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim().length > 0 ? value : undefined
 }
 
+function gatewayErrorCode(error: OpenClawGatewayError | null): string | undefined {
+  return error?.code ?? stringValue(asRecord(error?.details).code)
+}
+
 function formatGatewayError(error: OpenClawGatewayError | null, client: OpenClawGatewayClient): string {
   if (!error) {
     return 'Failed to probe OpenClaw gateway.'
   }
 
   const details = asRecord(error.details)
-  const detailCode = stringValue(details.code)
+  const detailCode = gatewayErrorCode(error)
   if (detailCode === 'PAIRING_REQUIRED') {
     const requestId = stringValue(details.requestId)
     const reason = stringValue(details.reason)
@@ -58,9 +65,14 @@ function formatGatewayError(error: OpenClawGatewayError | null, client: OpenClaw
 }
 
 async function probeOpenClaw(body: ProbeBody): Promise<Response> {
-  const config = resolveOpenClawGatewayConfig({
+  const config = await resolveOpenClawGatewayConfig({
     gatewayUrl: body.gatewayUrl,
     gatewayToken: body.gatewayToken,
+    vaultUrl: body.vaultUrl,
+    vaultToken: body.vaultToken,
+    vaultNamespace: body.vaultNamespace,
+    vaultSecretPath: body.vaultSecretPath,
+    vaultSecretKey: body.vaultSecretKey,
   })
 
   if (!config.gatewayUrl) {
@@ -95,7 +107,7 @@ async function probeOpenClaw(body: ProbeBody): Promise<Response> {
         gatewayUrl: config.gatewayUrl,
         tokenSource: config.tokenSource,
         error: formatGatewayError(gatewayError, client),
-        code: gatewayError?.code,
+        code: gatewayErrorCode(gatewayError),
         details: gatewayError?.details ?? null,
         deviceId: client.deviceId || undefined,
       },
@@ -152,9 +164,13 @@ async function probeVault(body: ProbeBody): Promise<Response> {
 }
 
 async function probeApisix(body: ProbeBody): Promise<Response> {
-  const config = resolveApisixProbeConfig({
+  const config = await resolveApisixProbeConfig({
     apisixUrl: body.apisixUrl,
     apisixToken: body.apisixToken,
+    vaultUrl: body.vaultUrl,
+    vaultToken: body.vaultToken,
+    vaultNamespace: body.vaultNamespace,
+    vaultSecretPath: body.vaultSecretPath,
   })
 
   if (!config.apisixUrl) {

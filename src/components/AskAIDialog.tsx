@@ -34,6 +34,8 @@ export function AskAIDialog({
     vaultUrl: "",
     vaultNamespace: "",
     vaultTokenConfigured: false,
+    vaultSecretPath: "",
+    vaultSecretKey: "",
     apisixUrl: "",
     apisixTokenConfigured: false,
   };

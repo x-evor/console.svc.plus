@@ -429,6 +429,9 @@ export function XWorkmateWorkspacePage({
     (state) => state.vaultNamespace,
   );
   const vaultToken = useOpenClawConsoleStore((state) => state.vaultToken);
+  const vaultSecretPath = useOpenClawConsoleStore(
+    (state) => state.vaultSecretPath,
+  );
   const apisixUrl = useOpenClawConsoleStore((state) => state.apisixUrl);
   const apisixToken = useOpenClawConsoleStore((state) => state.apisixToken);
   const assistantMode = useOpenClawConsoleStore((state) => state.assistantMode);
@@ -493,6 +496,33 @@ export function XWorkmateWorkspacePage({
   const configuredIntegrationCount = integrationRows.filter(
     (item) => item.ok,
   ).length;
+  const hasVaultBackedToken = Boolean(
+    vaultSecretPath.trim() && (vaultToken.trim() || defaults.vaultTokenConfigured),
+  );
+  const hasOpenClawCredential = Boolean(
+    openclawToken.trim() || defaults.openclawTokenConfigured || hasVaultBackedToken,
+  );
+  const openclawConfigSource = openclawToken.trim()
+    ? "session"
+    : defaults.openclawTokenConfigured
+      ? "env"
+      : hasVaultBackedToken
+        ? "vault"
+        : "pairing only";
+  const vaultConfigSource = vaultToken.trim()
+    ? "session"
+    : defaults.vaultTokenConfigured
+      ? "env"
+      : vaultSecretPath.trim()
+        ? "vault path"
+        : "manual";
+  const apisixConfigSource = apisixToken.trim()
+    ? "session"
+    : defaults.apisixTokenConfigured
+      ? "env"
+      : vaultSecretPath.trim()
+        ? "vault path"
+        : "manual";
 
   const tasksOverview = useMemo<OverviewMetric[]>(
     () => [
@@ -520,10 +550,7 @@ export function XWorkmateWorkspacePage({
       },
       {
         label: pickCopy(isChinese, "失败", "Failed"),
-        value:
-          openclawToken.trim() || defaults.openclawTokenConfigured
-            ? "0"
-            : "pairing",
+        value: hasOpenClawCredential ? "0" : "pairing",
         caption: pickCopy(
           isChinese,
           "未配置 shared token 时优先走 pairing",
@@ -543,10 +570,9 @@ export function XWorkmateWorkspacePage({
       },
     ],
     [
-      defaults.openclawTokenConfigured,
+      hasOpenClawCredential,
       isChinese,
       openclawEndpoint,
-      openclawToken,
       selectedSessionKey,
     ],
   );
@@ -618,7 +644,7 @@ export function XWorkmateWorkspacePage({
         label: pickCopy(isChinese, "Token 引用", "Token Refs"),
         value: `${
           [
-            openclawToken.trim() || defaults.openclawTokenConfigured,
+            hasOpenClawCredential,
             vaultToken.trim() || defaults.vaultTokenConfigured,
             apisixToken.trim() || defaults.apisixTokenConfigured,
           ].filter(Boolean).length
@@ -655,10 +681,9 @@ export function XWorkmateWorkspacePage({
       apisixToken,
       configuredIntegrationCount,
       defaults.apisixTokenConfigured,
-      defaults.openclawTokenConfigured,
+      hasOpenClawCredential,
       defaults.vaultTokenConfigured,
       isChinese,
-      openclawToken,
       vaultEndpoint,
       vaultToken,
     ],
@@ -1438,8 +1463,10 @@ export function XWorkmateWorkspacePage({
                   )
                 : pickCopy(
                     isChinese,
-                    "优先 env / pairing",
-                    "env / pairing preferred",
+                    hasVaultBackedToken ? "优先 Vault / env" : "优先 env / pairing",
+                    hasVaultBackedToken
+                      ? "vault / env preferred"
+                      : "env / pairing preferred",
                   )
             }
             ok={Boolean((openclawUrl || defaults.openclawUrl).trim())}
@@ -1642,13 +1669,13 @@ export function XWorkmateWorkspacePage({
             title={pickCopy(isChinese, "当前配置源", "Current config sources")}
             description={pickCopy(
               isChinese,
-              "区分 env 与 session。",
-              "Separate env from session overrides.",
+              "区分 session / env / vault / pairing。",
+              "Separate session, env, vault, and pairing sources.",
             )}
             body={[
-              `OpenClaw: ${openclawToken.trim() ? "session" : defaults.openclawTokenConfigured ? "env" : "pairing only"}`,
-              `Vault: ${vaultToken.trim() ? "session" : defaults.vaultTokenConfigured ? "env" : "manual"}`,
-              `APISIX: ${apisixToken.trim() ? "session" : defaults.apisixTokenConfigured ? "env" : "manual"}`,
+              `OpenClaw: ${openclawConfigSource}`,
+              `Vault: ${vaultConfigSource}`,
+              `APISIX: ${apisixConfigSource}`,
             ].join(" · ")}
           />
         </div>

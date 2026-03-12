@@ -12,6 +12,8 @@ type OpenClawConsoleState = {
   vaultUrl: string
   vaultNamespace: string
   vaultToken: string
+  vaultSecretPath: string
+  vaultSecretKey: string
   apisixUrl: string
   apisixToken: string
   assistantMode: AssistantMode
@@ -24,6 +26,8 @@ type OpenClawConsoleState = {
   setVaultUrl: (value: string) => void
   setVaultNamespace: (value: string) => void
   setVaultToken: (value: string) => void
+  setVaultSecretPath: (value: string) => void
+  setVaultSecretKey: (value: string) => void
   setApisixUrl: (value: string) => void
   setApisixToken: (value: string) => void
   setAssistantMode: (value: AssistantMode) => void
@@ -41,6 +45,8 @@ export const useOpenClawConsoleStore = create<OpenClawConsoleState>()(
       vaultUrl: '',
       vaultNamespace: '',
       vaultToken: '',
+      vaultSecretPath: '',
+      vaultSecretKey: '',
       apisixUrl: '',
       apisixToken: '',
       assistantMode: 'ask',
@@ -54,6 +60,8 @@ export const useOpenClawConsoleStore = create<OpenClawConsoleState>()(
           openclawUrl: current.openclawUrl || defaults.openclawUrl,
           vaultUrl: current.vaultUrl || defaults.vaultUrl,
           vaultNamespace: current.vaultNamespace || defaults.vaultNamespace,
+          vaultSecretPath: current.vaultSecretPath || defaults.vaultSecretPath,
+          vaultSecretKey: current.vaultSecretKey || defaults.vaultSecretKey,
           apisixUrl: current.apisixUrl || defaults.apisixUrl,
         })
       },
@@ -62,6 +70,8 @@ export const useOpenClawConsoleStore = create<OpenClawConsoleState>()(
       setVaultUrl: (vaultUrl) => set({ vaultUrl }),
       setVaultNamespace: (vaultNamespace) => set({ vaultNamespace }),
       setVaultToken: (vaultToken) => set({ vaultToken }),
+      setVaultSecretPath: (vaultSecretPath) => set({ vaultSecretPath }),
+      setVaultSecretKey: (vaultSecretKey) => set({ vaultSecretKey }),
       setApisixUrl: (apisixUrl) => set({ apisixUrl }),
       setApisixToken: (apisixToken) => set({ apisixToken }),
       setAssistantMode: (assistantMode) => set({ assistantMode }),
@@ -78,6 +88,8 @@ export const useOpenClawConsoleStore = create<OpenClawConsoleState>()(
         vaultUrl: state.vaultUrl,
         vaultNamespace: state.vaultNamespace,
         vaultToken: state.vaultToken,
+        vaultSecretPath: state.vaultSecretPath,
+        vaultSecretKey: state.vaultSecretKey,
         apisixUrl: state.apisixUrl,
         apisixToken: state.apisixToken,
         assistantMode: state.assistantMode,
