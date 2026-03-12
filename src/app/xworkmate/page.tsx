@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 
+import { XWorkmateLoading } from "@/app/xworkmate/XWorkmateLoading";
 import { XWorkmateWorkspacePage } from "@/components/xworkmate/XWorkmateWorkspacePage";
 import { getConsoleIntegrationDefaults } from "@/server/consoleIntegrations";
 
@@ -13,13 +14,7 @@ export default function XWorkmatePage() {
 
   return (
     <div className="h-[calc(100vh-var(--app-shell-nav-offset))] w-full p-4">
-      <Suspense
-        fallback={
-          <div className="flex h-full items-center justify-center">
-            Loading XWorkmate...
-          </div>
-        }
-      >
+      <Suspense fallback={<XWorkmateLoading />}>
         <XWorkmateWorkspacePage defaults={defaults} />
       </Suspense>
     </div>

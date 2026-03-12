@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { useLanguage } from "@/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import {
   makeAgentSessionKey,
@@ -56,24 +57,9 @@ type ComposerAttachment = GatewayChatAttachmentPayload & {
 
 type ConnectionState = "idle" | "connecting" | "ready" | "error";
 
-const QUICK_ACTIONS = [
-  "写代码",
-  "分析日志",
-  "梳理方案",
-  "排查部署",
-  "生成步骤",
-];
-const THINKING_OPTIONS = [
-  { value: "low", label: "Low" },
-  { value: "medium", label: "Medium" },
-  { value: "high", label: "High" },
-  { value: "max", label: "Max" },
-] as const;
-const MODE_OPTIONS = [
-  { value: "ask", label: "Ask" },
-  { value: "craft", label: "Craft" },
-  { value: "plan", label: "Plan" },
-] as const;
+function pickCopy(isChinese: boolean, zh: string, en: string): string {
+  return isChinese ? zh : en;
+}
 
 function renderMarkdown(value: string): string {
   return DOMPurify.sanitize(marked.parse(value) as string);
@@ -92,13 +78,13 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return window.btoa(binary);
 }
 
-function formatTimestamp(value?: number): string {
+function formatTimestamp(value: number | undefined, locale: string): string {
   if (!value) {
     return "";
   }
 
   try {
-    return new Intl.DateTimeFormat("zh-CN", {
+    return new Intl.DateTimeFormat(locale, {
       hour: "2-digit",
       minute: "2-digit",
       month: "2-digit",
@@ -110,19 +96,26 @@ function formatTimestamp(value?: number): string {
 }
 
 function composePrompt(params: {
+  isChinese: boolean;
   mode: "ask" | "craft" | "plan";
   prompt: string;
   attachments: ComposerAttachment[];
 }): string {
   const attachmentBlock = params.attachments.length
-    ? `Attached files:\n${params.attachments.map((item) => `- ${item.fileName}`).join("\n")}\n\n`
+    ? params.isChinese
+      ? `附件：\n${params.attachments.map((item) => `- ${item.fileName}`).join("\n")}\n\n`
+      : `Attached files:\n${params.attachments.map((item) => `- ${item.fileName}`).join("\n")}\n\n`
     : "";
 
   switch (params.mode) {
     case "craft":
-      return `${attachmentBlock}Craft a polished result for this request:\n${params.prompt}`;
+      return params.isChinese
+        ? `${attachmentBlock}请为这个请求生成一份清晰、完整、可直接使用的结果：\n${params.prompt}`
+        : `${attachmentBlock}Craft a polished result for this request:\n${params.prompt}`;
     case "plan":
-      return `${attachmentBlock}Create a clear execution plan for this task:\n${params.prompt}`;
+      return params.isChinese
+        ? `${attachmentBlock}请为这个任务生成一份清晰的执行计划：\n${params.prompt}`
+        : `${attachmentBlock}Create a clear execution plan for this task:\n${params.prompt}`;
     default:
       return `${attachmentBlock}${params.prompt}`;
   }
@@ -201,6 +194,8 @@ export function OpenClawAssistantPane({
   variant = "page",
 }: OpenClawAssistantPaneProps) {
   const router = useRouter();
+  const { language } = useLanguage();
+  const isChinese = language === "zh";
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const bootstrappedRef = useRef(false);
@@ -254,6 +249,105 @@ export function OpenClawAssistantPane({
   );
 
   const compact = variant === "sidebar";
+  const locale = isChinese ? "zh-CN" : "en-US";
+
+  const quickActions = useMemo(
+    () =>
+      isChinese
+        ? ["写代码", "分析日志", "梳理方案", "排查部署", "生成步骤"]
+        : [
+            "Write code",
+            "Analyze logs",
+            "Outline a plan",
+            "Debug deployment",
+            "Generate steps",
+          ],
+    [isChinese],
+  );
+  const thinkingOptions = useMemo(
+    () => [
+      { value: "low", label: pickCopy(isChinese, "低", "Low") },
+      { value: "medium", label: pickCopy(isChinese, "中", "Medium") },
+      { value: "high", label: pickCopy(isChinese, "高", "High") },
+      { value: "max", label: pickCopy(isChinese, "最高", "Max") },
+    ],
+    [isChinese],
+  );
+  const modeOptions = useMemo(
+    () => [
+      { value: "ask", label: pickCopy(isChinese, "提问", "Ask") },
+      { value: "craft", label: pickCopy(isChinese, "生成", "Craft") },
+      { value: "plan", label: pickCopy(isChinese, "规划", "Plan") },
+    ],
+    [isChinese],
+  );
+  const copy = useMemo(
+    () => ({
+      serverMissing: pickCopy(
+        isChinese,
+        "未配置 OpenClaw gateway 地址，请先到接口集成页面填写。",
+        "OpenClaw gateway is not configured yet. Fill it in from Integrations first.",
+      ),
+      bootstrapFailed: pickCopy(
+        isChinese,
+        "助手初始化失败。",
+        "Failed to bootstrap assistant.",
+      ),
+      connectFailed: pickCopy(
+        isChinese,
+        "连接 OpenClaw gateway 失败。",
+        "Failed to connect to OpenClaw gateway.",
+      ),
+      captureFailed: pickCopy(
+        isChinese,
+        "截图生成失败。",
+        "Failed to capture screenshot.",
+      ),
+      attachedFallback: pickCopy(isChinese, "见附件。", "See attached."),
+      sendFailed: pickCopy(
+        isChinese,
+        "发送消息失败。",
+        "Failed to send message.",
+      ),
+      envToken: pickCopy(isChinese, "环境变量令牌", "env token"),
+      sessionToken: pickCopy(isChinese, "会话令牌", "session token"),
+      noToken: pickCopy(isChinese, "无令牌", "no token"),
+      mainAgent: pickCopy(isChinese, "主助手", "Main agent"),
+      reconnect: pickCopy(isChinese, "重新连接", "Reconnect"),
+      integrations: pickCopy(isChinese, "接口集成", "Integrations"),
+      configureGateway: pickCopy(
+        isChinese,
+        "配置 OpenClaw gateway",
+        "Configure OpenClaw gateway",
+      ),
+      configureGatewayHint: pickCopy(
+        isChinese,
+        "当前没有可用的 OpenClaw 地址。先到融合设置填写 gateway / vault / APISIX，再回来启动 XWorkmate。",
+        "No OpenClaw endpoint is available yet. Configure gateway, vault, and APISIX first, then return to XWorkmate.",
+      ),
+      openIntegrations: pickCopy(isChinese, "打开接口集成", "Open integrations"),
+      assistantTitle: pickCopy(isChinese, "XWorkmate 助手", "XWorkmate Assistant"),
+      assistantHint: pickCopy(
+        isChinese,
+        "侧栏模式与主页布局保持不变，消息会通过 OpenClaw gateway 进入 XWorkmate。你可以上传文件、贴图，或直接截当前页给助手分析。",
+        "The page and sidebar layout stay aligned. Messages flow through the OpenClaw gateway into XWorkmate. Upload files, paste images, or capture the current page for analysis.",
+      ),
+      placeholder: pickCopy(
+        isChinese,
+        "向 XWorkmate 助手描述任务，或先截个图再发。",
+        "Describe the task for XWorkmate, or capture a screenshot before sending.",
+      ),
+      attachment: pickCopy(isChinese, "附件", "Attach"),
+      capturePage: pickCopy(isChinese, "当前页截图", "Capture page"),
+      send: pickCopy(isChinese, "发送", "Send"),
+      mainSession: pickCopy(isChinese, "主会话", "main"),
+      online: pickCopy(isChinese, "在线", "online"),
+      connecting: pickCopy(isChinese, "连接中", "connecting"),
+      error: pickCopy(isChinese, "错误", "error"),
+      offline: pickCopy(isChinese, "离线", "offline"),
+    }),
+    [isChinese],
+  );
 
   useEffect(() => {
     applyDefaults(defaults);
@@ -281,15 +375,23 @@ export function OpenClawAssistantPane({
 
     switch (connectionState) {
       case "ready":
-        return "online";
+        return copy.online;
       case "connecting":
-        return "connecting";
+        return copy.connecting;
       case "error":
-        return "error";
+        return copy.error;
       default:
-        return "offline";
+        return copy.offline;
     }
-  }, [connectionState, gatewayHealth.status, gatewayStatus.connection]);
+  }, [
+    connectionState,
+    copy.connecting,
+    copy.error,
+    copy.offline,
+    copy.online,
+    gatewayHealth.status,
+    gatewayStatus.connection,
+  ]);
 
   const renderedMessages = useMemo(
     () =>
@@ -304,9 +406,7 @@ export function OpenClawAssistantPane({
     async (nextSessionKey?: string, nextAgentId?: string): Promise<void> => {
       if (!openclawUrl.trim()) {
         setConnectionState("error");
-        setErrorMessage(
-          "未配置 OpenClaw gateway 地址，请先到接口集成页面填写。",
-        );
+        setErrorMessage(copy.serverMissing);
         return;
       }
 
@@ -333,10 +433,7 @@ export function OpenClawAssistantPane({
           | { error?: string };
 
         if (!response.ok || "error" in payload) {
-          throw new Error(
-            (payload as { error?: string }).error ||
-              "Failed to bootstrap assistant.",
-          );
+          throw new Error((payload as { error?: string }).error || copy.bootstrapFailed);
         }
 
         const data = payload as OpenClawBootstrapResponse;
@@ -354,13 +451,14 @@ export function OpenClawAssistantPane({
       } catch (error) {
         setConnectionState("error");
         setErrorMessage(
-          error instanceof Error
-            ? error.message
-            : "Failed to connect to OpenClaw gateway.",
+          error instanceof Error ? error.message : copy.connectFailed,
         );
       }
     },
     [
+      copy.bootstrapFailed,
+      copy.connectFailed,
+      copy.serverMissing,
       openclawToken,
       openclawUrl,
       selectedAgentId,
@@ -393,7 +491,7 @@ export function OpenClawAssistantPane({
       });
 
       if (!blob) {
-        throw new Error("截图生成失败。");
+        throw new Error(copy.captureFailed);
       }
 
       const attachment = await fileToAttachment(
@@ -405,9 +503,7 @@ export function OpenClawAssistantPane({
       setAttachments((current) => [...current, attachment]);
     } catch (error) {
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Failed to capture screenshot.",
+        error instanceof Error ? error.message : copy.captureFailed,
       );
     } finally {
       setIsCapturing(false);
@@ -428,8 +524,9 @@ export function OpenClawAssistantPane({
         makeAgentSessionKey(effectiveAgentId, mainSessionKey);
 
       const prompt = composePrompt({
+        isChinese,
         mode: assistantMode,
-        prompt: rawPrompt || "See attached.",
+        prompt: rawPrompt || copy.attachedFallback,
         attachments,
       });
 
@@ -438,12 +535,12 @@ export function OpenClawAssistantPane({
       setStreamingText("");
       setMessages((current) => [
         ...current,
-        {
-          id: randomId(),
-          role: "user",
-          text: rawPrompt || "See attached.",
-          timestampMs: Date.now(),
-        },
+          {
+            id: randomId(),
+            role: "user",
+            text: rawPrompt || copy.attachedFallback,
+            timestampMs: Date.now(),
+          },
       ]);
       setComposerValue("");
 
@@ -476,8 +573,8 @@ export function OpenClawAssistantPane({
         if (!response.ok || !response.body) {
           const payload = await response
             .json()
-            .catch(() => ({ error: "Failed to send message." }));
-          throw new Error(payload.error || "Failed to send message.");
+            .catch(() => ({ error: copy.sendFailed }));
+          throw new Error(payload.error || copy.sendFailed);
         }
 
         const reader = response.body.getReader();
@@ -524,9 +621,7 @@ export function OpenClawAssistantPane({
           }
         }
       } catch (error) {
-        setErrorMessage(
-          error instanceof Error ? error.message : "Failed to send message.",
-        );
+        setErrorMessage(error instanceof Error ? error.message : copy.sendFailed);
         setStreamingText("");
       } finally {
         setAttachments([]);
@@ -538,7 +633,10 @@ export function OpenClawAssistantPane({
       agents,
       assistantMode,
       attachments,
+      copy.attachedFallback,
+      copy.sendFailed,
       composerValue,
+      isChinese,
       mainSessionKey,
       openclawToken,
       openclawUrl,
@@ -630,10 +728,10 @@ export function OpenClawAssistantPane({
           {healthBadge}
           <span className="text-[var(--color-text-subtle)]/60">·</span>
           {gatewayTokenSource === "env"
-            ? "env token"
+            ? copy.envToken
             : gatewayTokenSource === "request"
-              ? "session token"
-              : "no token"}
+              ? copy.sessionToken
+              : copy.noToken}
         </div>
 
         <div className="min-w-[180px] flex-1">
@@ -646,7 +744,7 @@ export function OpenClawAssistantPane({
             }}
             className="w-full rounded-full border border-[color:var(--color-surface-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[color:var(--color-primary)]"
           >
-            <option value="">Main agent</option>
+            <option value="">{copy.mainAgent}</option>
             {agents.map((agent) => (
               <option key={agent.id} value={agent.id}>
                 {agent.emoji ? `${agent.emoji} ` : ""}
@@ -668,7 +766,7 @@ export function OpenClawAssistantPane({
           ) : (
             <RefreshCw className="h-3.5 w-3.5" />
           )}
-          Reconnect
+          {copy.reconnect}
         </button>
 
         <button
@@ -677,7 +775,7 @@ export function OpenClawAssistantPane({
           className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-primary-border)] bg-[var(--color-primary-muted)] px-3 py-2 text-xs font-semibold text-[var(--color-primary)] transition hover:opacity-90"
         >
           <Settings2 className="h-3.5 w-3.5" />
-          Integrations
+          {copy.integrations}
         </button>
       </div>
 
@@ -714,11 +812,10 @@ export function OpenClawAssistantPane({
               <Sparkles className="h-8 w-8 text-[var(--color-primary)]" />
               <div className="space-y-2">
                 <h3 className="text-base font-semibold text-[var(--color-heading)]">
-                  配置 OpenClaw gateway
+                  {copy.configureGateway}
                 </h3>
                 <p className="text-sm text-[var(--color-text-subtle)]">
-                  当前没有可用的 OpenClaw 地址。先到融合设置填写 gateway / vault
-                  / APISIX，再回来启动 XWorkmate。
+                  {copy.configureGatewayHint}
                 </p>
               </div>
               <button
@@ -726,7 +823,7 @@ export function OpenClawAssistantPane({
                 onClick={() => router.push("/panel/api")}
                 className="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-[var(--color-primary-foreground)]"
               >
-                打开接口集成
+                {copy.openIntegrations}
                 <ChevronRight className="h-4 w-4" />
               </button>
             </div>
@@ -737,15 +834,14 @@ export function OpenClawAssistantPane({
               </div>
               <div className="space-y-2">
                 <h3 className="text-base font-semibold text-[var(--color-heading)]">
-                  XWorkmate Assistant
+                  {copy.assistantTitle}
                 </h3>
                 <p className="text-sm text-[var(--color-text-subtle)]">
-                  侧栏模式与主页布局保持不变，消息会通过 OpenClaw gateway 进入
-                  XWorkmate。你可以上传文件、贴图，或直接截当前页给助手分析。
+                  {copy.assistantHint}
                 </p>
               </div>
               <div className="flex flex-wrap justify-center gap-2">
-                {QUICK_ACTIONS.map((action) => (
+                {quickActions.map((action) => (
                   <button
                     key={action}
                     type="button"
@@ -796,7 +892,7 @@ export function OpenClawAssistantPane({
                               : "text-[var(--color-text-subtle)]",
                           )}
                         >
-                          {formatTimestamp(message.timestampMs)}
+                          {formatTimestamp(message.timestampMs, locale)}
                         </p>
                       ) : null}
                     </div>
@@ -822,7 +918,7 @@ export function OpenClawAssistantPane({
 
         <div className="border-t border-[color:var(--color-surface-border)] px-4 py-4">
           <div className="flex flex-wrap items-center gap-2">
-            {MODE_OPTIONS.map((option) => (
+            {modeOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
@@ -847,7 +943,7 @@ export function OpenClawAssistantPane({
                 }
                 className="bg-transparent text-xs outline-none"
               >
-                {THINKING_OPTIONS.map((option) => (
+                {thinkingOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -896,7 +992,7 @@ export function OpenClawAssistantPane({
               ref={textareaRef}
               rows={compact ? 4 : 5}
               value={composerValue}
-              placeholder="向 XWorkmate 助手描述任务，或先截个图再发。"
+              placeholder={copy.placeholder}
               onChange={(event) => setComposerValue(event.target.value)}
               onKeyDown={handleTextareaKeyDown}
               onPaste={(event) => {
@@ -916,7 +1012,7 @@ export function OpenClawAssistantPane({
                 className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-surface-border)] px-3 py-1.5 text-xs font-semibold text-[var(--color-text)] transition hover:border-[color:var(--color-primary-border)] hover:bg-[var(--color-surface-muted)]"
               >
                 <Paperclip className="h-3.5 w-3.5" />
-                附件
+                {copy.attachment}
               </button>
 
               <button
@@ -932,7 +1028,7 @@ export function OpenClawAssistantPane({
                 ) : (
                   <Camera className="h-3.5 w-3.5" />
                 )}
-                当前页截图
+                {copy.capturePage}
               </button>
 
               <div className="ml-auto flex items-center gap-2 text-xs text-[var(--color-text-subtle)]">
@@ -941,7 +1037,7 @@ export function OpenClawAssistantPane({
                   {activeSession?.derivedTitle ||
                     activeSession?.displayName ||
                     selectedSessionKey ||
-                    "main"}
+                    copy.mainSession}
                 </span>
               </div>
 
@@ -961,7 +1057,7 @@ export function OpenClawAssistantPane({
                 ) : (
                   <SendHorizonal className="h-4 w-4" />
                 )}
-                发送
+                {copy.send}
               </button>
             </div>
           </div>

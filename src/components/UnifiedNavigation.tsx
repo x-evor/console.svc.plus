@@ -191,6 +191,10 @@ export default function UnifiedNavigation() {
     <>
       <nav
         ref={navRef}
+        style={{
+          width: "calc(100% + var(--assistant-reserve-offset, 0px))",
+          marginRight: "calc(var(--assistant-reserve-offset, 0px) * -1)",
+        }}
         className="sticky top-0 z-50 w-full border-b border-surface-border bg-background/95 text-text backdrop-blur transition-colors duration-150"
       >
         <div className="lg:hidden flex items-center justify-between px-4 py-3 bg-background">

@@ -37,6 +37,11 @@ export function AppProviders({
       <LanguageProvider>
         <div className="flex flex-col min-h-screen">
           <div
+            style={
+              {
+                "--assistant-reserve-offset": reserveSpace ? "400px" : "0px",
+              } as React.CSSProperties
+            }
             className={cn(
               "flex-1 flex flex-col relative w-full overflow-hidden transition-[padding] duration-300 ease-in-out",
               reserveSpace ? "pr-[400px]" : "",
