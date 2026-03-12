@@ -11,19 +11,19 @@
   --app-shell-nav-offset: 5.5rem;
 
   /* Light theme defaults */
-  --color-background: #f4f6fb;
-  --color-background-muted: #e7ecf6;
+  --color-background: #f7f7f8;
+  --color-background-muted: #ececef;
   --color-surface: #ffffff;
   --color-surface-elevated: rgba(255, 255, 255, 0.96);
-  --color-surface-translucent: rgba(255, 255, 255, 0.88);
-  --color-surface-muted: #f1f4fb;
-  --color-surface-hover: #f0f4ff;
-  --color-surface-border: #d6e0ff;
-  --color-surface-border-strong: #b4c5ff;
-  --color-text: #1e2e55;
-  --color-heading: #2e3a59;
-  --color-text-muted: #4a5672;
-  --color-text-subtle: #61708c;
+  --color-surface-translucent: rgba(255, 255, 255, 0.92);
+  --color-surface-muted: #f3f4f6;
+  --color-surface-hover: #f7f8fb;
+  --color-surface-border: #e5e7eb;
+  --color-surface-border-strong: #d1d5db;
+  --color-text: #0d0d0d;
+  --color-heading: #111827;
+  --color-text-muted: #4b5563;
+  --color-text-subtle: #6b7280;
   --color-text-inverse: #f8fbff;
   --color-primary: #3366ff;
   --color-primary-hover: #4d7aff;
@@ -45,31 +45,92 @@
   --color-info: #3366ff;
   --color-info-muted: #f0f4ff;
   --color-info-foreground: #254edb;
-  --color-overlay: rgba(30, 46, 85, 0.45);
+  --color-overlay: rgba(17, 24, 39, 0.42);
   --color-ring: #d6e0ff;
   --color-focus: rgba(51, 102, 255, 0.35);
-  --color-divider: rgba(15, 23, 42, 0.08);
+  --color-divider: rgba(17, 24, 39, 0.08);
   --color-badge-surface: #e5e7eb;
   --color-badge-muted: #f3f4f6;
   --color-badge-foreground: #1f2937;
 
-  --gradient-app-from: #f5f8ff;
-  --gradient-app-via: #eef3ff;
-  --gradient-app-to: #f4f9ff;
+  --gradient-app-from: #fafafa;
+  --gradient-app-via: #f4f5f7;
+  --gradient-app-to: #f7f7f8;
   --gradient-primary-from: #3366ff;
   --gradient-primary-to: #254edb;
 
-  --shadow-sm: 0 1px 3px rgba(30, 46, 85, 0.08), 0 1px 2px rgba(30, 46, 85, 0.04);
-  --shadow-md: 0 12px 32px rgba(30, 46, 85, 0.12);
+  --shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.06), 0 1px 3px rgba(17, 24, 39, 0.04);
+  --shadow-md: 0 10px 24px rgba(17, 24, 39, 0.08);
 
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.125rem;
   --radius-pill: 999px;
+}
+
+html {
+  font-family: var(--font-geist-sans);
+  font-size: 16px;
 }
 
 body {
   font-family: var(--font-geist-sans);
+  font-size: 1rem;
+  line-height: 1.5;
   background-color: var(--color-background);
   color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   transition: background-color 150ms ease, color 150ms ease;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+p,
+li,
+label,
+input,
+textarea,
+select,
+button {
+  line-height: 1.5;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--color-heading);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  small {
+    font-size: 0.8125rem;
+    line-height: 1.4;
+  }
+
+  ::selection {
+    background: rgba(51, 102, 255, 0.18);
+  }
 }
