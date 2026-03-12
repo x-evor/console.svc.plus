@@ -280,9 +280,6 @@ function SidebarSectionButton({
       {!collapsed ? (
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">{section.label}</p>
-          <p className="mt-0.5 line-clamp-2 text-[11px] text-[var(--color-text-subtle)]">
-            {section.description}
-          </p>
         </div>
       ) : null}
     </button>
@@ -418,7 +415,7 @@ export function XWorkmateWorkspacePage({
     useState<WorkspaceDestination>("assistant");
   const [activeTabs, setActiveTabs] =
     useState<Record<WorkspaceDestination, string>>(INITIAL_TABS);
-  const [sidebarState, setSidebarState] = useState<SidebarState>("collapsed");
+  const [sidebarState, setSidebarState] = useState<SidebarState>("expanded");
   const { resolvedTheme, toggleTheme, isDark } = useTheme();
   const user = useUserStore((state) => state.user);
 
@@ -811,141 +808,6 @@ export function XWorkmateWorkspacePage({
 
   function renderAssistantSection(): ReactNode {
     return <OpenClawAssistantPane defaults={defaults} variant="page" />;
-  }
-
-  function renderAssistantSidebarContent(): ReactNode {
-    return (
-      <div className="space-y-4">
-        <Card className="space-y-4">
-          <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-text-subtle)]">
-              XWorkmate
-            </p>
-            <h2 className="text-xl font-semibold text-[var(--color-heading)]">
-              {pickCopy(
-                isChinese,
-                "在线助手工作台",
-                "Online assistant workspace",
-              )}
-            </h2>
-            <p className="text-sm text-[var(--color-text-subtle)]">
-              {pickCopy(
-                isChinese,
-                "和桌面端一样，主屏负责对话、截图、附件和执行反馈；OpenClaw 只保留为底层 gateway。",
-                "Like desktop, the main workspace owns chat, screenshots, attachments, and execution feedback while OpenClaw remains the underlying gateway.",
-              )}
-            </p>
-          </div>
-          <div className="grid gap-3">
-            {integrationRows.map((row) => (
-              <StatusRow
-                key={row.label}
-                label={row.label}
-                value={row.value}
-                ok={row.ok}
-              />
-            ))}
-          </div>
-        </Card>
-
-        <SurfaceCard
-          icon={Workflow}
-          title={pickCopy(
-            isChinese,
-            "截图仍然走聊天模式",
-            "Screenshots stay in assistant chat mode",
-          )}
-          description={pickCopy(
-            isChinese,
-            "不再套壳 browser automation/control UI。",
-            "No browser automation shell or separate control UI.",
-          )}
-          body={pickCopy(
-            isChinese,
-            "当前页截图会直接作为附件进入会话，和文本、日志、图片共用同一条 assistant 流程。",
-            "Current-page screenshots enter the same assistant flow as text, logs, and images.",
-          )}
-          action={
-            <button
-              type="button"
-              onClick={() => setActiveSection("tasks")}
-              className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-surface-border)] px-4 py-2 text-sm font-medium text-[var(--color-text)] transition hover:border-[color:var(--color-primary-border)] hover:bg-[var(--color-surface-muted)]"
-            >
-              {pickCopy(isChinese, "查看任务视图", "Open tasks view")}
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          }
-        />
-
-        <SurfaceCard
-          icon={ShieldCheck}
-          title={pickCopy(
-            isChinese,
-            "Pairing 优先，其次 token",
-            "Pairing first, token second",
-          )}
-          description={pickCopy(
-            isChinese,
-            "已经接入 challenge / device token 模式。",
-            "The challenge / device token pairing flow is active.",
-          )}
-          body={pickCopy(
-            isChinese,
-            "首次连接可以使用 shared token 建链，后续回落到 device token。认证失配时会自动提示重新配对。",
-            "The first connection can use a shared token, then fall back to a stored device token. Pairing guidance appears automatically if auth drifts.",
-          )}
-          action={
-            <button
-              type="button"
-              onClick={() => {
-                setActiveSection("settings");
-                setActiveTabs((current) => ({
-                  ...current,
-                  settings: "integrations",
-                }));
-              }}
-              className="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-[var(--color-primary-foreground)]"
-            >
-              {pickCopy(
-                isChinese,
-                "打开融合设置",
-                "Open integration settings",
-              )}
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          }
-        />
-
-        <SurfaceCard
-          icon={Waypoints}
-          title={pickCopy(isChinese, "工作区默认值", "Workspace defaults")}
-          description={pickCopy(
-            isChinese,
-            "当前会话状态",
-            "Current session state",
-          )}
-          body={`${pickCopy(isChinese, "模式", "Mode")}: ${assistantMode} · ${pickCopy(isChinese, "推理", "Reasoning")}: ${thinking} · ${pickCopy(isChinese, "会话", "Session")}: ${selectedSessionKey || "main"}`}
-          action={
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href="/panel/api"
-                className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-surface-border)] px-4 py-2 text-sm font-medium text-[var(--color-text)] transition hover:border-[color:var(--color-primary-border)] hover:bg-[var(--color-surface-muted)]"
-              >
-                API
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/panel"
-                className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-surface-border)] px-4 py-2 text-sm font-medium text-[var(--color-text)] transition hover:border-[color:var(--color-primary-border)] hover:bg-[var(--color-surface-muted)]"
-              >
-                Console
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          }
-        />
-      </div>
-    );
   }
 
   function renderTasksSection(): ReactNode {
@@ -1951,11 +1813,6 @@ export function XWorkmateWorkspacePage({
                 />
               ))}
 
-              {!collapsed && activeSection === "assistant" ? (
-                <div className="space-y-3 border-t border-[color:var(--color-surface-border)] pt-4">
-                  {renderAssistantSidebarContent()}
-                </div>
-              ) : null}
             </div>
 
             <div className="mt-4 space-y-2 border-t border-[color:var(--color-surface-border)] pt-4">
@@ -2084,31 +1941,35 @@ export function XWorkmateWorkspacePage({
                     {pickCopy(isChinese, "收展侧栏", "Toggle sidebar")}
                   </button>
                 ) : null}
-                <Link
-                  href="/panel"
-                  className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-surface-border)] px-3.5 py-2 text-sm font-medium text-[var(--color-text)] transition hover:border-[color:var(--color-primary-border)] hover:bg-[var(--color-surface-muted)]"
-                >
-                  Console
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveSection("settings");
-                    setActiveTabs((current) => ({
-                      ...current,
-                      settings: "integrations",
-                    }));
-                  }}
-                  className="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-3.5 py-2 text-sm font-semibold text-[var(--color-primary-foreground)]"
-                >
-                  {pickCopy(isChinese, "融合设置", "Integration settings")}
-                  <ArrowRight className="h-4 w-4" />
-                </button>
+                {activeSection !== "assistant" ? (
+                  <>
+                    <Link
+                      href="/panel"
+                      className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-surface-border)] px-3.5 py-2 text-sm font-medium text-[var(--color-text)] transition hover:border-[color:var(--color-primary-border)] hover:bg-[var(--color-surface-muted)]"
+                    >
+                      Console
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveSection("settings");
+                        setActiveTabs((current) => ({
+                          ...current,
+                          settings: "integrations",
+                        }));
+                      }}
+                      className="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-3.5 py-2 text-sm font-semibold text-[var(--color-primary-foreground)]"
+                    >
+                      {pickCopy(isChinese, "融合设置", "Integration settings")}
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </>
+                ) : null}
               </div>
             </div>
 
-            {activeDefinition.tabs.length > 0 ? (
+            {activeDefinition.tabs.length > 0 && activeSection !== "assistant" ? (
               <div className="mt-3 flex flex-wrap gap-2">
                 {activeDefinition.tabs.map((tab) => (
                   <button
