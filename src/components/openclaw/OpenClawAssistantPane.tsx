@@ -264,6 +264,7 @@ export function OpenClawAssistantPane({
 
   const compact = variant === "sidebar";
   const locale = isChinese ? "zh-CN" : "en-US";
+  const compactConnected = compact && connectionState === "ready";
 
   const quickActions = useMemo(
     () =>
@@ -346,6 +347,11 @@ export function OpenClawAssistantPane({
         isChinese,
         "侧栏模式与主页布局保持不变，消息会通过 OpenClaw gateway 进入 XWorkmate。你可以上传文件、贴图，或直接截当前页给助手分析。",
         "The page and sidebar layout stay aligned. Messages flow through the OpenClaw gateway into XWorkmate. Upload files, paste images, or capture the current page for analysis.",
+      ),
+      compactHint: pickCopy(
+        isChinese,
+        "直接开始对话，必要时再补充附件或截图。",
+        "Start the conversation and add files or a screenshot only when needed.",
       ),
       placeholder: pickCopy(
         isChinese,
@@ -765,14 +771,18 @@ export function OpenClawAssistantPane({
             )}
           />
           {healthBadge}
-          <span className="text-[var(--color-text-subtle)]/60">·</span>
-          {gatewayTokenSource === "env"
-            ? copy.envToken
-            : gatewayTokenSource === "vault"
-              ? copy.vaultToken
-            : gatewayTokenSource === "request"
-              ? copy.sessionToken
-              : copy.noToken}
+          {!compactConnected ? (
+            <>
+              <span className="text-[var(--color-text-subtle)]/60">·</span>
+              {gatewayTokenSource === "env"
+                ? copy.envToken
+                : gatewayTokenSource === "vault"
+                  ? copy.vaultToken
+                  : gatewayTokenSource === "request"
+                    ? copy.sessionToken
+                    : copy.noToken}
+            </>
+          ) : null}
         </div>
 
         <div className="min-w-[164px] flex-1">
@@ -801,51 +811,55 @@ export function OpenClawAssistantPane({
             void connectGateway();
           }}
           className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-surface-border)] px-3 py-1.5 text-[11px] font-semibold text-[var(--color-text)] transition hover:border-[color:var(--color-primary-border)] hover:bg-[var(--color-surface-muted)]"
+          title={copy.reconnect}
         >
           {connectionState === "connecting" ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : (
             <RefreshCw className="h-3.5 w-3.5" />
           )}
-          {copy.reconnect}
+          {!compactConnected ? copy.reconnect : null}
         </button>
 
         <button
           type="button"
           onClick={() => router.push("/panel/api")}
           className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-primary-border)] bg-[var(--color-primary-muted)] px-3 py-1.5 text-[11px] font-semibold text-[var(--color-primary)] transition hover:opacity-90"
+          title={copy.integrations}
         >
           <Settings2 className="h-3.5 w-3.5" />
-          {copy.integrations}
+          {!compactConnected ? copy.integrations : null}
         </button>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="border-b border-[color:var(--color-surface-border)] px-3 py-2.5">
-          <div className="flex flex-wrap gap-2">
-            {sessions.slice(0, compact ? 4 : 8).map((session) => (
-              <button
-                key={session.key}
-                type="button"
-                onClick={() => {
-                  setSelectedSessionKey(session.key);
-                  void connectGateway(session.key);
-                }}
-                className={cn(
-                  "inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] transition",
-                  session.key === selectedSessionKey
-                    ? "border-[color:var(--color-primary)] bg-[var(--color-primary-muted)] text-[var(--color-primary)]"
-                    : "border-[color:var(--color-surface-border)] bg-[var(--color-surface)] text-[var(--color-text-subtle)] hover:border-[color:var(--color-primary-border)]",
-                )}
-              >
-                <Bot className="h-3.5 w-3.5" />
-                <span>
-                  {session.derivedTitle || session.displayName || session.key}
-                </span>
-              </button>
-            ))}
+        {!compact ? (
+          <div className="border-b border-[color:var(--color-surface-border)] px-3 py-2.5">
+            <div className="flex flex-wrap gap-2">
+              {sessions.slice(0, 8).map((session) => (
+                <button
+                  key={session.key}
+                  type="button"
+                  onClick={() => {
+                    setSelectedSessionKey(session.key);
+                    void connectGateway(session.key);
+                  }}
+                  className={cn(
+                    "inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] transition",
+                    session.key === selectedSessionKey
+                      ? "border-[color:var(--color-primary)] bg-[var(--color-primary-muted)] text-[var(--color-primary)]"
+                      : "border-[color:var(--color-surface-border)] bg-[var(--color-surface)] text-[var(--color-text-subtle)] hover:border-[color:var(--color-primary-border)]",
+                  )}
+                >
+                  <Bot className="h-3.5 w-3.5" />
+                  <span>
+                    {session.derivedTitle || session.displayName || session.key}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : null}
 
         <div className="flex-1 overflow-y-auto px-3 py-3">
           {!openclawUrl.trim() ? (
@@ -878,24 +892,26 @@ export function OpenClawAssistantPane({
                   {copy.assistantTitle}
                 </h3>
                 <p className="text-sm text-[var(--color-text-subtle)]">
-                  {copy.assistantHint}
+                  {compact ? copy.compactHint : copy.assistantHint}
                 </p>
               </div>
-              <div className="flex flex-wrap justify-center gap-2">
-                {quickActions.map((action) => (
-                  <button
-                    key={action}
-                    type="button"
-                    onClick={() => {
-                      setComposerValue(action);
-                      textareaRef.current?.focus();
-                    }}
-                    className="rounded-full border border-[color:var(--color-surface-border)] bg-[var(--color-surface)] px-3 py-1.5 text-xs font-medium text-[var(--color-text-subtle)] transition hover:border-[color:var(--color-primary-border)] hover:text-[var(--color-primary)]"
-                  >
-                    {action}
-                  </button>
-                ))}
-              </div>
+              {!compact ? (
+                <div className="flex flex-wrap justify-center gap-2">
+                  {quickActions.map((action) => (
+                    <button
+                      key={action}
+                      type="button"
+                      onClick={() => {
+                        setComposerValue(action);
+                        textareaRef.current?.focus();
+                      }}
+                      className="rounded-full border border-[color:var(--color-surface-border)] bg-[var(--color-surface)] px-3 py-1.5 text-xs font-medium text-[var(--color-text-subtle)] transition hover:border-[color:var(--color-primary-border)] hover:text-[var(--color-primary)]"
+                    >
+                      {action}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
             </div>
           ) : (
             <div className="space-y-3">
@@ -924,7 +940,7 @@ export function OpenClawAssistantPane({
                         )}
                         dangerouslySetInnerHTML={{ __html: message.html }}
                       />
-                      {message.timestampMs ? (
+                      {message.timestampMs && !compact ? (
                         <p
                           className={cn(
                             "mt-2 text-[11px]",
@@ -1072,15 +1088,17 @@ export function OpenClawAssistantPane({
                 {copy.capturePage}
               </button>
 
-              <div className="ml-auto flex items-center gap-2 text-[11px] text-[var(--color-text-subtle)]">
-                <Link2 className="h-3.5 w-3.5" />
-                <span>
-                  {activeSession?.derivedTitle ||
-                    activeSession?.displayName ||
-                    selectedSessionKey ||
-                    copy.mainSession}
-                </span>
-              </div>
+              {!compact ? (
+                <div className="ml-auto flex items-center gap-2 text-[11px] text-[var(--color-text-subtle)]">
+                  <Link2 className="h-3.5 w-3.5" />
+                  <span>
+                    {activeSession?.derivedTitle ||
+                      activeSession?.displayName ||
+                      selectedSessionKey ||
+                      copy.mainSession}
+                  </span>
+                </div>
+              ) : null}
 
               <button
                 type="button"
