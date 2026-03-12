@@ -32,6 +32,7 @@ import { useLanguage } from "@/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import {
   makeAgentSessionKey,
+  type AssistantMode,
   type GatewayAgentSummary,
   type GatewayChatAttachmentPayload,
   type GatewayChatMessage,
@@ -39,6 +40,7 @@ import {
   type IntegrationDefaults,
   type OpenClawBootstrapResponse,
   type OpenClawStreamEvent,
+  type ThinkingLevel,
 } from "@/lib/openclaw/types";
 import { useOpenClawConsoleStore } from "@/state/openclawConsoleStore";
 
@@ -265,7 +267,7 @@ export function OpenClawAssistantPane({
     [isChinese],
   );
   const thinkingOptions = useMemo(
-    () => [
+    (): Array<{ value: ThinkingLevel; label: string }> => [
       { value: "low", label: pickCopy(isChinese, "低", "Low") },
       { value: "medium", label: pickCopy(isChinese, "中", "Medium") },
       { value: "high", label: pickCopy(isChinese, "高", "High") },
@@ -274,7 +276,7 @@ export function OpenClawAssistantPane({
     [isChinese],
   );
   const modeOptions = useMemo(
-    () => [
+    (): Array<{ value: AssistantMode; label: string }> => [
       { value: "ask", label: pickCopy(isChinese, "提问", "Ask") },
       { value: "craft", label: pickCopy(isChinese, "生成", "Craft") },
       { value: "plan", label: pickCopy(isChinese, "规划", "Plan") },
