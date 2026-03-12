@@ -73,7 +73,7 @@ export const createNavConfig = (
     },
     {
       key: "chat",
-      label: "XWorkmate",
+      label: isChinese ? "X助手" : "X Assistant",
       href: "/xworkmate",
       icon: MessageSquare,
       active: (pathname) => pathname?.startsWith("/xworkmate"),

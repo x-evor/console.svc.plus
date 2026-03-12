@@ -186,7 +186,7 @@ export default function Navbar() {
     openSource: isChinese ? "开源项目" : "Open source",
     about: isChinese ? "关于" : "About",
     moreServices: isChinese ? "更多服务" : "More services",
-    chat: "XWorkmate",
+    chat: isChinese ? "X助手" : "X Assistant",
     homepage: translations[language].homepage,
     overview: isChinese ? "概览" : "Overview",
     instances: isChinese ? "实例管理" : "Instances",

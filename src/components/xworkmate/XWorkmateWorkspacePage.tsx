@@ -89,6 +89,13 @@ interface StatusRowProps {
   ok?: boolean;
 }
 
+interface OverviewMetric {
+  label: string;
+  value: string;
+  caption: string;
+  icon: LucideIcon;
+}
+
 const INITIAL_TABS: Record<WorkspaceDestination, string> = {
   assistant: "workspace",
   tasks: "queue",
@@ -365,6 +372,40 @@ function StatusRow({ label, value, ok }: StatusRowProps) {
   );
 }
 
+function OverviewMetrics({ items }: { items: OverviewMetric[] }) {
+  return (
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      {items.map((item) => {
+        const Icon = item.icon;
+
+        return (
+          <Card
+            key={`${item.label}-${item.value}`}
+            className="space-y-3 border-[color:var(--color-surface-border)] bg-[var(--color-surface)] p-5"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--color-primary-muted)] text-[var(--color-primary)]">
+                <Icon className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-subtle)]">
+                  {item.label}
+                </p>
+                <p className="mt-1 text-lg font-semibold text-[var(--color-heading)]">
+                  {item.value}
+                </p>
+              </div>
+            </div>
+            <p className="text-sm text-[var(--color-text-subtle)]">
+              {item.caption}
+            </p>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
 export function XWorkmateWorkspacePage({
   defaults,
 }: {
@@ -447,6 +488,282 @@ export function XWorkmateWorkspacePage({
   const workspaceName =
     user?.tenants?.[0]?.name ||
     pickCopy(isChinese, "默认工作区", "Default workspace");
+  const openclawEndpoint = openclawUrl || defaults.openclawUrl;
+  const vaultEndpoint = vaultUrl || defaults.vaultUrl;
+  const configuredIntegrationCount = integrationRows.filter(
+    (item) => item.ok,
+  ).length;
+
+  const tasksOverview = useMemo<OverviewMetric[]>(
+    () => [
+      {
+        label: pickCopy(isChinese, "总数", "Total"),
+        value: selectedSessionKey ? "1+" : "0",
+        caption: pickCopy(
+          isChinese,
+          "从当前会话与对话中派生",
+          "Derived from the current session and chat",
+        ),
+        icon: Briefcase,
+      },
+      {
+        label: pickCopy(isChinese, "运行中", "Running"),
+        value: openclawEndpoint.trim()
+          ? pickCopy(isChinese, "已就绪", "Ready")
+          : pickCopy(isChinese, "离线", "Offline"),
+        caption: pickCopy(
+          isChinese,
+          "主助手承接实时执行流",
+          "The main assistant owns live execution",
+        ),
+        icon: Sparkles,
+      },
+      {
+        label: pickCopy(isChinese, "失败", "Failed"),
+        value:
+          openclawToken.trim() || defaults.openclawTokenConfigured
+            ? "0"
+            : "pairing",
+        caption: pickCopy(
+          isChinese,
+          "未配置 shared token 时优先走 pairing",
+          "Pairing is preferred when no shared token is set",
+        ),
+        icon: ShieldCheck,
+      },
+      {
+        label: pickCopy(isChinese, "计划中", "Scheduled"),
+        value: pickCopy(isChinese, "预留", "Later"),
+        caption: pickCopy(
+          isChinese,
+          "后续承接 cron / batch 任务",
+          "Reserved for future cron and batch work",
+        ),
+        icon: Workflow,
+      },
+    ],
+    [
+      defaults.openclawTokenConfigured,
+      isChinese,
+      openclawEndpoint,
+      openclawToken,
+      selectedSessionKey,
+    ],
+  );
+
+  const modulesOverview = useMemo<OverviewMetric[]>(
+    () => [
+      {
+        label: "Gateway",
+        value: formatEndpoint(
+          openclawEndpoint,
+          pickCopy(isChinese, "未接入", "Not connected"),
+        ),
+        caption: pickCopy(
+          isChinese,
+          "当前公开入口仍由 XWorkmate 统一承接",
+          "The public workspace is still unified under XWorkmate",
+        ),
+        icon: Cloud,
+      },
+      {
+        label: pickCopy(isChinese, "节点", "Nodes"),
+        value: pickCopy(isChinese, "控制台", "Console"),
+        caption: pickCopy(
+          isChinese,
+          "节点与加速资源仍由控制台管理",
+          "Nodes and acceleration resources remain in the console",
+        ),
+        icon: Waypoints,
+      },
+      {
+        label: pickCopy(isChinese, "代理", "Agents"),
+        value: pickCopy(isChinese, "自动", "Auto"),
+        caption: pickCopy(
+          isChinese,
+          "根据对话内容切换 coding / research / browser",
+          "Switch between coding / research / browser by task",
+        ),
+        icon: Bot,
+      },
+      {
+        label: pickCopy(isChinese, "技能", "Skills"),
+        value: pickCopy(isChinese, "截图 + 附件", "Capture + Files"),
+        caption: pickCopy(
+          isChinese,
+          "截图、图片、日志与文本共用同一入口",
+          "Screenshots, images, logs, and text share one flow",
+        ),
+        icon: Blocks,
+      },
+    ],
+    [isChinese, openclawEndpoint],
+  );
+
+  const secretsOverview = useMemo<OverviewMetric[]>(
+    () => [
+      {
+        label: pickCopy(isChinese, "提供方", "Provider"),
+        value: vaultEndpoint.trim()
+          ? "Vault"
+          : pickCopy(isChinese, "会话", "Session"),
+        caption: pickCopy(
+          isChinese,
+          "优先使用 Vault，必要时允许当前会话覆盖",
+          "Prefer Vault, allow session overrides when needed",
+        ),
+        icon: Vault,
+      },
+      {
+        label: pickCopy(isChinese, "Token 引用", "Token Refs"),
+        value: `${
+          [
+            openclawToken.trim() || defaults.openclawTokenConfigured,
+            vaultToken.trim() || defaults.vaultTokenConfigured,
+            apisixToken.trim() || defaults.apisixTokenConfigured,
+          ].filter(Boolean).length
+        }`,
+        caption: pickCopy(
+          isChinese,
+          "env 与会话级覆盖共同组成引用面",
+          "Refs are composed from env defaults and session overrides",
+        ),
+        icon: KeyRound,
+      },
+      {
+        label: pickCopy(isChinese, "密钥引用", "Secret Refs"),
+        value: `${configuredIntegrationCount}/3`,
+        caption: pickCopy(
+          isChinese,
+          "按 OpenClaw / Vault / APISIX 三类集成统计",
+          "Counted across OpenClaw / Vault / APISIX integrations",
+        ),
+        icon: ShieldCheck,
+      },
+      {
+        label: pickCopy(isChinese, "最近审计", "Last Audit"),
+        value: pickCopy(isChinese, "当前会话", "This session"),
+        caption: pickCopy(
+          isChinese,
+          "前端只保留脱敏引用，不暴露原始值",
+          "The UI keeps masked refs only and never exposes raw values",
+        ),
+        icon: Workflow,
+      },
+    ],
+    [
+      apisixToken,
+      configuredIntegrationCount,
+      defaults.apisixTokenConfigured,
+      defaults.openclawTokenConfigured,
+      defaults.vaultTokenConfigured,
+      isChinese,
+      openclawToken,
+      vaultEndpoint,
+      vaultToken,
+    ],
+  );
+
+  const settingsOverview = useMemo<OverviewMetric[]>(
+    () => [
+      {
+        label: pickCopy(isChinese, "入口", "Route"),
+        value: "/xworkmate",
+        caption: pickCopy(
+          isChinese,
+          "旧 `/services/openclaw` 只保留兼容跳转",
+          "The old `/services/openclaw` path is compatibility-only",
+        ),
+        icon: LayoutDashboard,
+      },
+      {
+        label: pickCopy(isChinese, "外观", "Appearance"),
+        value: resolvedTheme,
+        caption: pickCopy(
+          isChinese,
+          "与站点主题保持一致",
+          "Uses the same theme system as the site",
+        ),
+        icon: isDark ? MoonStar : SunMedium,
+      },
+      {
+        label: pickCopy(isChinese, "侧栏", "Sidebar"),
+        value: sidebarState,
+        caption: pickCopy(
+          isChinese,
+          "支持 expanded / collapsed / hidden",
+          "Supports expanded / collapsed / hidden states",
+        ),
+        icon: sidebarState === "hidden" ? PanelLeftOpen : PanelLeftClose,
+      },
+      {
+        label: pickCopy(isChinese, "集成", "Integrations"),
+        value: `${configuredIntegrationCount}/3`,
+        caption: pickCopy(
+          isChinese,
+          "OpenClaw、Vault、APISIX 三类入口",
+          "OpenClaw, Vault, and APISIX are all managed here",
+        ),
+        icon: Sparkles,
+      },
+    ],
+    [
+      configuredIntegrationCount,
+      isChinese,
+      isDark,
+      resolvedTheme,
+      sidebarState,
+    ],
+  );
+
+  const accountOverview = useMemo<OverviewMetric[]>(
+    () => [
+      {
+        label: pickCopy(isChinese, "身份", "Identity"),
+        value: accountName,
+        caption: accountEmail,
+        icon: UserCircle2,
+      },
+      {
+        label: pickCopy(isChinese, "工作区", "Workspace"),
+        value: workspaceName,
+        caption: pickCopy(
+          isChinese,
+          "账号页聚焦身份与工作区上下文",
+          "The account area stays focused on identity and workspace context",
+        ),
+        icon: Briefcase,
+      },
+      {
+        label: pickCopy(isChinese, "角色", "Role"),
+        value: user?.role || "guest",
+        caption: pickCopy(
+          isChinese,
+          "复用当前控制台会话身份",
+          "Reuses the current console session identity",
+        ),
+        icon: ShieldCheck,
+      },
+      {
+        label: pickCopy(isChinese, "会话", "Session"),
+        value: selectedSessionKey || "main",
+        caption: pickCopy(
+          isChinese,
+          "从当前 Gateway 会话中承接上下文",
+          "Context is inherited from the current gateway session",
+        ),
+        icon: Workflow,
+      },
+    ],
+    [
+      accountEmail,
+      accountName,
+      isChinese,
+      selectedSessionKey,
+      user?.role,
+      workspaceName,
+    ],
+  );
 
   function setTab(nextTab: string): void {
     setActiveTabs((current) => ({
@@ -1533,6 +1850,23 @@ export function XWorkmateWorkspacePage({
     }
   }
 
+  function renderSectionOverview(): ReactNode {
+    switch (activeSection) {
+      case "tasks":
+        return <OverviewMetrics items={tasksOverview} />;
+      case "modules":
+        return <OverviewMetrics items={modulesOverview} />;
+      case "secrets":
+        return <OverviewMetrics items={secretsOverview} />;
+      case "settings":
+        return <OverviewMetrics items={settingsOverview} />;
+      case "account":
+        return <OverviewMetrics items={accountOverview} />;
+      default:
+        return null;
+    }
+  }
+
   return (
     <div className="relative h-full min-h-0 overflow-hidden rounded-[var(--radius-2xl)] border border-[color:var(--color-surface-border)] bg-[var(--color-surface-elevated)] shadow-[var(--shadow-md)]">
       {sidebarState === "hidden" ? (
@@ -1741,7 +2075,10 @@ export function XWorkmateWorkspacePage({
           </header>
 
           <div className="min-h-0 flex-1 overflow-auto p-5">
-            {renderMainContent()}
+            <div className="space-y-5">
+              {renderSectionOverview()}
+              {renderMainContent()}
+            </div>
           </div>
         </section>
       </div>
