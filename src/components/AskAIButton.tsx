@@ -1,7 +1,6 @@
 'use client'
 
 import { Bot } from 'lucide-react'
-import { AskAIDialog, type InitialQuestionPayload } from './AskAIDialog'
 import { useMoltbotStore } from '@lib/moltbotStore'
 import { useAccess } from '@lib/accessControl'
 import { cn } from '@lib/utils'
@@ -10,11 +9,10 @@ import { translations } from '../i18n/translations'
 
 type AskAIButtonProps = {
   variant?: 'floating' | 'navbar'
-  initialQuestion?: InitialQuestionPayload
 }
 
-export function AskAIButton({ variant = 'floating', initialQuestion }: AskAIButtonProps) {
-  const { isOpen, isMinimized, setIsOpen, setMinimized, close, toggleOpen } = useMoltbotStore()
+export function AskAIButton({ variant = 'floating' }: AskAIButtonProps) {
+  const { isOpen, isMinimized, toggleOpen } = useMoltbotStore()
   const { allowed, isLoading } = useAccess({ allowGuests: true })
   const { language } = useLanguage()
   const isFloating = variant === 'floating'
@@ -26,15 +24,6 @@ export function AskAIButton({ variant = 'floating', initialQuestion }: AskAIButt
 
   const handleOpen = () => {
     toggleOpen()
-  }
-  const handleMinimize = () => {
-    if (isFloating) {
-      setMinimized(true)
-    }
-    setIsOpen(false)
-  }
-  const handleEnd = () => {
-    close()
   }
 
   const buttonClassName = cn(

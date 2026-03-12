@@ -26,6 +26,20 @@ This directory follows a standard open-source documentation layout and mirrors t
 - Library layer (vendored): `packages/neurapress`
 - Build/runtime glue: `scripts`, `config`, `public`
 
+## Assistant Integrations
+
+The homepage AI assistant and `/panel/api` integrations page read their defaults from environment variables on the server side. Use `.env.example` plus `getting-started/installation.md` for the canonical setup.
+
+Canonical variables:
+
+- `OPENCLAW_GATEWAY_REMOTE_URL`
+- `OPENCLAW_GATEWAY_TOKEN`
+- `VAULT_SERVER_URL`
+- `VAULT_NAMESPACE`
+- `VAULT_TOKEN`
+- `APISIX_AI_GATEWAY_URL`
+- `AI_GATEWAY_ACCESS_TOKEN`
+
 ## Index
 
 - Getting Started

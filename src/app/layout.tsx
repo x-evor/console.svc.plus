@@ -7,6 +7,7 @@ import type { Metadata } from 'next'
 import Script from 'next/script'
 import { Analytics } from '@vercel/analytics/react'
 import { AppProviders } from './AppProviders'
+import { getConsoleIntegrationDefaults } from '@/server/consoleIntegrations'
 
 const DEFAULT_TITLE = 'Cloud-Neutral Console | Unified Cloud Native Tools'
 const DEFAULT_DESCRIPTION =
@@ -74,6 +75,8 @@ const bodyClassName = 'bg-[var(--color-background)] text-[var(--color-text)]'
 const GA_ID = 'G-T4VM8G4Q42'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const assistantDefaults = getConsoleIntegrationDefaults()
+
   return (
     <html {...htmlAttributes}>
       <head>
@@ -126,7 +129,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* End Cloudflare Web Analytics */}
       </head>
       <body className={bodyClassName}>
-        <AppProviders>{children}</AppProviders>
+        <AppProviders assistantDefaults={assistantDefaults}>{children}</AppProviders>
         <Analytics />
       </body>
     </html>

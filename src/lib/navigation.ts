@@ -74,7 +74,7 @@ export const createNavConfig = (
     {
       key: "chat",
       label: (lang) => (lang === "zh" ? "AI 助手" : "AI Assistant"),
-      href: "/services/openclaw/chats",
+      href: "/services/openclaw",
       icon: MessageSquare,
       active: (pathname) => pathname?.startsWith("/services/openclaw"),
       showOn: "both",

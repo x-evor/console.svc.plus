@@ -22,3 +22,21 @@
 - 每个中文文件顶部会链接到对应的英文原文路径。
 - 如果中文内容尚未完善，会保留 `TODO` 占位，逐步补齐。
 
+## AI 助手集成环境变量
+
+首页 AI 助手和 `/panel/api` 集成页会在服务端读取环境变量做默认值预填，不会把网关地址或令牌硬编码进前端 UI。
+
+建议优先查看：
+
+- `../../.env.example`
+- `getting-started/installation.md`
+
+当前约定的主变量：
+
+- `OPENCLAW_GATEWAY_REMOTE_URL`
+- `OPENCLAW_GATEWAY_TOKEN`
+- `VAULT_SERVER_URL`
+- `VAULT_NAMESPACE`
+- `VAULT_TOKEN`
+- `APISIX_AI_GATEWAY_URL`
+- `AI_GATEWAY_ACCESS_TOKEN`

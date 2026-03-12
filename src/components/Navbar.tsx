@@ -274,7 +274,7 @@ export default function Navbar() {
       key: "chat",
       label: labels.chat,
       icon: MessageSquare,
-      href: "/services/openclaw/chats",
+      href: "/services/openclaw",
       active: pathname?.startsWith("/services/openclaw"),
     },
     {
@@ -655,7 +655,7 @@ export default function Navbar() {
                 <div className="flex-1 p-4">
                   <div className="space-y-1">
                     <Link
-                      href="/services/openclaw/chats"
+                      href="/services/openclaw"
                       className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors ${pathname?.startsWith("/services/openclaw")
                         ? "bg-primary/10 text-primary"
                         : "text-text hover:bg-surface-muted"

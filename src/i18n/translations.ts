@@ -1428,7 +1428,7 @@ export const translations: Record<'en' | 'zh', Translation> = {
     },
     askAI: {
       title: 'AI Assistant',
-      subtitle: 'Do anything with Moltbot AI',
+      subtitle: 'Work through infrastructure tasks with OpenClaw',
       placeholder: 'Type your question...',
       ask: 'Ask',
     },
@@ -2072,7 +2072,7 @@ export const translations: Record<'en' | 'zh', Translation> = {
     },
     askAI: {
       title: 'AI 助手',
-      subtitle: '使用 Moltbot AI 做任何事',
+      subtitle: '通过 OpenClaw 处理运维与协作任务',
       placeholder: '输入您的指令或问题...',
       ask: '发送',
     },

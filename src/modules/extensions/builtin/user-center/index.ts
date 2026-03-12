@@ -45,8 +45,8 @@ export const userCenterExtension: DashboardExtension = {
     {
       id: 'apis',
       path: '/panel/api',
-      label: 'APIs',
-      description: '洞察后端服务',
+      label: 'Integrations',
+      description: '统一管理 OpenClaw、Vault 与 AI Gateway',
       icon: Code,
       loader: () => import('./routes/api'),
       guard: { requireLogin: true },
@@ -54,10 +54,10 @@ export const userCenterExtension: DashboardExtension = {
       sidebar: { section: 'productivity', order: 11 },
       featureFlag: {
         id: 'user-center.api',
-        title: 'API 监控',
-        description: '启用 API 状态与特性开关页面。',
+        title: '接口集成',
+        description: '启用 OpenClaw、Vault 与 APISIX AI Gateway 集成页面。',
         envVar: 'NEXT_PUBLIC_FEATURE_API_MODULE',
-        defaultEnabled: false,
+        defaultEnabled: true,
       },
     },
     {

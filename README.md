@@ -36,6 +36,18 @@ yarn dev
 cp .env.example .env
 ```
 
+AI 助手与集成页使用以下环境变量做服务端预填，不在前端 UI 中硬编码：
+
+- `OPENCLAW_GATEWAY_REMOTE_URL`
+- `OPENCLAW_GATEWAY_TOKEN`
+- `VAULT_SERVER_URL`
+- `VAULT_NAMESPACE`
+- `VAULT_TOKEN`
+- `APISIX_AI_GATEWAY_URL`
+- `AI_GATEWAY_ACCESS_TOKEN`
+
+建议参考 `/Users/shenlan/workspaces/cloud-neutral-toolkit/openclaw-deploy-example/.env` 填写，并同时查看 `docs/getting-started/installation.md`。
+
 ## 核心特性 & 技术栈 (Features & Tech Stack)
 
 核心特性：
@@ -57,6 +69,7 @@ cp .env.example .env
 常用链接：
 * OIDC: `docs/integrations/oidc-auth.md`
 * Cloudflare Web Analytics: `docs/integrations/cloudflare-web-analytics.md`
+* Assistant / Integrations env setup: `docs/getting-started/installation.md`
 
 其他：
 * Agent rules: `AGENTS.md`

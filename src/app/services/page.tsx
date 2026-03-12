@@ -295,13 +295,12 @@ export default function ServicesPage() {
     },
     {
       key: "moltbot",
-      name: isChinese ? "Moltbot 服务" : "Moltbot Service",
+      name: isChinese ? "OpenClaw 助手" : "OpenClaw Assistant",
       description: isChinese
-        ? "Moltbot 节点管理服务。"
-        : "Moltbot node management service.",
-      href: "https://clawdbot.svc.plus/",
+        ? "OpenClaw gateway 驱动的原生 AI 助手工作区。"
+        : "Native AI assistant workspace powered by OpenClaw gateway.",
+      href: "/services/openclaw",
       icon: ClawdbotLogo,
-      external: true,
     },
   ];
 

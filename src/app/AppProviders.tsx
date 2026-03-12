@@ -1,18 +1,34 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
+import { usePathname } from 'next/navigation'
 import { ThemeProvider } from '../components/theme'
 import { LanguageProvider } from '../i18n/LanguageProvider'
 import { AskAIDialog } from '../components/AskAIDialog'
 import { useMoltbotStore } from '../lib/moltbotStore'
 import { cn } from '../lib/utils'
+import type { IntegrationDefaults } from '@/lib/openclaw/types'
+import { useOpenClawConsoleStore } from '@/state/openclawConsoleStore'
 
-export function AppProviders({ children }: { children: ReactNode }) {
-  const { isOpen, isMinimized, setIsOpen, setMinimized, close, mode, toggleOpen } = useMoltbotStore()
+export function AppProviders({
+  children,
+  assistantDefaults,
+}: {
+  children: ReactNode
+  assistantDefaults: IntegrationDefaults
+}) {
+  const { isOpen, isMinimized, close, toggleOpen } = useMoltbotStore()
+  const applyDefaults = useOpenClawConsoleStore((state) => state.applyDefaults)
+  const pathname = usePathname()
+  const isOpenClawWorkspace = pathname.startsWith('/services/openclaw')
 
   // Always reserve space if open and not minimized, since we only have "Float/Sidebar" mode now
   // and user wants it to NEVER cover the homepage.
-  const reserveSpace = isOpen && !isMinimized
+  const reserveSpace = !isOpenClawWorkspace && isOpen && !isMinimized
+
+  useEffect(() => {
+    applyDefaults(assistantDefaults)
+  }, [applyDefaults, assistantDefaults])
 
   return (
     <ThemeProvider>
@@ -25,11 +41,14 @@ export function AppProviders({ children }: { children: ReactNode }) {
             <div className="flex-1 flex flex-col w-full relative">
               {children}
             </div>
-            <AskAIDialog
-              open={isOpen}
-              onMinimize={toggleOpen}
-              onEnd={close}
-            />
+            {!isOpenClawWorkspace ? (
+              <AskAIDialog
+                open={isOpen}
+                defaults={assistantDefaults}
+                onMinimize={toggleOpen}
+                onEnd={close}
+              />
+            ) : null}
           </div>
         </div>
       </LanguageProvider>
