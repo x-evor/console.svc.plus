@@ -70,10 +70,12 @@ export default function HomePage() {
     <div className="min-h-screen bg-background text-text transition-colors duration-150 flex flex-col">
       <UnifiedNavigation />
 
-      <div className={cn(
-        "flex flex-1 relative overflow-hidden",
-        mode === 'left-sidebar' && isOpen && "flex-row-reverse"
-      )}>
+      <div
+        className={cn(
+          "flex flex-1 relative overflow-hidden",
+          mode === "left-sidebar" && isOpen && "flex-row-reverse",
+        )}
+      >
         <div className="flex-1 overflow-y-auto relative">
           <div className="relative mx-auto max-w-6xl px-6 pb-20">
             <div
@@ -119,7 +121,7 @@ export function HeroSection() {
           {user ? (
             <div className="flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-4 py-1.5 text-sm font-medium text-success">
               <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
-              {t.signedIn.replace('{{username}}', user.username)}
+              {t.signedIn.replace("{{username}}", user.username)}
             </div>
           ) : (
             <button className="flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-hover">
@@ -230,7 +232,7 @@ export function StatsSection() {
       refreshInterval: 60 * 60 * 1000,
       revalidateOnFocus: false,
       shouldRetryOnError: false,
-    }
+    },
   );
 
   const locale = language === "zh" ? "zh-CN" : "en-US";
@@ -243,11 +245,14 @@ export function StatsSection() {
   const registeredUsersValue =
     typeof data?.registeredUsers === "number"
       ? numberFormatter.format(data.registeredUsers)
-      : t.stats[0]?.value ?? "0+";
+      : (t.stats[0]?.value ?? "0+");
 
-  const dailyVisits = typeof data?.visits?.daily === "number" ? data.visits.daily : null;
-  const weeklyVisits = typeof data?.visits?.weekly === "number" ? data.visits.weekly : null;
-  const monthlyVisits = typeof data?.visits?.monthly === "number" ? data.visits.monthly : null;
+  const dailyVisits =
+    typeof data?.visits?.daily === "number" ? data.visits.daily : null;
+  const weeklyVisits =
+    typeof data?.visits?.weekly === "number" ? data.visits.weekly : null;
+  const monthlyVisits =
+    typeof data?.visits?.monthly === "number" ? data.visits.monthly : null;
 
   const displayStats = [
     {
@@ -255,15 +260,24 @@ export function StatsSection() {
       label: t.statsLabels.registeredUsers,
     },
     {
-      value: typeof dailyVisits === "number" ? compactFormatter.format(dailyVisits) : (t.stats[1]?.value ?? "0+"),
+      value:
+        typeof dailyVisits === "number"
+          ? compactFormatter.format(dailyVisits)
+          : (t.stats[1]?.value ?? "0+"),
       label: t.statsLabels.dailyVisits,
     },
     {
-      value: typeof weeklyVisits === "number" ? compactFormatter.format(weeklyVisits) : "0+",
+      value:
+        typeof weeklyVisits === "number"
+          ? compactFormatter.format(weeklyVisits)
+          : "0+",
       label: t.statsLabels.weeklyVisits,
     },
     {
-      value: typeof monthlyVisits === "number" ? compactFormatter.format(monthlyVisits) : "0+",
+      value:
+        typeof monthlyVisits === "number"
+          ? compactFormatter.format(monthlyVisits)
+          : "0+",
       label: t.statsLabels.monthlyVisits,
     },
     t.stats[2],
@@ -298,6 +312,37 @@ type HomeStatsResponse = {
 export function ShortcutsSection() {
   const { language } = useLanguage();
   const t = translations[language].marketing.home;
+  const { data: latestBlogs } = useSWR<LatestBlogPost[]>(
+    "/api/blogs/latest?limit=7",
+    async (url: string) => {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`Failed to load latest blogs: ${response.status}`);
+      }
+      return (await response.json()) as LatestBlogPost[];
+    },
+    {
+      refreshInterval: 10 * 60 * 1000,
+      revalidateOnFocus: false,
+      shouldRetryOnError: false,
+    },
+  );
+
+  const shortcutItems =
+    latestBlogs && latestBlogs.length > 0
+      ? latestBlogs.map((post) => ({
+          title: post.title,
+          description: post.date
+            ? new Date(post.date).toLocaleDateString(
+                language === "zh" ? "zh-CN" : "en-US",
+              )
+            : t.shortcuts.subtitle,
+          href: `/blogs/${post.slug}`,
+        }))
+      : t.shortcuts.items.map((item) => ({
+          ...item,
+          href: "#",
+        }));
 
   return (
     <section className="space-y-4">
@@ -321,12 +366,12 @@ export function ShortcutsSection() {
         </div>
       </div>
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-        {t.shortcuts.items.map((item, index: number) => {
+        {shortcutItems.map((item, index: number) => {
           const Icon = getIcon(item.title, Sparkles);
           return (
             <a
               key={index}
-              href="#"
+              href={item.href}
               className="group flex items-start gap-3 rounded-xl border border-surface-border bg-surface p-4 transition hover:-translate-y-[1px] hover:border-primary/50 hover:bg-surface-hover"
             >
               <div className="mt-1 flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-primary">
@@ -349,6 +394,12 @@ export function ShortcutsSection() {
     </section>
   );
 }
+
+type LatestBlogPost = {
+  slug: string;
+  title: string;
+  date?: string;
+};
 
 function LogoPill({ label }: { label: string }) {
   return (
