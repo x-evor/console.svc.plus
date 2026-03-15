@@ -18,7 +18,7 @@ const APISIX_URL_KEYS = [
   'API_GATEWAY_URL',
 ] as const
 
-const APISIX_TOKEN_KEYS = ['AI_GATEWAY_ACCESS_TOKEN'] as const
+const APISIX_TOKEN_KEYS = ['AI_GATEWAY_ACCESS_TOKEN', 'AI_GATEWAY_API_KEY'] as const
 
 const VAULT_URL_KEYS = ['VAULT_SERVER_URL', 'VAULT_ADDR', 'vault_addr'] as const
 const VAULT_NAMESPACE_KEYS = ['VAULT_NAMESPACE'] as const
@@ -257,7 +257,7 @@ export async function resolveApisixProbeConfig(overrides?: {
     vaultToken: overrides?.vaultToken ?? readEnvValue(...VAULT_TOKEN_KEYS) ?? '',
     vaultNamespace: overrides?.vaultNamespace ?? readEnvValue(...VAULT_NAMESPACE_KEYS) ?? '',
     vaultSecretPath: overrides?.vaultSecretPath,
-    fallbackKeys: ['AI_GATEWAY_ACCESS_TOKEN', 'APISIX_AI_GATEWAY_TOKEN'],
+    fallbackKeys: ['AI_GATEWAY_ACCESS_TOKEN', 'AI_GATEWAY_API_KEY', 'APISIX_AI_GATEWAY_TOKEN'],
   })
 
   return {

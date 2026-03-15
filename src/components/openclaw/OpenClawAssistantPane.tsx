@@ -50,6 +50,9 @@ type OpenClawAssistantPaneProps = {
   initialQuestion?: string;
   initialQuestionKey?: number;
   variant?: "page" | "sidebar";
+  showConversation?: boolean;
+  emptyConversationHint?: string;
+  onStateChange?: (state: OpenClawAssistantViewState) => void;
 };
 
 type ComposerAttachment = GatewayChatAttachmentPayload & {
@@ -59,6 +62,23 @@ type ComposerAttachment = GatewayChatAttachmentPayload & {
 };
 
 type ConnectionState = "idle" | "connecting" | "ready" | "error";
+
+export type OpenClawAssistantViewState = {
+  connectionState: ConnectionState;
+  healthBadge: string;
+  errorMessage: string;
+  hasGateway: boolean;
+  selectedSessionLabel: string;
+  streamingText: string;
+  streamingHtml: string;
+  messages: Array<{
+    id: string;
+    role: string;
+    text: string;
+    html: string;
+    timestampMs?: number;
+  }>;
+};
 
 function pickCopy(isChinese: boolean, zh: string, en: string): string {
   return isChinese ? zh : en;
@@ -195,6 +215,9 @@ export function OpenClawAssistantPane({
   initialQuestion,
   initialQuestionKey,
   variant = "page",
+  showConversation = true,
+  emptyConversationHint,
+  onStateChange,
 }: OpenClawAssistantPaneProps) {
   const router = useRouter();
   const { language } = useLanguage();
@@ -431,6 +454,34 @@ export function OpenClawAssistantPane({
         })),
     [messages, minimalPage],
   );
+
+  useEffect(() => {
+    onStateChange?.({
+      connectionState,
+      healthBadge,
+      errorMessage,
+      hasGateway: Boolean(openclawUrl.trim()),
+      selectedSessionLabel:
+        activeSession?.derivedTitle ||
+        activeSession?.displayName ||
+        selectedSessionKey ||
+        copy.mainSession,
+      streamingText,
+      streamingHtml: streamingText ? renderMarkdown(streamingText) : "",
+      messages: renderedMessages,
+    });
+  }, [
+    activeSession,
+    connectionState,
+    copy.mainSession,
+    errorMessage,
+    healthBadge,
+    onStateChange,
+    openclawUrl,
+    renderedMessages,
+    selectedSessionKey,
+    streamingText,
+  ]);
 
   const connectGateway = useCallback(
     async (nextSessionKey?: string, nextAgentId?: string): Promise<void> => {
@@ -904,7 +955,26 @@ export function OpenClawAssistantPane({
         ) : null}
 
         <div className="flex-1 overflow-y-auto px-3 py-3">
-          {!openclawUrl.trim() ? (
+          {!showConversation ? (
+            <div className="flex h-full flex-col items-center justify-center gap-4 rounded-[var(--radius-xl)] border border-dashed border-[color:var(--color-surface-border)] bg-[var(--color-surface-muted)]/40 px-5 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-lg)] bg-[var(--color-primary-muted)] text-[var(--color-primary)]">
+                <Sparkles className="h-6 w-6" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-base font-semibold text-[var(--color-heading)]">
+                  {copy.assistantTitle}
+                </h3>
+                <p className="text-sm text-[var(--color-text-subtle)]">
+                  {emptyConversationHint ??
+                    pickCopy(
+                      isChinese,
+                      "在右侧发起任务，中间区域会同步展示助手结果。",
+                      "Start tasks from the right panel. Results will be mirrored in the center workspace.",
+                    )}
+                </p>
+              </div>
+            </div>
+          ) : !openclawUrl.trim() ? (
             <div className="flex h-full flex-col items-center justify-center gap-3 rounded-[var(--radius-xl)] border border-dashed border-[color:var(--color-surface-border)] bg-[var(--color-surface-muted)]/40 px-5 text-center">
               <Sparkles className="h-7 w-7 text-[var(--color-primary)]" />
               <div className="space-y-2">

@@ -1,4 +1,4 @@
-import { Database, History, Key, Rocket, Settings } from 'lucide-react'
+import { Activity, Database, Key, Rocket, Settings } from 'lucide-react'
 
 import type { DashboardExtension } from '../../types'
 
@@ -6,10 +6,10 @@ export const infraExtension: DashboardExtension = {
     id: 'builtin.infra',
     meta: {
         title: '基础设施管理',
-        description: '云基础设施、部署、资源与日志管理。',
+        description: '云基础设施、部署、资源与可观测性管理。',
         version: '1.0.0',
         author: 'Cloud-Neutral',
-        keywords: ['infrastructure', 'deployments', 'resources', 'logs'],
+        keywords: ['infrastructure', 'deployments', 'resources', 'observability'],
     },
     routes: [
         {
@@ -44,10 +44,10 @@ export const infraExtension: DashboardExtension = {
         },
         {
             id: 'logs',
-            path: '/panel/logs',
-            label: 'Logs',
-            description: '系统流水与审计日志',
-            icon: History,
+            path: '/panel/observability',
+            label: 'Observability',
+            description: '监控、日志与 AI 分析',
+            icon: Activity,
             loader: () => import('./routes/placeholder'),
             guard: { requireLogin: true },
             sidebar: { section: 'infra', order: 3 },

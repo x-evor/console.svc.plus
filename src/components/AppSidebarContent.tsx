@@ -9,7 +9,7 @@ import {
     Rocket,
     Database,
     Key,
-    History,
+    Activity,
     Settings,
     Plus,
 } from 'lucide-react'
@@ -20,7 +20,7 @@ const navItems = [
     { href: '/deployments', label: 'Deployments', icon: Rocket },
     { href: '/resources', label: 'Resources', icon: Database },
     { href: '/api-keys', label: 'API Keys', icon: Key },
-    { href: '/logs', label: 'Logs', icon: History },
+    { href: '/panel/observability', label: 'Observability', icon: Activity },
     { href: '/settings', label: 'Settings', icon: Settings },
 ]
 

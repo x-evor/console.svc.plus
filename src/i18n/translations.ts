@@ -998,7 +998,7 @@ export const translations: Record<'en' | 'zh', Translation> = {
         deployments: 'Deployments',
         resources: 'Resources',
         apiKeys: 'API Keys',
-        logs: 'Logs',
+        logs: 'Observability',
         settings: 'Settings',
       },
       overview: {
@@ -1168,10 +1168,28 @@ export const translations: Record<'en' | 'zh', Translation> = {
           {
             title: 'Full-link SaaS Hosting',
             description: 'Provide one-stop hosting services from development and deployment to maintenance, simplifying architectural complexity and helping applications quickly achieve SaaS transformation.',
+            guide: {
+              title: 'Deployments Console Guide',
+              dismiss: 'Exit Guide',
+              steps: [
+                { text: 'Use the deployments console as the operational entry for release progress, blockers, and execution history.' },
+                { text: 'Open the Deployments workspace and let X Assistant generate the rollout checklist or summarize current status.', link: { url: '/panel/deployments', label: 'Open Deployments Console' } },
+                { text: 'Once connected, ask for deployment diagnosis, release steps, or rollback suggestions, and the result stream will appear in the center workspace.' },
+              ],
+            },
           },
           {
             title: 'AI-Driven Observability',
             description: 'Utilize AI to intelligently analyze full-link logs and performance metrics, identifying potential anomalies in real-time and providing predictive insights to ensure smooth system operation.',
+            guide: {
+              title: 'Observability Console Guide',
+              dismiss: 'Exit Guide',
+              steps: [
+                { text: 'Use the observability console as the AI entry for logs, metrics, and anomaly investigation.' },
+                { text: 'Open the Observability workspace and start from log analysis, timeline summaries, or incident review.', link: { url: '/panel/observability', label: 'Open Observability Console' } },
+                { text: 'X Assistant stays open on the right while the center pane continuously mirrors analysis results, remediation ideas, and summaries.' },
+              ],
+            },
           },
         ],
         nextSteps: {
@@ -1778,7 +1796,7 @@ export const translations: Record<'en' | 'zh', Translation> = {
         deployments: '部署管理',
         resources: '资源列表',
         apiKeys: '接口密钥',
-        logs: '运行日志',
+        logs: '可观测性',
         settings: '系统设置',
       },
       overview: {
@@ -1944,10 +1962,28 @@ export const translations: Record<'en' | 'zh', Translation> = {
           {
             title: '全链路 SaaS 托管',
             description: '提供从开发、部署到维护的一站式托管服务，简化架构复杂度，助力应用快速实现 SaaS 化转型。',
+            guide: {
+              title: '部署控制台向导',
+              dismiss: '退出向导',
+              steps: [
+                { text: '把部署控制台作为发布进度、阻塞项和执行记录的统一操作入口。' },
+                { text: '打开 Deployments 工作区，让 X 助手为你生成部署检查清单，或者总结当前发布状态。', link: { url: '/panel/deployments', label: '打开 Deployments 控制台' } },
+                { text: '接入完成后，可以继续让助手分析失败部署、补充回滚步骤，并把结果同步展示在中间工作区。' },
+              ],
+            },
           },
           {
             title: 'AI 驱动的可观测性',
             description: '利用 AI 智能分析全链路日志与性能指标，实时识别潜在异常并提供预测性洞察，保障系统平稳运行。',
+            guide: {
+              title: '可观测性控制台向导',
+              dismiss: '退出向导',
+              steps: [
+                { text: '把可观测性控制台作为日志、指标与异常诊断的 AI 工作入口。' },
+                { text: '打开 Observability 工作区，从日志分析、时间线梳理或事件复盘开始。', link: { url: '/panel/observability', label: '打开 Observability 控制台' } },
+                { text: '右侧 X 助手保持打开，中间区域持续展示分析结果、修复建议与总结。' },
+              ],
+            },
           },
         ],
         nextSteps: {
