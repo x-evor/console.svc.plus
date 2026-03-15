@@ -164,6 +164,223 @@ function StatusPill({
   );
 }
 
+function toPlainText(value: string): string {
+  return value
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/[*_>#-]/g, " ")
+    .replace(/\[(.*?)\]\((.*?)\)/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function buildAnalysisLines(value: string): string[] {
+  return value
+    .split(/\n+/)
+    .map((line) => line.replace(/^(\d+\.|[-*•])\s*/, "").trim())
+    .filter(Boolean)
+    .slice(0, 6);
+}
+
+function formatMessageTime(value?: number): string {
+  if (!value) {
+    return "now";
+  }
+
+  try {
+    return new Intl.DateTimeFormat("zh-CN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date(value));
+  } catch {
+    return "now";
+  }
+}
+
+function SectionShell({
+  title,
+  eyebrow,
+  children,
+  className,
+}: {
+  title: string;
+  eyebrow: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section
+      className={cn(
+        "rounded-[24px] border border-[color:var(--color-surface-border)] bg-white/92 p-5 shadow-[var(--shadow-sm)]",
+        className,
+      )}
+    >
+      <div className="mb-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-subtle)]">
+          {eyebrow}
+        </p>
+        <h2 className="mt-2 text-xl font-semibold tracking-[-0.03em] text-[var(--color-heading)]">
+          {title}
+        </h2>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function ObservabilityWorkspace({
+  assistantState,
+}: {
+  assistantState: OpenClawAssistantViewState;
+}) {
+  const latestAssistantMessage = [...assistantState.messages]
+    .reverse()
+    .find((message) => message.role === "assistant");
+  const latestUserMessage = [...assistantState.messages]
+    .reverse()
+    .find((message) => message.role === "user");
+  const analysisSource =
+    assistantState.streamingText || latestAssistantMessage?.text || "";
+  const analysisLines = buildAnalysisLines(analysisSource);
+  const timeline = assistantState.messages
+    .filter((message) => message.role === "user" || message.role === "assistant")
+    .slice(-10);
+  const plainAnalysis = toPlainText(analysisSource);
+  const monitorCards = [
+    {
+      label: "Gateway",
+      value: assistantState.healthBadge,
+      caption: assistantState.connectionState === "ready" ? "connected" : "waiting",
+    },
+    {
+      label: "Session",
+      value: assistantState.selectedSessionLabel,
+      caption: "current workspace",
+    },
+    {
+      label: "Events",
+      value: `${timeline.length}`,
+      caption: "mirrored updates",
+    },
+    {
+      label: "Focus",
+      value: latestUserMessage ? toPlainText(latestUserMessage.text).slice(0, 44) : "awaiting input",
+      caption: "latest operator intent",
+    },
+  ];
+
+  return (
+    <div className="grid gap-4">
+      <div className="grid gap-4 xl:grid-cols-[0.92fr_1.08fr]">
+        <SectionShell title="监控" eyebrow="Monitor">
+          <div className="grid gap-3 sm:grid-cols-2">
+            {monitorCards.map((card) => (
+              <div
+                key={card.label}
+                className="rounded-[18px] border border-[color:var(--color-surface-border)] bg-[linear-gradient(180deg,rgba(240,244,255,0.56),rgba(255,255,255,0.9))] p-4"
+              >
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-subtle)]">
+                  {card.label}
+                </p>
+                <p className="mt-3 text-base font-semibold text-[var(--color-heading)]">
+                  {card.value}
+                </p>
+                <p className="mt-1 text-xs text-[var(--color-text-subtle)]">
+                  {card.caption}
+                </p>
+              </div>
+            ))}
+          </div>
+        </SectionShell>
+
+        <SectionShell
+          title="分析"
+          eyebrow="Analysis"
+          className="bg-[linear-gradient(180deg,rgba(247,250,255,0.96),rgba(255,255,255,0.92))]"
+        >
+          {assistantState.errorMessage ? (
+            <div className="mb-4 rounded-[18px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              {assistantState.errorMessage}
+            </div>
+          ) : null}
+
+          {analysisLines.length > 0 ? (
+            <div className="space-y-3">
+              {analysisLines.map((line, index) => (
+                <div
+                  key={`${line}-${index}`}
+                  className="flex gap-3 rounded-[18px] border border-[color:var(--color-surface-border)] bg-white px-4 py-3"
+                >
+                  <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-muted)] text-xs font-semibold text-[var(--color-primary)]">
+                    {index + 1}
+                  </div>
+                  <p className="text-sm leading-6 text-[var(--color-text)]">
+                    {line}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-[18px] border border-dashed border-[color:var(--color-surface-border)] bg-white/70 px-4 py-6 text-sm leading-7 text-[var(--color-text-subtle)]">
+              右侧 X 助手开始输出后，这里会自动沉淀分析要点、异常归因和下一步动作。
+            </div>
+          )}
+
+          {plainAnalysis ? (
+            <div className="mt-4 rounded-[18px] border border-[color:var(--color-surface-border)] bg-[var(--color-surface-muted)]/60 px-4 py-3 text-sm leading-7 text-[var(--color-text-subtle)]">
+              {plainAnalysis.slice(0, 260)}
+              {plainAnalysis.length > 260 ? "..." : ""}
+            </div>
+          ) : null}
+        </SectionShell>
+      </div>
+
+      <SectionShell title="日志" eyebrow="Logs">
+        {timeline.length > 0 ? (
+          <div className="space-y-3">
+            {timeline.map((message) => {
+              const isUser = message.role === "user";
+
+              return (
+                <div
+                  key={message.id}
+                  className="grid gap-3 rounded-[18px] border border-[color:var(--color-surface-border)] bg-white px-4 py-3 lg:grid-cols-[112px_minmax(0,1fr)]"
+                >
+                  <div>
+                    <p
+                      className={cn(
+                        "text-sm font-semibold",
+                        isUser
+                          ? "text-[var(--color-primary)]"
+                          : "text-[var(--color-heading)]",
+                      )}
+                    >
+                      {isUser ? "Operator" : "X Assistant"}
+                    </p>
+                    <p className="mt-1 text-xs text-[var(--color-text-subtle)]">
+                      {formatMessageTime(message.timestampMs)}
+                    </p>
+                  </div>
+                  <div
+                    className="prose prose-sm max-w-none break-words whitespace-pre-wrap text-[var(--color-text)]"
+                    dangerouslySetInnerHTML={{ __html: message.html }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="rounded-[18px] border border-dashed border-[color:var(--color-surface-border)] bg-[var(--color-surface-muted)]/40 px-4 py-6 text-sm leading-7 text-[var(--color-text-subtle)]">
+            这里会显示对话时间线、日志摘录和助手返回的关键事件。
+          </div>
+        )}
+      </SectionShell>
+    </div>
+  );
+}
+
 export default function PlaceholderPage() {
   const pathname = usePathname();
   const kind = useMemo(() => getWorkspaceKind(pathname), [pathname]);
@@ -282,6 +499,8 @@ export default function PlaceholderPage() {
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
+            ) : kind === "logs" ? (
+              <ObservabilityWorkspace assistantState={assistantState} />
             ) : assistantMessages.length === 0 && !assistantState.streamingText ? (
               <div className="flex h-full min-h-[420px] flex-col items-center justify-center rounded-[24px] border border-dashed border-[color:var(--color-surface-border)] bg-[var(--color-surface-muted)]/40 px-6 text-center">
                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[20px] bg-[var(--color-primary-muted)] text-[var(--color-primary)]">
