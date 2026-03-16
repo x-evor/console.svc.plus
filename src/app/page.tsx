@@ -77,12 +77,12 @@ export default function HomePage() {
         )}
       >
         <div className="flex-1 overflow-y-auto relative">
-          <div className="relative mx-auto max-w-6xl px-6 pb-20">
+          <div className="relative mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-20">
             <div
-              className="absolute inset-0 bg-gradient-app-from opacity-20 pointer-events-none"
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(37,78,219,0.08),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(15,23,42,0.05),transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.82),transparent_58%)]"
               aria-hidden
             />
-            <main className="relative space-y-12 pt-10">
+            <main className="relative space-y-8 pt-6 sm:space-y-12 sm:pt-10">
               <HeroSection />
               <NextStepsSection />
               <StatsSection />
@@ -104,43 +104,45 @@ export function HeroSection() {
   const t = translations[language].marketing.home;
 
   return (
-    <section className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr]">
-      <div className="flex flex-col justify-center space-y-8">
-        <div className="space-y-4">
+    <section className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12">
+      <div className="flex flex-col justify-center space-y-6 sm:space-y-8">
+        <div className="space-y-3 sm:space-y-4">
           {t.hero.eyebrow && (
-            <p className="font-semibold uppercase tracking-wider text-text-subtle">
+            <p className="font-semibold uppercase tracking-[0.28em] text-text-subtle">
               {t.hero.eyebrow}
             </p>
           )}
-          <h1 className="text-xl font-bold tracking-tight text-heading sm:text-3xl">
+          <h1 className="max-w-[12ch] text-[2.22rem] font-semibold leading-[0.92] tracking-[-0.075em] text-heading sm:max-w-none sm:text-3xl lg:text-[3.35rem]">
             {t.hero.title}
           </h1>
-          <p className="text-base text-text-muted">{t.hero.subtitle}</p>
+          <p className="max-w-xl text-[1.02rem] leading-7 text-text-muted">
+            {t.hero.subtitle}
+          </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
           {user ? (
-            <div className="flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-4 py-1.5 text-sm font-medium text-success">
+            <div className="flex items-center justify-center gap-2 rounded-full border border-success/30 bg-success/10 px-4 py-2 text-sm font-medium text-success sm:justify-start sm:py-1.5">
               <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
               {t.signedIn.replace("{{username}}", user.username)}
             </div>
           ) : (
-            <button className="flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-hover">
+            <button className="flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover sm:py-2.5">
               <PlusCircle className="h-4 w-4" />
               {t.heroButtons.create}
             </button>
           )}
-          <button className="flex items-center gap-2 rounded-full border border-surface-border bg-surface px-6 py-2.5 text-sm font-semibold text-text transition hover:bg-surface-hover">
+          <button className="flex items-center justify-center gap-2 rounded-full border border-surface-border bg-surface/90 px-6 py-3 text-sm font-semibold text-text transition hover:bg-surface-hover sm:py-2.5">
             <Play className="h-4 w-4" />
             {t.heroButtons.playground}
           </button>
-          <button className="flex items-center gap-2 rounded-full border border-surface-border bg-surface px-6 py-2.5 text-sm font-semibold text-text transition hover:bg-surface-hover">
+          <button className="flex items-center justify-center gap-2 rounded-full border border-surface-border bg-surface/90 px-6 py-3 text-sm font-semibold text-text transition hover:bg-surface-hover sm:py-2.5">
             <BookOpen className="h-4 w-4" />
             {t.heroButtons.tutorials}
           </button>
         </div>
         <div className="flex flex-col gap-3 text-sm">
           <p className="text-text-muted">{t.trustedBy}</p>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex flex-wrap gap-2">
             <LogoPill label="Next.js" />
             <LogoPill label="Go" />
             <LogoPill label="Vercel" />
@@ -149,8 +151,8 @@ export function HeroSection() {
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-4 relative">
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="relative flex flex-col gap-3 sm:gap-4">
           {t.heroCards.map((card) => {
             const Icon = getIcon(card.title, PlusCircle);
             return (
@@ -174,12 +176,12 @@ export function NextStepsSection() {
   const t = translations[language].marketing.home;
 
   return (
-    <section className="space-y-4">
-      <header className="flex items-center gap-3 text-sm text-text-muted">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-subtle">
+    <section className="space-y-4 rounded-[1.75rem] border border-surface-border/70 bg-white/70 p-5 shadow-[0_16px_45px_rgba(15,23,42,0.05)] lg:rounded-none lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none">
+      <header className="flex flex-col gap-2 text-sm text-text-muted sm:flex-row sm:items-center sm:gap-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-text-subtle">
           {t.nextSteps.title}
         </p>
-        <span className="rounded-full bg-surface-muted px-3 py-1 text-xs font-semibold text-primary">
+        <span className="w-fit rounded-full bg-surface-muted px-3 py-1 text-xs font-semibold text-primary">
           {t.nextSteps.badge}
         </span>
       </header>
@@ -189,9 +191,9 @@ export function NextStepsSection() {
           return (
             <div
               key={index}
-              className="flex items-start gap-3 rounded-xl border border-surface-border bg-surface p-4 shadow-lg shadow-shadow-sm"
+              className="flex items-start gap-3 rounded-[1.4rem] border border-surface-border bg-surface/92 p-4 shadow-lg shadow-shadow-sm"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-primary">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary">
                 <Icon className="h-5 w-5" aria-hidden />
               </div>
               <div className="space-y-2">
@@ -284,14 +286,19 @@ export function StatsSection() {
   ];
 
   return (
-    <section className="rounded-2xl border border-surface-border bg-gradient-to-r from-surface-muted via-surface/0 to-surface-muted p-6 shadow-inner shadow-shadow-sm">
-      <div className="grid gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+    <section className="overflow-hidden rounded-[1.9rem] border border-surface-border/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(243,244,246,0.88))] p-5 shadow-[0_18px_40px_rgba(15,23,42,0.05)] sm:p-6">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-3 lg:grid-cols-5">
         {displayStats.map((stat, index: number) => (
-          <div key={index} className="space-y-1 text-center md:text-left">
-            <div className="text-3xl font-semibold text-heading">
+          <div
+            key={index}
+            className="space-y-1 text-left even:text-right md:text-left"
+          >
+            <div className="text-[2rem] font-semibold tracking-[-0.06em] text-heading sm:text-3xl">
               {stat.value}
             </div>
-            <p className="text-sm text-text-muted">{stat.label}</p>
+            <p className="max-w-[9rem] text-sm text-text-muted even:ml-auto md:max-w-none">
+              {stat.label}
+            </p>
           </div>
         ))}
       </div>
@@ -345,22 +352,22 @@ export function ShortcutsSection() {
         }));
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between">
+    <section className="space-y-4 rounded-[1.75rem] border border-surface-border/70 bg-white/70 p-5 shadow-[0_16px_45px_rgba(15,23,42,0.05)] lg:rounded-none lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-subtle">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-text-subtle">
             {t.shortcuts.title}
           </p>
-          <p className="text-sm text-text-muted">{t.shortcuts.subtitle}</p>
+          <p className="mt-1 text-sm text-text-muted">{t.shortcuts.subtitle}</p>
         </div>
-        <div className="flex gap-2 text-xs font-semibold text-primary">
-          <button className="rounded-full border border-surface-border bg-surface-muted px-3 py-1 transition hover:bg-surface-hover">
+        <div className="flex flex-wrap gap-2 text-xs font-semibold text-primary">
+          <button className="rounded-full border border-surface-border bg-surface-muted px-3 py-2 transition hover:bg-surface-hover">
             {t.shortcuts.buttons.start}
           </button>
-          <button className="rounded-full border border-surface-border bg-surface-muted px-3 py-1 transition hover:bg-surface-hover">
+          <button className="rounded-full border border-surface-border bg-surface-muted px-3 py-2 transition hover:bg-surface-hover">
             {t.shortcuts.buttons.docs}
           </button>
-          <button className="rounded-full border border-surface-border bg-surface-muted px-3 py-1 transition hover:bg-surface-hover">
+          <button className="rounded-full border border-surface-border bg-surface-muted px-3 py-2 transition hover:bg-surface-hover">
             {t.shortcuts.buttons.guides}
           </button>
         </div>
@@ -372,12 +379,12 @@ export function ShortcutsSection() {
             <a
               key={index}
               href={item.href}
-              className="group flex items-start gap-3 rounded-xl border border-surface-border bg-surface p-4 transition hover:-translate-y-[1px] hover:border-primary/50 hover:bg-surface-hover"
+              className="group flex items-start gap-3 rounded-[1.4rem] border border-surface-border bg-surface/92 p-4 transition hover:-translate-y-[1px] hover:border-primary/50 hover:bg-surface-hover"
             >
-              <div className="mt-1 flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-primary">
+              <div className="mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary">
                 <Icon className="h-5 w-5" aria-hidden />
               </div>
-              <div className="space-y-1">
+              <div className="min-w-0 space-y-1">
                 <div className="text-sm font-semibold text-heading">
                   {item.title}
                 </div>
@@ -403,7 +410,7 @@ type LatestBlogPost = {
 
 function LogoPill({ label }: { label: string }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-surface-border bg-surface-muted px-3 py-1 text-xs font-semibold text-text">
+    <span className="inline-flex items-center gap-2 rounded-full border border-surface-border bg-surface/88 px-3.5 py-1.5 text-xs font-semibold text-text shadow-[0_8px_22px_rgba(15,23,42,0.04)]">
       <div className="h-2 w-2 rounded-full bg-success" />
       {label}
     </span>

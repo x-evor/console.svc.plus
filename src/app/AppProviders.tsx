@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { ThemeProvider } from "../components/theme";
 import { LanguageProvider } from "../i18n/LanguageProvider";
@@ -20,17 +20,41 @@ export function AppProviders({
   const { isOpen, isMinimized, close, toggleOpen } = useMoltbotStore();
   const applyDefaults = useOpenClawConsoleStore((state) => state.applyDefaults);
   const pathname = usePathname();
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
   const isOpenClawWorkspace =
     pathname.startsWith("/xworkmate") ||
     pathname.startsWith("/services/openclaw");
 
-  // Always reserve space if open and not minimized, since we only have "Float/Sidebar" mode now
-  // and user wants it to NEVER cover the homepage.
-  const reserveSpace = !isOpenClawWorkspace && isOpen && !isMinimized;
+  const reserveSpace =
+    !isOpenClawWorkspace && isOpen && !isMinimized && !isMobileViewport;
 
   useEffect(() => {
     applyDefaults(assistantDefaults);
   }, [applyDefaults, assistantDefaults]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(max-width: 1023px)");
+    const syncViewport = () => {
+      setIsMobileViewport(mediaQuery.matches);
+    };
+
+    syncViewport();
+    mediaQuery.addEventListener("change", syncViewport);
+
+    return () => {
+      mediaQuery.removeEventListener("change", syncViewport);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isMobileViewport && !isOpenClawWorkspace) {
+      close();
+    }
+  }, [close, isMobileViewport, isOpenClawWorkspace]);
 
   return (
     <ThemeProvider>
@@ -40,7 +64,7 @@ export function AppProviders({
             style={
               {
                 "--assistant-reserve-offset": reserveSpace ? "400px" : "0px",
-              } as React.CSSProperties
+              } as CSSProperties
             }
             className={cn(
               "flex-1 flex flex-col relative w-full overflow-hidden transition-[padding] duration-300 ease-in-out",
