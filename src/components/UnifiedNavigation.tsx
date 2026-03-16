@@ -32,6 +32,7 @@ const getLabel = (
 export default function UnifiedNavigation() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [useMobileDrawer, setUseMobileDrawer] = useState(false);
   const [selectedChannels, setSelectedChannels] = useState<ReleaseChannel[]>([
     "stable",
   ]);
@@ -128,6 +129,20 @@ export default function UnifiedNavigation() {
       document.body.style.overflow = "";
     };
   }, [menuOpen]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const userAgent = window.navigator.userAgent || "";
+    const platform = window.navigator.platform || "";
+    const touchPoints = window.navigator.maxTouchPoints || 0;
+    const mobileOS =
+      /Android|iPhone|iPad|iPod/i.test(userAgent) ||
+      (platform === "MacIntel" && touchPoints > 1);
+    setUseMobileDrawer(mobileOS);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -421,7 +436,13 @@ export default function UnifiedNavigation() {
               className="absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity"
               onClick={() => setMenuOpen(false)}
             />
-            <div className="absolute inset-0 bg-background shadow-2xl transition-transform duration-300 ease-in-out">
+            <div
+              className={`absolute bg-background shadow-2xl transition-transform duration-300 ease-in-out ${
+                useMobileDrawer
+                  ? "inset-y-0 left-0 w-[min(86vw,22rem)] border-r border-surface-border"
+                  : "inset-0"
+              }`}
+            >
               <div className="flex h-full flex-col overflow-y-auto">
                 <div className="sticky top-0 z-10 flex items-center justify-between border-b border-surface-border bg-background px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
                   <Link
@@ -444,6 +465,7 @@ export default function UnifiedNavigation() {
                   <button
                     onClick={() => setMenuOpen(false)}
                     className="rounded-lg p-2 text-text-muted transition-colors hover:bg-surface-muted"
+                    aria-label={isChinese ? "关闭菜单" : "Close menu"}
                   >
                     <X className="h-5 w-5" />
                   </button>
