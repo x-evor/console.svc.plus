@@ -57,6 +57,7 @@ export default function LoginContent({
   const errorParam = searchParams.get("error");
   const registeredParam = searchParams.get("registered");
   const setupMfaParam = searchParams.get("setupMfa");
+  const redirectParam = searchParams.get("redirect");
 
   const normalize = useCallback(
     (value: string) =>
@@ -87,7 +88,10 @@ export default function LoginContent({
     }
 
     setIsSubmitting(true);
-    setAlert({ type: "success", message: alerts.submit ?? "Authenticating..." });
+    setAlert({
+      type: "success",
+      message: alerts.submit ?? "Authenticating...",
+    });
 
     const exchangeToken = async () => {
       try {
@@ -319,7 +323,11 @@ export default function LoginContent({
         const data: { redirectTo?: string } = await response
           .json()
           .catch(() => ({}));
-        router.push(data?.redirectTo || "/");
+        const redirectTarget =
+          redirectParam && redirectParam.startsWith("/")
+            ? redirectParam
+            : undefined;
+        router.push(redirectTarget || data?.redirectTo || "/");
         router.refresh();
       } catch (error) {
         console.error("Failed to submit login request", error);
@@ -328,7 +336,14 @@ export default function LoginContent({
         setIsSubmitting(false);
       }
     },
-    [alerts, deriveSameOriginLoginFallback, isSubmitting, normalize, router],
+    [
+      alerts,
+      deriveSameOriginLoginFallback,
+      isSubmitting,
+      normalize,
+      redirectParam,
+      router,
+    ],
   );
 
   const socialButtons = useMemo<AuthLayoutSocialButton[]>(() => {
