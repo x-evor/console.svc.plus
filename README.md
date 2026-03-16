@@ -70,6 +70,21 @@ cp .env.example .env
 
 更多说明见 `docs/getting-started/installation.md` 和 `.env.example`。
 
+## Stripe 配置 (Stripe Billing Setup)
+
+`/prices`、产品页和账户中心的购买入口现在统一读取前端公开的 Stripe `price_id`：
+
+| 变量                                               | 用途                |
+| -------------------------------------------------- | ------------------- |
+| `NEXT_PUBLIC_STRIPE_PRICE_XSTREAM_PAYGO`           | Xstream 按量购买    |
+| `NEXT_PUBLIC_STRIPE_PRICE_XSTREAM_SUBSCRIPTION`    | Xstream 订阅        |
+| `NEXT_PUBLIC_STRIPE_PRICE_XSCOPEHUB_PAYGO`         | XScopeHub 按量购买  |
+| `NEXT_PUBLIC_STRIPE_PRICE_XSCOPEHUB_SUBSCRIPTION`  | XScopeHub 订阅      |
+| `NEXT_PUBLIC_STRIPE_PRICE_XCLOUDFLOW_PAYGO`        | XCloudFlow 按量购买 |
+| `NEXT_PUBLIC_STRIPE_PRICE_XCLOUDFLOW_SUBSCRIPTION` | XCloudFlow 订阅     |
+
+这些值应填写为 Stripe Dashboard 中对应套餐的 `price_...` 标识。联调步骤见 `docs/integrations/stripe-billing.md`。
+
 ## 核心特性 & 技术栈 (Features & Tech Stack)
 
 核心特性：
@@ -107,6 +122,7 @@ yarn typecheck
 
 - OIDC: `docs/integrations/oidc-auth.md`
 - Cloudflare Web Analytics: `docs/integrations/cloudflare-web-analytics.md`
+- Stripe billing: `docs/integrations/stripe-billing.md`
 - Assistant / Integrations env setup: `docs/getting-started/installation.md`
 - Chinese installation guide: `docs/zh/getting-started/installation.md`
 
