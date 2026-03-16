@@ -6838,7 +6838,7 @@ __metadata:
     mermaid: "npm:^11.12.2"
     next: "npm:^16.0.9"
     next-contentlayer: "npm:^0.3.4"
-    next-mdx-remote: "npm:6.0.0"
+    next-mdx-remote: "npm:^6.0.0"
     next-themes: "npm:^0.4.6"
     pdfjs-dist: "npm:^4.2.67"
     postcss: "npm:^8.4.32"
@@ -11468,7 +11468,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next-mdx-remote@npm:6.0.0":
+"next-mdx-remote@npm:^6.0.0":
   version: 6.0.0
   resolution: "next-mdx-remote@npm:6.0.0"
   dependencies:
