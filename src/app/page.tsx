@@ -67,7 +67,7 @@ export default function HomePage() {
   const { mode, isOpen } = useMoltbotStore();
 
   return (
-    <div className="min-h-screen bg-background text-text transition-colors duration-150 flex flex-col">
+    <div className="mobile-home-shell min-h-screen bg-background text-text transition-colors duration-150 flex flex-col overflow-x-hidden">
       <UnifiedNavigation />
 
       <div

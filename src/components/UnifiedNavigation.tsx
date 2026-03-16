@@ -36,11 +36,10 @@ export default function UnifiedNavigation() {
     "stable",
   ]);
   const navRef = useRef<HTMLElement | null>(null);
-  const { language } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const user = useUserStore((state) => state.user);
-  const { setIsOpen, setMode, toggleOpen } = useMoltbotStore();
+  const { toggleOpen } = useMoltbotStore();
   const nav = translations[language].nav;
-  const accountCopy = nav.account;
   const accountInitial =
     user?.username?.charAt(0)?.toUpperCase() ??
     user?.email?.charAt(0)?.toUpperCase() ??
@@ -186,6 +185,13 @@ export default function UnifiedNavigation() {
   const mobileQuickLinks = mobilePrimaryNav.filter((item) =>
     ["chat", "console", "docs", "services"].includes(item.key),
   );
+  const mobileMenuNav = mobilePrimaryNav.filter((item) => item.key !== "home");
+  const primaryAccountAction = user
+    ? (accountNav.find((item) => item.key !== "logout") ?? accountNav[0])
+    : (accountNav.find((item) => item.key === "login") ?? accountNav[0]);
+  const secondaryAccountAction = user
+    ? accountNav.find((item) => item.key === "logout")
+    : accountNav.find((item) => item.key === "register");
 
   const isHiddenRoute = pathname
     ? [
@@ -219,7 +225,7 @@ export default function UnifiedNavigation() {
         }}
         className="sticky top-0 z-50 w-full border-b border-surface-border bg-background/95 text-text backdrop-blur transition-colors duration-150"
       >
-        <div className="lg:hidden flex items-center justify-between border-b border-surface-border/70 bg-background px-4 py-3">
+        <div className="flex items-center justify-between border-b border-surface-border/70 bg-background px-5 pb-3 pt-[max(0.875rem,env(safe-area-inset-top))] lg:hidden">
           <Link
             href="/"
             className="flex items-center gap-2"
@@ -233,13 +239,13 @@ export default function UnifiedNavigation() {
               className="h-6 w-6"
               unoptimized
             />
-            <span className="text-base font-semibold tracking-tight text-text">
+            <span className="text-[1.05rem] font-semibold tracking-tight text-text">
               Cloud-Neutral
             </span>
           </Link>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="rounded-xl bg-surface-muted p-2 text-text transition-colors hover:bg-surface-hover"
+            className="rounded-[1.15rem] bg-surface-muted p-3 text-text transition-colors hover:bg-surface-hover"
             aria-label="Toggle menu"
           >
             {menuOpen ? (
@@ -420,66 +426,61 @@ export default function UnifiedNavigation() {
             </div>
           </div>
         </div>
+      </nav>
 
-        {menuOpen && (
-          <div className="fixed inset-0 z-[60] lg:hidden">
-            <div
-              className="absolute inset-0 bg-white/92 backdrop-blur-md transition-opacity"
-              onClick={() => setMenuOpen(false)}
-            />
-            <div className="absolute inset-0 bg-background transition-transform duration-300 ease-in-out">
-              <div className="relative flex h-full flex-col overflow-y-auto bg-[radial-gradient(circle_at_bottom_right,rgba(15,23,42,0.06),transparent_32%),linear-gradient(180deg,#ffffff_0%,#fbfbfa_100%)]">
-                <div className="sticky top-0 z-10 flex items-center justify-between bg-transparent px-5 pb-4 pt-[max(1rem,env(safe-area-inset-top))]">
-                  <Link
-                    href="/"
-                    className="flex items-center gap-2"
-                    onClick={() => setMenuOpen(false)}
+      {menuOpen && (
+        <div className="fixed inset-0 z-[60] lg:hidden">
+          <button
+            type="button"
+            aria-label={isChinese ? "关闭菜单" : "Close menu"}
+            className="absolute inset-0 bg-white/72 backdrop-blur-[2px] transition-opacity"
+            onClick={() => setMenuOpen(false)}
+          />
+          <div className="absolute inset-0 bg-background transition-transform duration-300 ease-in-out">
+            <div className="flex h-full flex-col overflow-y-auto px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]">
+              <div className="flex items-center justify-between">
+                <Link
+                  href="/"
+                  className="flex items-center gap-2"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <Image
+                    src="/icons/cloudnative_32.png"
+                    alt="logo"
+                    width={24}
+                    height={24}
+                    className="h-6 w-6"
+                    unoptimized
+                  />
+                  <span className="text-[1.7rem] font-semibold tracking-[-0.05em] text-text">
+                    Cloud-Neutral
+                  </span>
+                </Link>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setLanguage(language === "zh" ? "en" : "zh")}
+                    className="inline-flex h-10 min-w-10 items-center justify-center rounded-full border border-surface-border bg-surface-muted/75 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-text shadow-sm transition hover:bg-surface-hover"
+                    aria-label={
+                      isChinese ? "切换到英文" : "Switch language to Chinese"
+                    }
                   >
-                    <Image
-                      src="/icons/cloudnative_32.png"
-                      alt="logo"
-                      width={24}
-                      height={24}
-                      className="h-6 w-6"
-                      unoptimized
-                    />
-                    <span className="text-[1.625rem] font-semibold tracking-[-0.04em] text-text">
-                      Cloud-Neutral
-                    </span>
-                  </Link>
-                  <div className="flex items-center gap-2">
-                    <div className="rounded-full border border-surface-border bg-white/80 px-2 py-1 shadow-sm">
-                      <LanguageToggle />
-                    </div>
-                    <button
-                      onClick={() => setMenuOpen(false)}
-                      className="rounded-full border border-surface-border bg-white/80 p-2 text-text-muted shadow-sm transition-colors hover:bg-surface-muted"
-                      aria-label={isChinese ? "关闭菜单" : "Close menu"}
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                  </div>
+                    {language === "zh" ? "EN" : "中"}
+                  </button>
+                  <button
+                    onClick={() => setMenuOpen(false)}
+                    className="rounded-full border border-surface-border bg-surface-muted/75 p-2.5 text-text shadow-sm transition-colors hover:bg-surface-hover"
+                    aria-label={isChinese ? "关闭菜单" : "Close menu"}
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
                 </div>
+              </div>
 
-                <div className="flex-1 px-6 pb-8 pt-3">
-                  {user ? (
-                    <div className="mb-6 flex items-center gap-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-text text-sm font-semibold text-background">
-                        {accountInitial}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-text">
-                          {user.username}
-                        </p>
-                        <p className="truncate text-xs text-text-muted">
-                          {user.email}
-                        </p>
-                      </div>
-                    </div>
-                  ) : null}
-
-                  <div className="space-y-1.5">
-                    {mobilePrimaryNav.map((item) => {
+              <div className="flex flex-1 flex-col justify-between pt-8">
+                <div className="relative min-h-0 flex-1">
+                  <div className="max-w-[13.5rem] space-y-3">
+                    {mobileMenuNav.map((item) => {
                       const active = isActive(item);
                       if (item.key === "chat") {
                         return (
@@ -489,24 +490,13 @@ export default function UnifiedNavigation() {
                               toggleOpen();
                               setMenuOpen(false);
                             }}
-                            className={`group flex w-full items-center justify-between rounded-2xl px-1 py-3 text-left transition-colors ${
+                            className={`block w-full py-1 text-left text-[2rem] font-semibold tracking-[-0.055em] transition-colors ${
                               active
                                 ? "text-text"
                                 : "text-text hover:text-primary"
                             }`}
                           >
-                            <span className="text-[2rem] font-semibold tracking-[-0.045em]">
-                              {getLabel(item.label, language)}
-                            </span>
-                            <span
-                              className={`text-sm transition-transform ${
-                                active
-                                  ? "text-primary"
-                                  : "text-text-muted group-hover:translate-x-1 group-hover:text-primary"
-                              }`}
-                            >
-                              {isChinese ? "进入" : "Open"}
-                            </span>
+                            {getLabel(item.label, language)}
                           </button>
                         );
                       }
@@ -514,37 +504,23 @@ export default function UnifiedNavigation() {
                         <Link
                           key={item.key}
                           href={item.href}
-                          className={`group flex items-center justify-between rounded-2xl px-1 py-3 transition-colors ${
+                          className={`block py-1 text-[2rem] font-semibold tracking-[-0.055em] transition-colors ${
                             active
                               ? "text-text"
                               : "text-text hover:text-primary"
                           }`}
                           onClick={() => setMenuOpen(false)}
                         >
-                          <span className="text-[2rem] font-semibold tracking-[-0.045em]">
-                            {getLabel(item.label, language)}
-                          </span>
-                          <span
-                            className={`text-sm transition-transform ${
-                              active
-                                ? "text-primary"
-                                : "text-text-muted group-hover:translate-x-1 group-hover:text-primary"
-                            }`}
-                          >
-                            {isChinese ? "查看" : "View"}
-                          </span>
+                          {getLabel(item.label, language)}
                         </Link>
                       );
                     })}
                   </div>
 
                   {mobileQuickLinks.length > 0 ? (
-                    <div className="pointer-events-none mt-10 flex justify-end">
-                      <div className="pointer-events-auto w-[10.5rem] rounded-[1.6rem] bg-slate-100/88 p-4 shadow-[0_18px_40px_rgba(15,23,42,0.08)] backdrop-blur">
-                        <p className="mb-3 text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-text-muted/70">
-                          {isChinese ? "快捷入口" : "Shortcuts"}
-                        </p>
-                        <div className="space-y-2">
+                    <div className="pointer-events-none absolute bottom-4 right-0 flex justify-end">
+                      <div className="pointer-events-auto w-[11rem] rounded-[1.75rem] bg-surface-muted/82 p-4 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
+                        <div className="space-y-2.5">
                           {mobileQuickLinks.map((item) =>
                             item.key === "chat" ? (
                               <button
@@ -553,7 +529,7 @@ export default function UnifiedNavigation() {
                                   toggleOpen();
                                   setMenuOpen(false);
                                 }}
-                                className="block text-left text-[1.05rem] font-medium tracking-[-0.03em] text-text transition hover:text-primary"
+                                className="block text-left text-[1.08rem] font-medium tracking-[-0.03em] text-text transition hover:text-primary"
                               >
                                 {getLabel(item.label, language)}
                               </button>
@@ -562,7 +538,7 @@ export default function UnifiedNavigation() {
                                 key={item.key}
                                 href={item.href}
                                 onClick={() => setMenuOpen(false)}
-                                className="block text-[1.05rem] font-medium tracking-[-0.03em] text-text transition hover:text-primary"
+                                className="block text-[1.08rem] font-medium tracking-[-0.03em] text-text transition hover:text-primary"
                               >
                                 {getLabel(item.label, language)}
                               </Link>
@@ -574,55 +550,43 @@ export default function UnifiedNavigation() {
                   ) : null}
                 </div>
 
-                <div className="mt-auto px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4">
-                  <div className="flex items-end justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-3 max-w-[11rem] rounded-full border border-surface-border bg-white/80 px-3 py-2 shadow-sm">
-                        <ReleaseChannelSelector
-                          selected={selectedChannels}
-                          onToggle={toggleChannel}
-                          variant="icon"
-                        />
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-text-muted">
-                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-surface-border bg-white/80 shadow-sm">
-                          {accountInitial}
-                        </span>
-                        <span className="truncate">
-                          {user
-                            ? user.username || user.email
-                            : isChinese
-                              ? "访客模式"
-                              : "Guest mode"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex w-[10.5rem] shrink-0 flex-col gap-2">
-                      {accountNav.map((item) => (
-                        <Link
-                          key={item.key}
-                          href={item.href}
-                          className={`flex min-h-12 items-center justify-center rounded-full px-4 text-base font-semibold transition ${
-                            item.key === "logout"
-                              ? "bg-rose-500/8 text-rose-600 hover:bg-rose-500/15"
-                              : "bg-slate-100/88 text-text hover:bg-slate-200/88"
-                          }`}
-                          onClick={() => setMenuOpen(false)}
-                        >
-                          {typeof item.label === "function"
-                            ? item.label(language)
-                            : item.label}
-                        </Link>
-                      ))}
+                <div className="flex items-end justify-between gap-5 pt-10">
+                  <div className="flex flex-col items-start gap-3 text-sm text-text-muted">
+                    {secondaryAccountAction ? (
+                      <Link
+                        href={secondaryAccountAction.href}
+                        onClick={() => setMenuOpen(false)}
+                        className="text-sm font-medium text-text-muted transition hover:text-text"
+                      >
+                        {typeof secondaryAccountAction.label === "function"
+                          ? secondaryAccountAction.label(language)
+                          : secondaryAccountAction.label}
+                      </Link>
+                    ) : null}
+                    <div className="inline-flex items-center gap-2 rounded-full border border-surface-border bg-surface px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-muted shadow-sm">
+                      {isChinese ? "单页导航" : "Single Page"}
                     </div>
                   </div>
+
+                  {primaryAccountAction ? (
+                    <div className="flex shrink-0 flex-col items-end gap-2">
+                      <Link
+                        href={primaryAccountAction.href}
+                        onClick={() => setMenuOpen(false)}
+                        className="inline-flex min-h-[3.25rem] min-w-[6.5rem] items-center justify-center rounded-full bg-surface-muted px-6 text-lg font-semibold text-text shadow-sm transition hover:bg-surface-hover"
+                      >
+                        {typeof primaryAccountAction.label === "function"
+                          ? primaryAccountAction.label(language)
+                          : primaryAccountAction.label}
+                      </Link>
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </div>
           </div>
-        )}
-      </nav>
+        </div>
+      )}
 
       {/* <div className="hidden lg:block">
         <AskAIButton />

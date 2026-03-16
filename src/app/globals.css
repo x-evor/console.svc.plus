@@ -1,13 +1,13 @@
-@import 'react-grid-layout/css/styles.css';
-@import 'react-resizable/css/styles.css';
+@import "react-grid-layout/css/styles.css";
+@import "react-resizable/css/styles.css";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --font-geist-sans: 'Geist', sans-serif;
-  --font-geist-mono: 'Geist Mono', monospace;
+  --font-geist-sans: "Geist", sans-serif;
+  --font-geist-mono: "Geist Mono", monospace;
   --app-shell-nav-offset: 5.5rem;
 
   /* Light theme defaults */
@@ -59,7 +59,8 @@
   --gradient-primary-from: #3366ff;
   --gradient-primary-to: #254edb;
 
-  --shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.06), 0 1px 3px rgba(17, 24, 39, 0.04);
+  --shadow-sm:
+    0 1px 2px rgba(17, 24, 39, 0.06), 0 1px 3px rgba(17, 24, 39, 0.04);
   --shadow-md: 0 10px 24px rgba(17, 24, 39, 0.08);
 
   --radius-lg: 0.875rem;
@@ -91,7 +92,9 @@ body {
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  transition: background-color 150ms ease, color 150ms ease;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
 }
 
 button,
@@ -143,5 +146,36 @@ button {
 
   ::selection {
     background: rgba(51, 102, 255, 0.18);
+  }
+}
+
+@media (max-width: 1023px) {
+  .mobile-home-shell {
+    --color-background: #fbfaf7;
+    --color-background-muted: #f4f1eb;
+    --color-surface: #fffdfa;
+    --color-surface-elevated: rgba(255, 253, 250, 0.96);
+    --color-surface-translucent: rgba(255, 253, 250, 0.92);
+    --color-surface-muted: #f1ece5;
+    --color-surface-hover: #f6f1ea;
+    --color-surface-border: rgba(15, 23, 42, 0.1);
+    --color-surface-border-strong: rgba(15, 23, 42, 0.16);
+    --color-text: #171717;
+    --color-heading: #0f172a;
+    --color-text-muted: #525866;
+    --color-text-subtle: #747b88;
+    --color-primary: #111827;
+    --color-primary-hover: #1f2937;
+    --color-primary-muted: #f1ece5;
+    --color-primary-border: rgba(15, 23, 42, 0.12);
+    --color-accent: #2563eb;
+    --color-accent-muted: #e5edff;
+    --color-accent-foreground: #1d4ed8;
+    --gradient-app-from: #fffdf8;
+    --gradient-app-via: #f8f4ee;
+    --gradient-app-to: #fbfaf7;
+    --shadow-sm:
+      0 1px 2px rgba(15, 23, 42, 0.05), 0 6px 18px rgba(15, 23, 42, 0.04);
+    --shadow-md: 0 18px 45px rgba(15, 23, 42, 0.08);
   }
 }
