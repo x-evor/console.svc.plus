@@ -114,6 +114,22 @@ export default function UnifiedNavigation() {
   }, [user]);
 
   useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
+  useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
@@ -167,13 +183,13 @@ export default function UnifiedNavigation() {
 
   const isHiddenRoute = pathname
     ? [
-      "/login",
-      "/register",
-      "/xstream",
-      "/xcloudflow",
-      "/xscopehub",
-      "/blogs",
-    ].some((prefix) => pathname.startsWith(prefix))
+        "/login",
+        "/register",
+        "/xstream",
+        "/xcloudflow",
+        "/xscopehub",
+        "/blogs",
+      ].some((prefix) => pathname.startsWith(prefix))
     : false;
 
   if (isHiddenRoute) {
@@ -197,10 +213,27 @@ export default function UnifiedNavigation() {
         }}
         className="sticky top-0 z-50 w-full border-b border-surface-border bg-background/95 text-text backdrop-blur transition-colors duration-150"
       >
-        <div className="lg:hidden flex items-center justify-between px-4 py-3 bg-background">
+        <div className="lg:hidden flex items-center justify-between border-b border-surface-border/70 bg-background px-4 py-3">
+          <Link
+            href="/"
+            className="flex items-center gap-2"
+            onClick={() => setMenuOpen(false)}
+          >
+            <Image
+              src="/icons/cloudnative_32.png"
+              alt="logo"
+              width={24}
+              height={24}
+              className="h-6 w-6"
+              unoptimized
+            />
+            <span className="text-base font-semibold tracking-tight text-text">
+              Cloud-Neutral
+            </span>
+          </Link>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="p-2 -ml-2 rounded-xl bg-surface-muted hover:bg-surface-hover text-text transition-colors"
+            className="rounded-xl bg-surface-muted p-2 text-text transition-colors hover:bg-surface-hover"
             aria-label="Toggle menu"
           >
             {menuOpen ? (
@@ -209,7 +242,6 @@ export default function UnifiedNavigation() {
               <Menu className="w-5 h-5" />
             )}
           </button>
-          <div className="w-10" />
         </div>
 
         <div className="hidden lg:block mx-auto w-full max-w-7xl px-6 sm:px-8">
@@ -219,33 +251,35 @@ export default function UnifiedNavigation() {
                 {filteredMainNav.map((item) => {
                   const active = isActive(item);
                   if (item.showOn === "mobile") return null;
-                  if (item.key === 'chat') {
+                  if (item.key === "chat") {
                     return (
                       <button
                         key={item.key}
                         onClick={() => {
                           toggleOpen();
                         }}
-                        className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-colors whitespace-nowrap ${active
-                          ? "bg-primary/10 text-primary"
-                          : "text-text-muted hover:text-text hover:bg-surface-muted"
-                          }`}
+                        className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-colors whitespace-nowrap ${
+                          active
+                            ? "bg-primary/10 text-primary"
+                            : "text-text-muted hover:text-text hover:bg-surface-muted"
+                        }`}
                       >
                         {item.icon && <item.icon className="w-4 h-4" />}
                         <span className="text-[13px] tracking-tight">
                           {getLabel(item.label, language)}
                         </span>
                       </button>
-                    )
+                    );
                   }
                   return (
                     <Link
                       key={item.key}
                       href={item.href}
-                      className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-colors whitespace-nowrap ${active
-                        ? "bg-primary/10 text-primary"
-                        : "text-text-muted hover:text-text hover:bg-surface-muted"
-                        }`}
+                      className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-colors whitespace-nowrap ${
+                        active
+                          ? "bg-primary/10 text-primary"
+                          : "text-text-muted hover:text-text hover:bg-surface-muted"
+                      }`}
                     >
                       {item.icon && <item.icon className="w-4 h-4" />}
                       <span className="text-[13px] tracking-tight">
@@ -261,10 +295,11 @@ export default function UnifiedNavigation() {
                     <Link
                       key={item.key}
                       href={item.href}
-                      className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-colors whitespace-nowrap ${active
-                        ? "bg-primary/10 text-primary"
-                        : "text-text-muted hover:text-text hover:bg-surface-muted"
-                        }`}
+                      className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-colors whitespace-nowrap ${
+                        active
+                          ? "bg-primary/10 text-primary"
+                          : "text-text-muted hover:text-text hover:bg-surface-muted"
+                      }`}
                     >
                       {item.icon && <item.icon className="w-4 h-4" />}
                       <span className="text-[13px] tracking-tight">
@@ -285,7 +320,10 @@ export default function UnifiedNavigation() {
                     onToggle={toggleChannel}
                     variant="icon"
                   />
-                  <DropdownMenu.Root open={accountMenuOpen} onOpenChange={setAccountMenuOpen}>
+                  <DropdownMenu.Root
+                    open={accountMenuOpen}
+                    onOpenChange={setAccountMenuOpen}
+                  >
                     <DropdownMenu.Trigger asChild>
                       <button
                         type="button"
@@ -320,14 +358,17 @@ export default function UnifiedNavigation() {
                             >
                               <Link
                                 href={item.href}
-                                className={`flex h-[38px] flex-row-reverse items-center justify-between gap-3 px-3 rounded-lg text-[13px] font-medium transition-all group select-none ${item.key === 'logout'
-                                  ? "text-rose-500 hover:bg-rose-500/10 hover:text-rose-600 focus:bg-rose-500/10 focus:text-rose-600"
-                                  : "text-text-muted hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary"
-                                  }`}
+                                className={`flex h-[38px] flex-row-reverse items-center justify-between gap-3 px-3 rounded-lg text-[13px] font-medium transition-all group select-none ${
+                                  item.key === "logout"
+                                    ? "text-rose-500 hover:bg-rose-500/10 hover:text-rose-600 focus:bg-rose-500/10 focus:text-rose-600"
+                                    : "text-text-muted hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary"
+                                }`}
                                 onClick={() => setAccountMenuOpen(false)}
                               >
                                 {item.icon && (
-                                  <item.icon className={`w-4 h-4 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity ${item.key === 'logout' ? 'text-rose-500' : 'text-current'}`} />
+                                  <item.icon
+                                    className={`w-4 h-4 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity ${item.key === "logout" ? "text-rose-500" : "text-current"}`}
+                                  />
                                 )}
                                 <span className="flex-1 text-right">
                                   {typeof item.label === "function"
@@ -377,12 +418,12 @@ export default function UnifiedNavigation() {
         {menuOpen && (
           <div className="fixed inset-0 z-[60] lg:hidden">
             <div
-              className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+              className="absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity"
               onClick={() => setMenuOpen(false)}
             />
-            <div className="absolute inset-y-0 left-0 w-80 max-w-[85vw] bg-background shadow-2xl transition-transform duration-300 ease-in-out">
-              <div className="flex h-full flex-col overflow-y-auto border-r border-surface-border">
-                <div className="flex items-center justify-between border-b border-surface-border p-4">
+            <div className="absolute inset-0 bg-background shadow-2xl transition-transform duration-300 ease-in-out">
+              <div className="flex h-full flex-col overflow-y-auto">
+                <div className="sticky top-0 z-10 flex items-center justify-between border-b border-surface-border bg-background px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
                   <Link
                     href="/"
                     className="flex items-center gap-2"
@@ -402,7 +443,7 @@ export default function UnifiedNavigation() {
                   </Link>
                   <button
                     onClick={() => setMenuOpen(false)}
-                    className="rounded-lg p-2 text-text-muted hover:bg-surface-muted transition-colors"
+                    className="rounded-lg p-2 text-text-muted transition-colors hover:bg-surface-muted"
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -426,7 +467,7 @@ export default function UnifiedNavigation() {
                   </div>
                 )}
 
-                <div className="flex-1 p-4">
+                <div className="flex-1 px-4 pb-4 pt-5">
                   <p className="px-2 text-[10px] font-bold uppercase tracking-widest text-text-muted opacity-50 mb-2">
                     {isChinese ? "主导航" : "Main Navigation"}
                   </p>
@@ -434,7 +475,7 @@ export default function UnifiedNavigation() {
                     {filteredMainNav.map((item) => {
                       const active = isActive(item);
                       if (item.showOn === "desktop") return null;
-                      if (item.key === 'chat') {
+                      if (item.key === "chat") {
                         return (
                           <button
                             key={item.key}
@@ -442,36 +483,34 @@ export default function UnifiedNavigation() {
                               toggleOpen();
                               setMenuOpen(false);
                             }}
-                            className={`flex w-full items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors ${active
-                              ? "bg-primary/10 text-primary"
-                              : "text-text hover:bg-surface-muted"
-                              }`}
+                            className={`flex w-full items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                              active
+                                ? "bg-primary/10 text-primary"
+                                : "text-text hover:bg-surface-muted"
+                            }`}
                           >
                             {item.icon && (
                               <item.icon className="mr-3 h-5 w-5 opacity-70" />
                             )}
-                            <span>
-                              {getLabel(item.label, language)}
-                            </span>
+                            <span>{getLabel(item.label, language)}</span>
                           </button>
-                        )
+                        );
                       }
                       return (
                         <Link
                           key={item.key}
                           href={item.href}
-                          className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors ${active
-                            ? "bg-primary/10 text-primary"
-                            : "text-text hover:bg-surface-muted"
-                            }`}
+                          className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                            active
+                              ? "bg-primary/10 text-primary"
+                              : "text-text hover:bg-surface-muted"
+                          }`}
                           onClick={() => setMenuOpen(false)}
                         >
                           {item.icon && (
                             <item.icon className="mr-3 h-5 w-5 opacity-70" />
                           )}
-                          <span>
-                            {getLabel(item.label, language)}
-                          </span>
+                          <span>{getLabel(item.label, language)}</span>
                         </Link>
                       );
                     })}
@@ -490,18 +529,17 @@ export default function UnifiedNavigation() {
                             <Link
                               key={item.key}
                               href={item.href}
-                              className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors ${active
-                                ? "bg-primary/10 text-primary"
-                                : "text-text hover:bg-surface-muted"
-                                }`}
+                              className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                                active
+                                  ? "bg-primary/10 text-primary"
+                                  : "text-text hover:bg-surface-muted"
+                              }`}
                               onClick={() => setMenuOpen(false)}
                             >
                               {item.icon && (
                                 <item.icon className="mr-3 h-5 w-5 opacity-70" />
                               )}
-                              <span>
-                                {getLabel(item.label, language)}
-                              </span>
+                              <span>{getLabel(item.label, language)}</span>
                             </Link>
                           );
                         })}
@@ -517,10 +555,11 @@ export default function UnifiedNavigation() {
                       <Link
                         key={item.key}
                         href={item.href}
-                        className={`flex w-full items-center justify-center rounded-xl py-3 text-sm font-bold transition ${item.key === "logout"
-                          ? "bg-rose-500/10 text-rose-600 shadow-sm hover:bg-rose-500/20"
-                          : "border border-surface-border bg-surface-muted/50 dark:bg-surface-muted/30 hover:bg-surface-hover"
-                          }`}
+                        className={`flex w-full items-center justify-center rounded-xl py-3 text-sm font-bold transition ${
+                          item.key === "logout"
+                            ? "bg-rose-500/10 text-rose-600 shadow-sm hover:bg-rose-500/20"
+                            : "border border-surface-border bg-surface-muted/50 dark:bg-surface-muted/30 hover:bg-surface-hover"
+                        }`}
                         onClick={() => setMenuOpen(false)}
                       >
                         {typeof item.label === "function"
@@ -531,7 +570,7 @@ export default function UnifiedNavigation() {
                   </div>
                 </div>
 
-                <div className="border-t border-surface-border p-4 space-y-4">
+                <div className="border-t border-surface-border p-4 pb-[max(1rem,env(safe-area-inset-bottom))] space-y-4">
                   <div className="flex flex-col gap-3">
                     <p className="px-2 text-[10px] font-bold uppercase tracking-widest text-text-muted opacity-50">
                       {isChinese ? "设置" : "Settings"}
