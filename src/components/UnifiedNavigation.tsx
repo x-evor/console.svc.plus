@@ -4,7 +4,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "../i18n/LanguageProvider";
-import { Menu, X, Sun, Moon, Monitor, Plus, BarChart2 } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { translations } from "../i18n/translations";
 import LanguageToggle from "./LanguageToggle";
 // import { AskAIButton } from "./AskAIButton";
@@ -32,7 +32,6 @@ const getLabel = (
 export default function UnifiedNavigation() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [useMobileDrawer, setUseMobileDrawer] = useState(false);
   const [selectedChannels, setSelectedChannels] = useState<ReleaseChannel[]>([
     "stable",
   ]);
@@ -135,20 +134,6 @@ export default function UnifiedNavigation() {
       return;
     }
 
-    const userAgent = window.navigator.userAgent || "";
-    const platform = window.navigator.platform || "";
-    const touchPoints = window.navigator.maxTouchPoints || 0;
-    const mobileOS =
-      /Android|iPhone|iPad|iPod/i.test(userAgent) ||
-      (platform === "MacIntel" && touchPoints > 1);
-    setUseMobileDrawer(mobileOS);
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
     const element = navRef.current;
     if (!element) {
       return;
@@ -195,6 +180,12 @@ export default function UnifiedNavigation() {
 
   const filteredMainNav = filterNavItems(mainNav, user);
   const filteredSecondaryNav = filterNavItems(secondaryNav, user);
+  const mobilePrimaryNav = [...filteredMainNav, ...filteredSecondaryNav].filter(
+    (item) => item.showOn !== "desktop",
+  );
+  const mobileQuickLinks = mobilePrimaryNav.filter((item) =>
+    ["chat", "console", "docs", "services"].includes(item.key),
+  );
 
   const isHiddenRoute = pathname
     ? [
@@ -433,18 +424,12 @@ export default function UnifiedNavigation() {
         {menuOpen && (
           <div className="fixed inset-0 z-[60] lg:hidden">
             <div
-              className="absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity"
+              className="absolute inset-0 bg-white/92 backdrop-blur-md transition-opacity"
               onClick={() => setMenuOpen(false)}
             />
-            <div
-              className={`absolute bg-background shadow-2xl transition-transform duration-300 ease-in-out ${
-                useMobileDrawer
-                  ? "inset-y-0 left-0 w-[min(86vw,22rem)] border-r border-surface-border"
-                  : "inset-0"
-              }`}
-            >
-              <div className="flex h-full flex-col overflow-y-auto">
-                <div className="sticky top-0 z-10 flex items-center justify-between border-b border-surface-border bg-background px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+            <div className="absolute inset-0 bg-background transition-transform duration-300 ease-in-out">
+              <div className="relative flex h-full flex-col overflow-y-auto bg-[radial-gradient(circle_at_bottom_right,rgba(15,23,42,0.06),transparent_32%),linear-gradient(180deg,#ffffff_0%,#fbfbfa_100%)]">
+                <div className="sticky top-0 z-10 flex items-center justify-between bg-transparent px-5 pb-4 pt-[max(1rem,env(safe-area-inset-top))]">
                   <Link
                     href="/"
                     className="flex items-center gap-2"
@@ -458,27 +443,32 @@ export default function UnifiedNavigation() {
                       className="h-6 w-6"
                       unoptimized
                     />
-                    <span className="text-lg font-bold tracking-tight">
+                    <span className="text-[1.625rem] font-semibold tracking-[-0.04em] text-text">
                       Cloud-Neutral
                     </span>
                   </Link>
-                  <button
-                    onClick={() => setMenuOpen(false)}
-                    className="rounded-lg p-2 text-text-muted transition-colors hover:bg-surface-muted"
-                    aria-label={isChinese ? "关闭菜单" : "Close menu"}
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <div className="rounded-full border border-surface-border bg-white/80 px-2 py-1 shadow-sm">
+                      <LanguageToggle />
+                    </div>
+                    <button
+                      onClick={() => setMenuOpen(false)}
+                      className="rounded-full border border-surface-border bg-white/80 p-2 text-text-muted shadow-sm transition-colors hover:bg-surface-muted"
+                      aria-label={isChinese ? "关闭菜单" : "Close menu"}
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
                 </div>
 
-                {user && (
-                  <div className="border-b border-surface-border bg-surface-muted/30 p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-sm font-semibold text-white">
+                <div className="flex-1 px-6 pb-8 pt-3">
+                  {user ? (
+                    <div className="mb-6 flex items-center gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-text text-sm font-semibold text-background">
                         {accountInitial}
                       </div>
-                      <div className="flex-1 overflow-hidden">
-                        <p className="truncate text-sm font-semibold">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-text">
                           {user.username}
                         </p>
                         <p className="truncate text-xs text-text-muted">
@@ -486,17 +476,11 @@ export default function UnifiedNavigation() {
                         </p>
                       </div>
                     </div>
-                  </div>
-                )}
+                  ) : null}
 
-                <div className="flex-1 px-4 pb-4 pt-5">
-                  <p className="px-2 text-[10px] font-bold uppercase tracking-widest text-text-muted opacity-50 mb-2">
-                    {isChinese ? "主导航" : "Main Navigation"}
-                  </p>
-                  <div className="space-y-1 mb-6">
-                    {filteredMainNav.map((item) => {
+                  <div className="space-y-1.5">
+                    {mobilePrimaryNav.map((item) => {
                       const active = isActive(item);
-                      if (item.showOn === "desktop") return null;
                       if (item.key === "chat") {
                         return (
                           <button
@@ -505,16 +489,24 @@ export default function UnifiedNavigation() {
                               toggleOpen();
                               setMenuOpen(false);
                             }}
-                            className={`flex w-full items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                            className={`group flex w-full items-center justify-between rounded-2xl px-1 py-3 text-left transition-colors ${
                               active
-                                ? "bg-primary/10 text-primary"
-                                : "text-text hover:bg-surface-muted"
+                                ? "text-text"
+                                : "text-text hover:text-primary"
                             }`}
                           >
-                            {item.icon && (
-                              <item.icon className="mr-3 h-5 w-5 opacity-70" />
-                            )}
-                            <span>{getLabel(item.label, language)}</span>
+                            <span className="text-[2rem] font-semibold tracking-[-0.045em]">
+                              {getLabel(item.label, language)}
+                            </span>
+                            <span
+                              className={`text-sm transition-transform ${
+                                active
+                                  ? "text-primary"
+                                  : "text-text-muted group-hover:translate-x-1 group-hover:text-primary"
+                              }`}
+                            >
+                              {isChinese ? "进入" : "Open"}
+                            </span>
                           </button>
                         );
                       }
@@ -522,95 +514,107 @@ export default function UnifiedNavigation() {
                         <Link
                           key={item.key}
                           href={item.href}
-                          className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                          className={`group flex items-center justify-between rounded-2xl px-1 py-3 transition-colors ${
                             active
-                              ? "bg-primary/10 text-primary"
-                              : "text-text hover:bg-surface-muted"
+                              ? "text-text"
+                              : "text-text hover:text-primary"
                           }`}
                           onClick={() => setMenuOpen(false)}
                         >
-                          {item.icon && (
-                            <item.icon className="mr-3 h-5 w-5 opacity-70" />
-                          )}
-                          <span>{getLabel(item.label, language)}</span>
+                          <span className="text-[2rem] font-semibold tracking-[-0.045em]">
+                            {getLabel(item.label, language)}
+                          </span>
+                          <span
+                            className={`text-sm transition-transform ${
+                              active
+                                ? "text-primary"
+                                : "text-text-muted group-hover:translate-x-1 group-hover:text-primary"
+                            }`}
+                          >
+                            {isChinese ? "查看" : "View"}
+                          </span>
                         </Link>
                       );
                     })}
                   </div>
 
-                  {filteredSecondaryNav.length > 0 && (
-                    <>
-                      <p className="px-2 text-[10px] font-bold uppercase tracking-widest text-text-muted opacity-50 mb-2">
-                        {isChinese ? "其他" : "Other"}
-                      </p>
-                      <div className="space-y-1 mb-6">
-                        {filteredSecondaryNav.map((item) => {
-                          const active = isActive(item);
-                          if (item.showOn === "desktop") return null;
-                          return (
-                            <Link
-                              key={item.key}
-                              href={item.href}
-                              className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                                active
-                                  ? "bg-primary/10 text-primary"
-                                  : "text-text hover:bg-surface-muted"
-                              }`}
-                              onClick={() => setMenuOpen(false)}
-                            >
-                              {item.icon && (
-                                <item.icon className="mr-3 h-5 w-5 opacity-70" />
-                              )}
-                              <span>{getLabel(item.label, language)}</span>
-                            </Link>
-                          );
-                        })}
+                  {mobileQuickLinks.length > 0 ? (
+                    <div className="pointer-events-none mt-10 flex justify-end">
+                      <div className="pointer-events-auto w-[10.5rem] rounded-[1.6rem] bg-slate-100/88 p-4 shadow-[0_18px_40px_rgba(15,23,42,0.08)] backdrop-blur">
+                        <p className="mb-3 text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-text-muted/70">
+                          {isChinese ? "快捷入口" : "Shortcuts"}
+                        </p>
+                        <div className="space-y-2">
+                          {mobileQuickLinks.map((item) =>
+                            item.key === "chat" ? (
+                              <button
+                                key={item.key}
+                                onClick={() => {
+                                  toggleOpen();
+                                  setMenuOpen(false);
+                                }}
+                                className="block text-left text-[1.05rem] font-medium tracking-[-0.03em] text-text transition hover:text-primary"
+                              >
+                                {getLabel(item.label, language)}
+                              </button>
+                            ) : (
+                              <Link
+                                key={item.key}
+                                href={item.href}
+                                onClick={() => setMenuOpen(false)}
+                                className="block text-[1.05rem] font-medium tracking-[-0.03em] text-text transition hover:text-primary"
+                              >
+                                {getLabel(item.label, language)}
+                              </Link>
+                            ),
+                          )}
+                        </div>
                       </div>
-                    </>
-                  )}
-
-                  <div className="mt-8 space-y-3 px-2">
-                    <p className="px-2 text-[10px] font-bold uppercase tracking-widest text-text-muted opacity-50 mb-2">
-                      {isChinese ? "账户" : "Account"}
-                    </p>
-                    {accountNav.map((item) => (
-                      <Link
-                        key={item.key}
-                        href={item.href}
-                        className={`flex w-full items-center justify-center rounded-xl py-3 text-sm font-bold transition ${
-                          item.key === "logout"
-                            ? "bg-rose-500/10 text-rose-600 shadow-sm hover:bg-rose-500/20"
-                            : "border border-surface-border bg-surface-muted/50 dark:bg-surface-muted/30 hover:bg-surface-hover"
-                        }`}
-                        onClick={() => setMenuOpen(false)}
-                      >
-                        {typeof item.label === "function"
-                          ? item.label(language)
-                          : item.label}
-                      </Link>
-                    ))}
-                  </div>
+                    </div>
+                  ) : null}
                 </div>
 
-                <div className="border-t border-surface-border p-4 pb-[max(1rem,env(safe-area-inset-bottom))] space-y-4">
-                  <div className="flex flex-col gap-3">
-                    <p className="px-2 text-[10px] font-bold uppercase tracking-widest text-text-muted opacity-50">
-                      {isChinese ? "设置" : "Settings"}
-                    </p>
-                    <div className="flex items-center justify-between rounded-xl bg-surface-muted/50 p-2">
-                      <span className="ml-2 text-xs font-medium text-text-muted">
-                        {isChinese ? "界面语言" : "Language"}
-                      </span>
-                      <LanguageToggle />
+                <div className="mt-auto px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4">
+                  <div className="flex items-end justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-3 max-w-[11rem] rounded-full border border-surface-border bg-white/80 px-3 py-2 shadow-sm">
+                        <ReleaseChannelSelector
+                          selected={selectedChannels}
+                          onToggle={toggleChannel}
+                          variant="icon"
+                        />
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-text-muted">
+                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-surface-border bg-white/80 shadow-sm">
+                          {accountInitial}
+                        </span>
+                        <span className="truncate">
+                          {user
+                            ? user.username || user.email
+                            : isChinese
+                              ? "访客模式"
+                              : "Guest mode"}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col gap-2 rounded-xl bg-surface-muted/50 p-2">
-                      <span className="ml-2 text-xs font-medium text-text-muted mb-1">
-                        {isChinese ? "发布频道" : "Channels"}
-                      </span>
-                      <ReleaseChannelSelector
-                        selected={selectedChannels}
-                        onToggle={toggleChannel}
-                      />
+
+                    <div className="flex w-[10.5rem] shrink-0 flex-col gap-2">
+                      {accountNav.map((item) => (
+                        <Link
+                          key={item.key}
+                          href={item.href}
+                          className={`flex min-h-12 items-center justify-center rounded-full px-4 text-base font-semibold transition ${
+                            item.key === "logout"
+                              ? "bg-rose-500/8 text-rose-600 hover:bg-rose-500/15"
+                              : "bg-slate-100/88 text-text hover:bg-slate-200/88"
+                          }`}
+                          onClick={() => setMenuOpen(false)}
+                        >
+                          {typeof item.label === "function"
+                            ? item.label(language)
+                            : item.label}
+                        </Link>
+                      ))}
                     </div>
                   </div>
                 </div>
