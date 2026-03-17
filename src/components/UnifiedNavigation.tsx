@@ -437,7 +437,7 @@ export default function UnifiedNavigation() {
             onClick={() => setMenuOpen(false)}
           />
           <div className="absolute inset-0 bg-background transition-transform duration-300 ease-in-out">
-            <div className="flex h-full flex-col overflow-y-auto px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]">
+            <div className="flex h-full flex-col overflow-y-auto px-5 pb-[calc(env(safe-area-inset-bottom)+2rem)] pt-[max(1rem,env(safe-area-inset-top))] min-[430px]:pb-[calc(env(safe-area-inset-bottom)+2.25rem)]">
               <div className="flex items-center justify-between">
                 <Link
                   href="/"
@@ -479,7 +479,7 @@ export default function UnifiedNavigation() {
 
               <div className="flex flex-1 flex-col justify-between pt-8">
                 <div className="relative min-h-0 flex-1">
-                  <div className="max-w-[13.5rem] space-y-3">
+                  <div className="max-w-[13rem] space-y-2.5 min-[430px]:max-w-[13.5rem]">
                     {mobileMenuNav.map((item) => {
                       const active = isActive(item);
                       if (item.key === "chat") {
@@ -490,7 +490,7 @@ export default function UnifiedNavigation() {
                               toggleOpen();
                               setMenuOpen(false);
                             }}
-                            className={`block w-full py-1 text-left text-[2rem] font-semibold tracking-[-0.055em] transition-colors ${
+                            className={`block w-full py-1 text-left text-[1.95rem] font-semibold tracking-[-0.055em] transition-colors min-[430px]:text-[2rem] ${
                               active
                                 ? "text-text"
                                 : "text-text hover:text-primary"
@@ -504,7 +504,7 @@ export default function UnifiedNavigation() {
                         <Link
                           key={item.key}
                           href={item.href}
-                          className={`block py-1 text-[2rem] font-semibold tracking-[-0.055em] transition-colors ${
+                          className={`block py-1 text-[1.95rem] font-semibold tracking-[-0.055em] transition-colors min-[430px]:text-[2rem] ${
                             active
                               ? "text-text"
                               : "text-text hover:text-primary"
@@ -518,8 +518,8 @@ export default function UnifiedNavigation() {
                   </div>
 
                   {mobileQuickLinks.length > 0 ? (
-                    <div className="pointer-events-none absolute bottom-4 right-0 flex justify-end">
-                      <div className="pointer-events-auto w-[11rem] rounded-[1.75rem] bg-surface-muted/82 p-4 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
+                    <div className="pointer-events-none absolute right-0 top-[60%] flex -translate-y-1/2 justify-end min-[390px]:top-[59%] min-[430px]:top-[58%]">
+                      <div className="pointer-events-auto w-[min(10.75rem,45vw)] rounded-[1.75rem] bg-surface-muted/82 p-4 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
                         <div className="space-y-2.5">
                           {mobileQuickLinks.map((item) =>
                             item.key === "chat" ? (
@@ -550,8 +550,8 @@ export default function UnifiedNavigation() {
                   ) : null}
                 </div>
 
-                <div className="flex items-end justify-between gap-5 pt-10">
-                  <div className="flex flex-col items-start gap-3 text-sm text-text-muted">
+                <div className="flex items-center justify-between gap-5 pt-8">
+                  <div className="min-w-0">
                     {secondaryAccountAction ? (
                       <Link
                         href={secondaryAccountAction.href}
@@ -562,10 +562,11 @@ export default function UnifiedNavigation() {
                           ? secondaryAccountAction.label(language)
                           : secondaryAccountAction.label}
                       </Link>
-                    ) : null}
-                    <div className="inline-flex items-center gap-2 rounded-full border border-surface-border bg-surface px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-muted shadow-sm">
-                      {isChinese ? "单页导航" : "Single Page"}
-                    </div>
+                    ) : (
+                      <span className="text-sm text-text-muted/60">
+                        {isChinese ? "导航" : "Menu"}
+                      </span>
+                    )}
                   </div>
 
                   {primaryAccountAction ? (
@@ -573,7 +574,7 @@ export default function UnifiedNavigation() {
                       <Link
                         href={primaryAccountAction.href}
                         onClick={() => setMenuOpen(false)}
-                        className="inline-flex min-h-[3.25rem] min-w-[6.5rem] items-center justify-center rounded-full bg-surface-muted px-6 text-lg font-semibold text-text shadow-sm transition hover:bg-surface-hover"
+                        className="inline-flex min-h-[3.1rem] min-w-[7rem] items-center justify-center rounded-full bg-surface-muted px-6 text-[1.05rem] font-semibold text-text shadow-sm transition hover:bg-surface-hover"
                       >
                         {typeof primaryAccountAction.label === "function"
                           ? primaryAccountAction.label(language)
