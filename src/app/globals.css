@@ -91,18 +91,11 @@ body {
   font-size: var(--type-body-size);
   line-height: var(--type-body-line-height);
   background-color: var(--color-background);
-  background-image:
-    radial-gradient(
-      circle at top left,
-      rgba(37, 78, 219, 0.08),
-      transparent 24rem
-    ),
-    radial-gradient(
-      circle at 85% 12%,
-      rgba(16, 185, 129, 0.08),
-      transparent 18rem
-    ),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0));
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.58),
+    rgba(255, 255, 255, 0)
+  );
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;

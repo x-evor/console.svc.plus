@@ -18,19 +18,25 @@ import {
   Terminal,
   Users,
 } from "lucide-react";
+import useSWR from "swr";
+
 import Footer from "../components/Footer";
+import { HeroCard } from "../components/HeroCard";
 import UnifiedNavigation from "../components/UnifiedNavigation";
-import { useUserStore } from "../lib/userStore";
 import { useLanguage } from "../i18n/LanguageProvider";
 import { translations } from "../i18n/translations";
 import { useMoltbotStore } from "../lib/moltbotStore";
+import { useUserStore } from "../lib/userStore";
 import { cn } from "../lib/utils";
-import { AskAIDialog } from "../components/AskAIDialog";
-import { HeroCard } from "../components/HeroCard";
-import useSWR from "swr";
+
+const HOME_SECTION_CLASS =
+  "rounded-[2rem] border border-slate-900/10 bg-white/90 shadow-[0_18px_40px_rgba(15,23,42,0.05)]";
+const HOME_SECTION_LABEL_CLASS =
+  "text-[0.68rem] font-semibold uppercase tracking-[0.26em] text-text-subtle";
+const HOME_LIST_CARD_CLASS =
+  "rounded-[1.5rem] border border-slate-900/10 bg-[#fcfbf8] transition duration-200";
 
 const iconMap: Record<string, any> = {
-  // English keys
   "Global Acceleration Network": Link,
   "Full-link SaaS Hosting": Layers,
   "AI-Driven Observability": Sparkles,
@@ -45,7 +51,6 @@ const iconMap: Record<string, any> = {
   "Machine-to-Machine": Layers,
   "Connect via CLI": Terminal,
   "REST & Admin APIs": Link,
-  // Chinese keys
   全球加速网络: Link,
   "全链路 SaaS 托管": Layers,
   "AI 驱动的可观测性": Sparkles,
@@ -70,12 +75,8 @@ export default function HomePage() {
     <div className="mobile-home-shell relative flex min-h-screen flex-col overflow-x-hidden bg-background text-text transition-colors duration-150">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 overflow-hidden"
-      >
-        <div className="absolute left-[-10rem] top-[-8rem] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(37,78,219,0.16),transparent_68%)] blur-3xl" />
-        <div className="absolute right-[-8rem] top-[8rem] h-[24rem] w-[24rem] rounded-full bg-[radial-gradient(circle,rgba(16,185,129,0.12),transparent_72%)] blur-3xl" />
-        <div className="absolute inset-x-8 top-24 h-px bg-[linear-gradient(90deg,transparent,rgba(17,24,39,0.08),transparent)]" />
-      </div>
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.56),rgba(255,255,255,0))]"
+      />
       <UnifiedNavigation />
 
       <div
@@ -86,11 +87,7 @@ export default function HomePage() {
       >
         <div className="relative flex-1 overflow-y-auto">
           <div className="relative mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-20">
-            <div
-              className="pointer-events-none absolute inset-x-0 top-0 h-[32rem] rounded-b-[3rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(255,255,255,0.45)_58%,transparent),radial-gradient(circle_at_top_left,rgba(37,78,219,0.1),transparent_30%),radial-gradient(circle_at_82%_15%,rgba(17,24,39,0.08),transparent_24%)]"
-              aria-hidden
-            />
-            <main className="relative space-y-8 pt-6 sm:space-y-12 sm:pt-10">
+            <main className="relative space-y-6 pt-6 sm:space-y-8 sm:pt-10">
               <HeroSection />
               <NextStepsSection />
               <StatsSection />
@@ -109,55 +106,72 @@ export default function HomePage() {
 export function HeroSection() {
   const { user } = useUserStore();
   const { language } = useLanguage();
+  const isChinese = language === "zh";
   const t = translations[language].marketing.home;
 
   return (
-    <section className="grid gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:gap-10">
-      <div className="flex flex-col justify-center space-y-6 sm:space-y-8">
-        <div className="space-y-4 sm:space-y-5">
-          {t.hero.eyebrow && (
-            <div className="flex flex-wrap items-center gap-3">
-              <p className="rounded-full border border-slate-900/10 bg-white/90 px-4 py-2 text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-text-subtle shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-                {t.hero.eyebrow}
-              </p>
-              <span className="rounded-full border border-primary/15 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                Product surface
-              </span>
-            </div>
-          )}
-          <h1 className="editorial-display max-w-[11ch] text-[2.9rem] leading-[0.86] text-heading sm:max-w-none sm:text-[3.4rem] lg:text-[4.85rem]">
-            {t.hero.title}
-          </h1>
-          <p className="max-w-xl text-[1.05rem] leading-8 text-text-muted">
-            {t.hero.subtitle}
-          </p>
-        </div>
-        <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
-          {user ? (
-            <div className="flex items-center justify-center gap-2 rounded-full border border-success/30 bg-success/10 px-4 py-2 text-sm font-medium text-success shadow-[0_18px_30px_rgba(22,163,74,0.12)] sm:justify-start sm:py-1.5">
-              <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
-              {t.signedIn.replace("{{username}}", user.username)}
-            </div>
-          ) : (
-            <button className="flex items-center justify-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(15,23,42,0.2)] transition hover:-translate-y-0.5 hover:bg-primary sm:py-2.5">
-              <PlusCircle className="h-4 w-4" />
-              {t.heroButtons.create}
-            </button>
-          )}
-          <button className="flex items-center justify-center gap-2 rounded-full border border-slate-900/10 bg-white/90 px-6 py-3 text-sm font-semibold text-text shadow-[0_12px_24px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 hover:bg-surface-hover sm:py-2.5">
-            <Play className="h-4 w-4" />
-            {t.heroButtons.playground}
-          </button>
-          <button className="flex items-center justify-center gap-2 rounded-full border border-slate-900/10 bg-[#f8f3ea] px-6 py-3 text-sm font-semibold text-text transition hover:-translate-y-0.5 hover:bg-[#f4ecdd] sm:py-2.5">
-            <BookOpen className="h-4 w-4" />
-            {t.heroButtons.tutorials}
-          </button>
-        </div>
-        <div className="grid gap-4 rounded-[2rem] border border-white/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.7),rgba(248,243,234,0.9))] p-5 shadow-[0_20px_42px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:grid-cols-[1.15fr_0.85fr]">
-          <div className="flex flex-col gap-3 text-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-text-subtle">
-              {t.trustedBy}
+    <section className="relative overflow-hidden rounded-[2.75rem] border border-slate-900/10 bg-[linear-gradient(180deg,#ffffff,#faf7f2)] p-6 shadow-[0_24px_56px_rgba(15,23,42,0.05)] sm:p-8 lg:p-10">
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute left-[8%] top-[8%] h-[16rem] w-[16rem] rounded-full bg-[radial-gradient(circle,rgba(37,78,219,0.1),transparent_64%)] blur-3xl" />
+        <div className="absolute left-[30%] top-[12%] h-[14rem] w-[14rem] rounded-full bg-[radial-gradient(circle,rgba(245,211,170,0.42),transparent_66%)] blur-3xl" />
+        <div className="absolute right-[10%] top-[10%] h-[18rem] w-[18rem] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.92),transparent_72%)]" />
+        <div className="absolute inset-x-0 top-0 h-[18rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.78),rgba(255,255,255,0)_72%)]" />
+      </div>
+
+      <div className="relative grid gap-8 lg:grid-cols-[0.96fr_1.04fr] lg:gap-12">
+        <div className="flex flex-col justify-between gap-8">
+          <div className="space-y-5">
+            {t.hero.eyebrow ? (
+              <p className={HOME_SECTION_LABEL_CLASS}>{t.hero.eyebrow}</p>
+            ) : null}
+            <h1
+              className={cn(
+                "max-w-[11ch] leading-[0.88] text-heading",
+                isChinese
+                  ? "text-[2.85rem] font-semibold tracking-[-0.08em] sm:text-[3.4rem] lg:text-[4.5rem]"
+                  : "editorial-display text-[3.05rem] tracking-[-0.06em] sm:text-[3.6rem] lg:text-[4.8rem]",
+              )}
+            >
+              {t.hero.title}
+            </h1>
+            <p className="max-w-xl text-[1rem] leading-8 text-text-muted sm:text-[1.05rem]">
+              {t.hero.subtitle}
             </p>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            {user ? (
+              <div className="inline-flex items-center gap-2 rounded-full border border-success/25 bg-success/10 px-4 py-2 text-sm font-semibold text-success">
+                <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
+                {t.signedIn.replace("{{username}}", user.username)}
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-primary"
+              >
+                <PlusCircle className="h-4 w-4" />
+                {t.heroButtons.create}
+              </button>
+            )}
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-900/10 bg-white px-6 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
+            >
+              <Play className="h-4 w-4" />
+              {t.heroButtons.playground}
+            </button>
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-900/10 bg-[#f8f4ec] px-6 py-3 text-sm font-semibold text-slate-800 transition hover:bg-[#f2ebdd]"
+            >
+              <BookOpen className="h-4 w-4" />
+              {t.heroButtons.tutorials}
+            </button>
+          </div>
+
+          <div className="space-y-3 border-t border-slate-900/10 pt-5">
+            <p className={HOME_SECTION_LABEL_CLASS}>{t.trustedBy}</p>
             <div className="flex flex-wrap gap-2">
               <LogoPill label="Next.js" />
               <LogoPill label="Go" />
@@ -166,47 +180,39 @@ export function HeroSection() {
               <LogoPill label="PostgreSQL" />
             </div>
           </div>
-          <div className="rounded-[1.5rem] border border-slate-950/10 bg-[linear-gradient(135deg,#0f172a,#1d4ed8)] px-4 py-4 text-white shadow-[0_20px_40px_rgba(15,23,42,0.24)]">
-            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-white/60">
-              Experience
-            </p>
-            <p className="mt-3 editorial-display text-[2rem] leading-none text-white">
-              Focused
-            </p>
-            <p className="mt-2 text-sm leading-6 text-white/75">
-              More contrast, stronger typography, and a cleaner hierarchy for
-              product entry points.
-            </p>
-          </div>
         </div>
-      </div>
-      <div className="rounded-[2rem] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.78),rgba(240,244,255,0.94))] p-4 shadow-[0_24px_50px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:p-5">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-text-subtle">
-              Launch paths
-            </p>
-            <p className="mt-1 text-sm text-text-muted">
-              Pricing, onboarding, and observability as one surface.
-            </p>
+
+        <div className="flex flex-col gap-3 lg:pl-4">
+          <div className="flex flex-col gap-2 border-b border-slate-900/10 pb-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className={HOME_SECTION_LABEL_CLASS}>
+                {isChinese ? "主要入口" : "Launch paths"}
+              </p>
+              <p className="mt-2 max-w-md text-sm leading-6 text-text-muted">
+                {isChinese
+                  ? "从接入、托管到观测，保留原有入口，但改成更轻的阅读节奏。"
+                  : "Keep the same entry points, but present them with a calmer editorial rhythm."}
+              </p>
+            </div>
+            <span className="hidden rounded-full border border-slate-900/10 bg-white px-3 py-1 text-xs font-semibold text-slate-600 sm:inline-flex">
+              {t.heroCards.length} {isChinese ? "个入口" : "entry paths"}
+            </span>
           </div>
-          <span className="rounded-full border border-slate-900/10 bg-white/80 px-3 py-1 text-xs font-semibold text-primary">
-            3 guides
-          </span>
-        </div>
-        <div className="relative flex flex-col gap-3 sm:gap-4">
-          {t.heroCards.map((card) => {
-            const Icon = getIcon(card.title, PlusCircle);
-            return (
-              <HeroCard
-                key={card.title}
-                icon={Icon}
-                title={card.title}
-                description={card.description}
-                guide={card.guide}
-              />
-            );
-          })}
+
+          <div className="space-y-3">
+            {t.heroCards.map((card) => {
+              const Icon = getIcon(card.title, PlusCircle);
+              return (
+                <HeroCard
+                  key={card.title}
+                  icon={Icon}
+                  title={card.title}
+                  description={card.description}
+                  guide={card.guide}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
@@ -218,40 +224,50 @@ export function NextStepsSection() {
   const t = translations[language].marketing.home;
 
   return (
-    <section className="space-y-4 rounded-[2rem] border border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(248,243,234,0.8))] p-5 shadow-[0_20px_48px_rgba(15,23,42,0.06)] backdrop-blur-sm lg:p-7">
-      <header className="flex flex-col gap-2 text-sm text-text-muted sm:flex-row sm:items-center sm:gap-3">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-text-subtle">
-          {t.nextSteps.title}
-        </p>
-        <span className="w-fit rounded-full bg-surface-muted px-3 py-1 text-xs font-semibold text-primary">
+    <section className={cn(HOME_SECTION_CLASS, "space-y-4 p-5 lg:p-7")}>
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className={HOME_SECTION_LABEL_CLASS}>{t.nextSteps.title}</p>
+          <p className="mt-2 text-sm leading-6 text-text-muted">
+            {language === "zh"
+              ? "保留原有 onboarding 内容，但改成更轻、更整齐的起步列表。"
+              : "Keep the same onboarding content, in a lighter and calmer starting list."}
+          </p>
+        </div>
+        <span className="inline-flex w-fit items-center rounded-full border border-slate-900/10 bg-[#f8f4ec] px-3 py-1 text-xs font-semibold text-slate-700">
           {t.nextSteps.badge}
         </span>
       </header>
+
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         {t.nextSteps.items.map((item, index: number) => {
           const Icon = getIcon(item.title, Users);
           return (
             <div
               key={index}
-              className="flex items-start gap-3 rounded-[1.5rem] border border-slate-900/10 bg-white/88 p-4 shadow-[0_14px_28px_rgba(15,23,42,0.05)] transition hover:-translate-y-1 hover:border-primary/30"
+              className={cn(
+                HOME_LIST_CARD_CLASS,
+                "flex h-full flex-col justify-between gap-6 p-4 hover:-translate-y-[1px] hover:bg-white",
+              )}
             >
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary">
-                <Icon className="h-5 w-5" aria-hidden />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-primary-muted">
-                  <span className="rounded-full bg-primary/20 px-2 py-0.5">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900/[0.04] text-primary">
+                    <Icon className="h-5 w-5" aria-hidden />
+                  </div>
+                  <span className="rounded-full border border-slate-900/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                     {item.status}
                   </span>
                 </div>
-                <p className="text-sm font-semibold text-heading">
+                <p className="text-base font-semibold leading-7 text-slate-900">
                   {item.title}
                 </p>
-                <button className="inline-flex items-center gap-1 text-xs font-semibold text-primary transition hover:text-primary-hover">
-                  {t.nextSteps.learnMore}
-                  <ArrowRight className="h-4 w-4" aria-hidden />
-                </button>
               </div>
+
+              <button className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition hover:text-primary-hover">
+                {t.nextSteps.learnMore}
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </button>
             </div>
           );
         })}
@@ -328,30 +344,33 @@ export function StatsSection() {
   ];
 
   return (
-    <section className="overflow-hidden rounded-[2rem] border border-slate-950/5 bg-[linear-gradient(135deg,#0f172a,#1e293b_45%,#1d4ed8)] p-5 shadow-[0_26px_60px_rgba(15,23,42,0.18)] sm:p-6">
-      <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+    <section className={cn(HOME_SECTION_CLASS, "space-y-5 p-5 lg:p-7")}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">
-            Platform pulse
+          <p className={HOME_SECTION_LABEL_CLASS}>
+            {language === "zh" ? "平台统计" : "Platform pulse"}
           </p>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-white/72">
-            Metrics need contrast and tension, not another pale card.
+          <p className="mt-2 text-sm leading-6 text-text-muted">
+            {language === "zh"
+              ? "把关键数字收在同一条平静的视线上，不再单独做成重型数据舱。"
+              : "Keep key numbers in the same calm visual rhythm instead of a separate heavy dashboard block."}
           </p>
         </div>
-        <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/68">
-          Updated hourly
-        </div>
+        <span className="inline-flex w-fit items-center rounded-full border border-slate-900/10 bg-white px-3 py-1 text-xs font-semibold text-slate-600">
+          {language === "zh" ? "每小时更新" : "Updated hourly"}
+        </span>
       </div>
-      <div className="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-3 lg:grid-cols-5">
+
+      <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-5">
         {displayStats.map((stat, index: number) => (
           <div
             key={index}
-            className="space-y-1 rounded-[1.5rem] border border-white/10 bg-white/6 p-4 text-left even:text-right md:text-left"
+            className="rounded-[1.5rem] border border-slate-900/10 bg-[#fcfbf8] px-4 py-5"
           >
-            <div className="editorial-display text-[2.15rem] leading-none text-white sm:text-[2.7rem]">
+            <div className="editorial-display text-[2.2rem] leading-none text-slate-950 sm:text-[2.7rem]">
               {stat.value}
             </div>
-            <p className="max-w-[9rem] text-sm text-white/70 even:ml-auto md:max-w-none">
+            <p className="mt-3 text-sm leading-6 text-slate-600">
               {stat.label}
             </p>
           </div>
@@ -360,16 +379,6 @@ export function StatsSection() {
     </section>
   );
 }
-
-type HomeStatsResponse = {
-  registeredUsers: number | null;
-  visits: {
-    daily: number | null;
-    weekly: number | null;
-    monthly: number | null;
-  };
-  updatedAt: string;
-};
 
 export function ShortcutsSection() {
   const { language } = useLanguage();
@@ -407,28 +416,37 @@ export function ShortcutsSection() {
         }));
 
   return (
-    <section className="space-y-4 rounded-[2rem] border border-slate-900/10 bg-[linear-gradient(180deg,#ffffff,#f5f7fb)] p-5 shadow-[0_20px_50px_rgba(15,23,42,0.06)] lg:p-7">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <section className={cn(HOME_SECTION_CLASS, "space-y-4 p-5 lg:p-7")}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-            {t.shortcuts.title}
-          </p>
-          <p className="mt-1 text-sm font-medium text-slate-600">
+          <p className={HOME_SECTION_LABEL_CLASS}>{t.shortcuts.title}</p>
+          <p className="mt-2 text-sm leading-6 text-text-muted">
             {t.shortcuts.subtitle}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2 text-xs font-semibold text-primary">
-          <button className="rounded-full border border-slate-900/10 bg-slate-950 px-3 py-2 text-white transition hover:bg-primary">
+
+        <div className="flex flex-wrap gap-2 text-xs font-semibold">
+          <button
+            type="button"
+            className="rounded-full border border-slate-900/10 bg-slate-950 px-3 py-2 text-white transition hover:bg-primary"
+          >
             {t.shortcuts.buttons.start}
           </button>
-          <button className="rounded-full border border-slate-900/10 bg-white px-3 py-2 text-slate-700 transition hover:bg-slate-50">
+          <button
+            type="button"
+            className="rounded-full border border-slate-900/10 bg-white px-3 py-2 text-slate-700 transition hover:bg-slate-50"
+          >
             {t.shortcuts.buttons.docs}
           </button>
-          <button className="rounded-full border border-slate-900/10 bg-white px-3 py-2 text-slate-700 transition hover:bg-slate-50">
+          <button
+            type="button"
+            className="rounded-full border border-slate-900/10 bg-white px-3 py-2 text-slate-700 transition hover:bg-slate-50"
+          >
             {t.shortcuts.buttons.guides}
           </button>
         </div>
       </div>
+
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {shortcutItems.map((item, index: number) => {
           const Icon = getIcon(item.title, Sparkles);
@@ -436,16 +454,19 @@ export function ShortcutsSection() {
             <a
               key={index}
               href={item.href}
-              className="group flex items-start gap-3 rounded-[1.5rem] border border-slate-900/10 bg-white p-4 shadow-[0_14px_28px_rgba(15,23,42,0.05)] transition hover:-translate-y-1 hover:border-primary/40 hover:bg-slate-50"
+              className={cn(
+                HOME_LIST_CARD_CLASS,
+                "group flex items-start gap-3 p-4 hover:-translate-y-[1px] hover:bg-white",
+              )}
             >
-              <div className="mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary">
+              <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-900/[0.04] text-primary">
                 <Icon className="h-5 w-5" aria-hidden />
               </div>
               <div className="min-w-0 space-y-1">
                 <div className="text-base font-semibold leading-7 text-slate-900">
                   {item.title}
                 </div>
-                <p className="text-sm font-medium text-slate-600">
+                <p className="text-sm leading-6 text-slate-600">
                   {item.description}
                 </p>
               </div>
@@ -461,6 +482,16 @@ export function ShortcutsSection() {
   );
 }
 
+type HomeStatsResponse = {
+  registeredUsers: number | null;
+  visits: {
+    daily: number | null;
+    weekly: number | null;
+    monthly: number | null;
+  };
+  updatedAt: string;
+};
+
 type LatestBlogPost = {
   slug: string;
   title: string;
@@ -469,8 +500,8 @@ type LatestBlogPost = {
 
 function LogoPill({ label }: { label: string }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-slate-900/10 bg-white/92 px-3.5 py-1.5 text-xs font-semibold text-text shadow-[0_10px_22px_rgba(15,23,42,0.05)]">
-      <div className="h-2 w-2 rounded-full bg-[linear-gradient(135deg,#10b981,#2563eb)]" />
+    <span className="inline-flex items-center gap-2 rounded-full border border-slate-900/10 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700">
+      <div className="h-2 w-2 rounded-full bg-primary" />
       {label}
     </span>
   );
