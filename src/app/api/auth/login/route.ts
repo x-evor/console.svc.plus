@@ -27,7 +27,9 @@ type AccountLoginResponse = {
   expiresAt?: string;
   error?: string;
   mfaToken?: string;
+  mfaTicket?: string;
   needMfa?: boolean;
+  mfaRequired?: boolean;
   mfaEnabled?: boolean;
 };
 
@@ -108,22 +110,33 @@ export async function POST(request: NextRequest) {
     }
 
     const errorCode =
-      typeof data?.error === "string" ? data.error : "authentication_failed";
+      typeof data?.error === "string"
+        ? data.error
+        : data?.mfaRequired
+          ? "mfa_required"
+          : "authentication_failed";
     const needsMfa = Boolean(
       data?.needMfa ||
+      data?.mfaRequired ||
       errorCode === "mfa_required" ||
       errorCode === "mfa_setup_required",
     );
+    const mfaToken =
+      typeof data?.mfaToken === "string" && data.mfaToken.trim().length > 0
+        ? data.mfaToken
+        : typeof data?.mfaTicket === "string" && data.mfaTicket.trim().length > 0
+          ? data.mfaTicket
+          : undefined;
 
     if (
-      (response.status === 401 || response.status === 403 || needsMfa) &&
-      typeof data?.mfaToken === "string"
+      (response.status === 401 || response.status === 403 || response.ok || needsMfa) &&
+      typeof mfaToken === "string"
     ) {
       const result = NextResponse.json(
         { success: false, error: errorCode, needMfa: true },
         { status: 401 },
       );
-      applyMfaCookie(result, data.mfaToken);
+      applyMfaCookie(result, mfaToken);
       clearSessionCookie(result, request.headers.get("host") ?? undefined);
       return result;
     }

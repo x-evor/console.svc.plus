@@ -23,6 +23,7 @@ type AccountVerifyResponse = {
   token?: string;
   expiresAt?: string;
   mfaToken?: string;
+  mfaTicket?: string;
   error?: string;
   retryAt?: string;
   user?: Record<string, unknown> | null;
@@ -69,12 +70,12 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const response = await fetch(`${ACCOUNT_API_BASE}/mfa/totp/verify`, {
+    const response = await fetch(`${ACCOUNT_API_BASE}/mfa/verify`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ token, code }),
+      body: JSON.stringify({ mfaToken: token, code }),
       cache: "no-store",
     });
 
@@ -110,8 +111,15 @@ export async function POST(request: NextRequest) {
       { status: response.status || 400 },
     );
 
-    if (typeof data?.mfaToken === "string" && data.mfaToken.trim()) {
-      applyMfaCookie(result, data.mfaToken);
+    const nextToken =
+      typeof data?.mfaToken === "string" && data.mfaToken.trim()
+        ? data.mfaToken
+        : typeof data?.mfaTicket === "string" && data.mfaTicket.trim()
+          ? data.mfaTicket
+          : "";
+
+    if (nextToken) {
+      applyMfaCookie(result, nextToken);
     } else {
       applyMfaCookie(result, token);
     }
