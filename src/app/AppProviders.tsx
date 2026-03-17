@@ -19,6 +19,7 @@ export function AppProviders({
 }) {
   const { isOpen, isMinimized, close, toggleOpen } = useMoltbotStore();
   const applyDefaults = useOpenClawConsoleStore((state) => state.applyDefaults);
+  const setScope = useOpenClawConsoleStore((state) => state.setScope);
   const pathname = usePathname();
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const isOpenClawWorkspace =
@@ -29,8 +30,9 @@ export function AppProviders({
     !isOpenClawWorkspace && isOpen && !isMinimized && !isMobileViewport;
 
   useEffect(() => {
+    setScope("global", assistantDefaults);
     applyDefaults(assistantDefaults);
-  }, [applyDefaults, assistantDefaults]);
+  }, [applyDefaults, assistantDefaults, setScope]);
 
   useEffect(() => {
     if (typeof window === "undefined") {

@@ -18,13 +18,13 @@ import {
   Shield,
   Sparkles,
   UserCircle2,
-  X,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { useLanguage } from "@/i18n/LanguageProvider";
 import type { IntegrationDefaults } from "@/lib/openclaw/types";
+import type { XWorkmateProfileResponse } from "@/lib/xworkmate/types";
 import { cn } from "@/lib/utils";
-import { IntegrationsConsole } from "@/modules/extensions/builtin/user-center/components/IntegrationsConsole";
 import { useOpenClawConsoleStore } from "@/state/openclawConsoleStore";
 
 type WorkspaceDestination =
@@ -165,7 +165,10 @@ function createSections(isChinese: boolean): SectionDefinition[] {
       icon: Sparkles,
       tabs: [
         { key: "installed", label: pickCopy(isChinese, "已安装", "Installed") },
-        { key: "recommended", label: pickCopy(isChinese, "推荐", "Recommended") },
+        {
+          key: "recommended",
+          label: pickCopy(isChinese, "推荐", "Recommended"),
+        },
         { key: "clawhub", label: "ClawHub" },
       ],
       cards: [
@@ -276,11 +279,18 @@ function createSections(isChinese: boolean): SectionDefinition[] {
       tabs: [
         { key: "skills", label: pickCopy(isChinese, "技能", "Skills") },
         { key: "templates", label: pickCopy(isChinese, "模板", "Templates") },
-        { key: "connectors", label: pickCopy(isChinese, "连接器", "Connectors") },
+        {
+          key: "connectors",
+          label: pickCopy(isChinese, "连接器", "Connectors"),
+        },
       ],
       cards: [
         {
-          title: pickCopy(isChinese, "模板与连接器", "Templates and Connectors"),
+          title: pickCopy(
+            isChinese,
+            "模板与连接器",
+            "Templates and Connectors",
+          ),
           description: pickCopy(
             isChinese,
             "ClawHub 不再只是技能列表，而是统一承接扩展分发。",
@@ -355,7 +365,10 @@ function createSections(isChinese: boolean): SectionDefinition[] {
         { key: "general", label: pickCopy(isChinese, "通用", "General") },
         { key: "workspace", label: pickCopy(isChinese, "工作区", "Workspace") },
         { key: "gateway", label: pickCopy(isChinese, "集成", "Integrations") },
-        { key: "diagnostics", label: pickCopy(isChinese, "诊断", "Diagnostics") },
+        {
+          key: "diagnostics",
+          label: pickCopy(isChinese, "诊断", "Diagnostics"),
+        },
       ],
       cards: [
         {
@@ -489,6 +502,10 @@ function AssistantHome({
   prompt,
   onPromptChange,
   onOpenConnections,
+  primaryActionLabel,
+  secondaryActionLabel,
+  connectionHint,
+  actionDisabled,
 }: {
   isChinese: boolean;
   tabs: SectionTab[];
@@ -497,6 +514,10 @@ function AssistantHome({
   prompt: string;
   onPromptChange: (value: string) => void;
   onOpenConnections: () => void;
+  primaryActionLabel: string;
+  secondaryActionLabel: string;
+  connectionHint?: string;
+  actionDisabled?: boolean;
 }) {
   return (
     <>
@@ -506,7 +527,9 @@ function AssistantHome({
             <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[var(--color-text-subtle)]">
               <DesktopChip label={pickCopy(isChinese, "主页", "Home")} />
               <ChevronRight className="h-4 w-4" />
-              <DesktopChip label={pickCopy(isChinese, "默认任务", "Default Task")} />
+              <DesktopChip
+                label={pickCopy(isChinese, "默认任务", "Default Task")}
+              />
             </div>
             <h1 className="mt-4 text-[20px] font-semibold tracking-[-0.03em] text-black">
               {pickCopy(isChinese, "默认任务", "Default Task")}
@@ -520,7 +543,11 @@ function AssistantHome({
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               {tabs.map((tab, index) => (
-                <DesktopChip key={tab.key} label={tab.label} active={index === 0} />
+                <DesktopChip
+                  key={tab.key}
+                  label={tab.label}
+                  active={index === 0}
+                />
               ))}
             </div>
           </div>
@@ -545,22 +572,29 @@ function AssistantHome({
                 "Connect first to start chatting, create tasks, and view results in the current conversation.",
               )}
             </p>
+            {connectionHint ? (
+              <p className="mt-3 text-sm leading-6 text-[var(--color-text-subtle)]">
+                {connectionHint}
+              </p>
+            ) : null}
             <div className="mt-6 flex flex-wrap gap-3">
               <button
                 type="button"
                 onClick={onOpenConnections}
-                className="inline-flex h-11 items-center gap-2 rounded-[14px] bg-[var(--color-primary)] px-5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(51,102,255,0.28)] transition hover:bg-[var(--color-primary-hover)]"
+                disabled={actionDisabled}
+                className="inline-flex h-11 items-center gap-2 rounded-[14px] bg-[var(--color-primary)] px-5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(51,102,255,0.28)] transition hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <RefreshCw className="h-4 w-4" />
-                {pickCopy(isChinese, "重新连接", "Reconnect")}
+                {primaryActionLabel}
               </button>
               <button
                 type="button"
                 onClick={onOpenConnections}
-                className="inline-flex h-11 items-center gap-2 rounded-[14px] border border-[color:var(--color-surface-border)] bg-white px-5 text-sm font-semibold text-[var(--color-heading)] transition hover:bg-[var(--color-surface-hover)]"
+                disabled={actionDisabled}
+                className="inline-flex h-11 items-center gap-2 rounded-[14px] border border-[color:var(--color-surface-border)] bg-white px-5 text-sm font-semibold text-[var(--color-heading)] transition hover:bg-[var(--color-surface-hover)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Settings2 className="h-4 w-4" />
-                {pickCopy(isChinese, "编辑连接", "Edit Connection")}
+                {secondaryActionLabel}
               </button>
             </div>
           </div>
@@ -581,7 +615,9 @@ function AssistantHome({
         <div className="mt-4 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex flex-wrap gap-3">
             <ToolbarChip label={pickCopy(isChinese, "远程", "Remote")} />
-            <ToolbarChip label={pickCopy(isChinese, "默认权限", "Default Access")} />
+            <ToolbarChip
+              label={pickCopy(isChinese, "默认权限", "Default Access")}
+            />
             <ToolbarChip label="z-ai/glm5" active />
             <ToolbarChip label={pickCopy(isChinese, "问答", "Ask")} />
             <ToolbarChip label={pickCopy(isChinese, "高", "High")} />
@@ -589,10 +625,11 @@ function AssistantHome({
           <button
             type="button"
             onClick={onOpenConnections}
-            className="inline-flex h-11 items-center justify-center gap-2 self-end rounded-[14px] bg-[var(--color-primary)] px-5 text-sm font-semibold text-white transition hover:bg-[var(--color-primary-hover)]"
+            disabled={actionDisabled}
+            className="inline-flex h-11 items-center justify-center gap-2 self-end rounded-[14px] bg-[var(--color-primary)] px-5 text-sm font-semibold text-white transition hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
           >
             <RefreshCw className="h-4 w-4" />
-            {pickCopy(isChinese, "重连", "Reconnect")}
+            {primaryActionLabel}
           </button>
         </div>
       </div>
@@ -625,12 +662,20 @@ function SectionOverview({
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               {section.tabs.map((tab, index) => (
-                <DesktopChip key={tab.key} label={tab.label} active={index === 0} />
+                <DesktopChip
+                  key={tab.key}
+                  label={tab.label}
+                  active={index === 0}
+                />
               ))}
             </div>
           </div>
           <div className="inline-flex h-fit items-center rounded-full border border-[color:var(--color-surface-border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--color-text-subtle)]">
-            {pickCopy(isChinese, "已对齐最新桌面结构", "Aligned with latest desktop IA")}
+            {pickCopy(
+              isChinese,
+              "已对齐最新桌面结构",
+              "Aligned with latest desktop IA",
+            )}
           </div>
         </div>
       </div>
@@ -650,24 +695,32 @@ function SectionOverview({
 
 export function XWorkmateWorkspacePage({
   defaults,
+  profile,
+  scopeKey,
+  requestHost,
 }: {
   defaults: IntegrationDefaults;
+  profile?: XWorkmateProfileResponse | null;
+  scopeKey: string;
+  requestHost?: string;
 }) {
   const { language } = useLanguage();
   const isChinese = language === "zh";
+  const router = useRouter();
   const [activeSection, setActiveSection] =
     useState<WorkspaceDestination>("assistant");
   const [composerValue, setComposerValue] = useState("");
-  const [showConnections, setShowConnections] = useState(false);
 
+  const setScope = useOpenClawConsoleStore((state) => state.setScope);
   const applyDefaults = useOpenClawConsoleStore((state) => state.applyDefaults);
   const openclawUrl = useOpenClawConsoleStore((state) => state.openclawUrl);
   const vaultUrl = useOpenClawConsoleStore((state) => state.vaultUrl);
   const apisixUrl = useOpenClawConsoleStore((state) => state.apisixUrl);
 
   useEffect(() => {
+    setScope(scopeKey, defaults);
     applyDefaults(defaults);
-  }, [applyDefaults, defaults]);
+  }, [applyDefaults, defaults, scopeKey, setScope]);
 
   const sections = useMemo(() => createSections(isChinese), [isChinese]);
   const activeDefinition =
@@ -678,9 +731,11 @@ export function XWorkmateWorkspacePage({
     pickCopy(isChinese, "未连接目标", "No target"),
   );
   const connected = Boolean(openclawEndpoint.trim());
-  const configuredCount = [openclawEndpoint, vaultUrl || defaults.vaultUrl, apisixUrl || defaults.apisixUrl].filter(
-    (item) => item.trim().length > 0,
-  ).length;
+  const configuredCount = [
+    openclawEndpoint,
+    vaultUrl || defaults.vaultUrl,
+    apisixUrl || defaults.apisixUrl,
+  ].filter((item) => item.trim().length > 0).length;
 
   const primarySections = sections.filter((section) =>
     ["assistant", "tasks", "skills"].includes(section.key),
@@ -694,6 +749,51 @@ export function XWorkmateWorkspacePage({
   const footerSections = sections.filter((section) =>
     ["settings", "account"].includes(section.key),
   );
+  const integrationRoute =
+    profile?.profileScope === "tenant-shared"
+      ? "/xworkmate/admin"
+      : "/xworkmate/integrations";
+  const canEditIntegrations = Boolean(profile?.canEditIntegrations);
+  const profileModeLabel =
+    profile?.profileScope === "tenant-shared"
+      ? pickCopy(isChinese, "共享配置", "Shared Profile")
+      : pickCopy(isChinese, "个人配置", "Personal Profile");
+  const connectionHint = profile
+    ? profile.profileScope === "tenant-shared" && !profile.canEditIntegrations
+      ? pickCopy(
+          isChinese,
+          "当前是共享版工作台。只有管理员能修改连接配置，普通成员可直接使用已发布能力。",
+          "This is the shared workspace. Only administrators can change integrations, while members can use the published workspace.",
+        )
+      : profile.profileScope === "tenant-shared"
+        ? pickCopy(
+            isChinese,
+            "你正在维护共享版连接配置，保存后会影响 svc.plus/xworkmate 的共享工作台。",
+            "You are editing the shared integrations profile for svc.plus/xworkmate.",
+          )
+        : pickCopy(
+            isChinese,
+            "你正在使用租户独享工作台，连接配置只对当前用户生效。",
+            "You are using a tenant-private workspace, and the profile only affects the current member.",
+          )
+    : pickCopy(
+        isChinese,
+        "未检测到租户配置，当前仍会回退到浏览器会话内的默认连接。",
+        "No tenant profile was resolved yet, so the workspace falls back to browser-session defaults.",
+      );
+  const primaryActionLabel = canEditIntegrations
+    ? pickCopy(isChinese, "打开配置页", "Open Config")
+    : pickCopy(isChinese, "查看状态", "View Status");
+  const secondaryActionLabel = canEditIntegrations
+    ? pickCopy(isChinese, "管理连接", "Manage Integrations")
+    : pickCopy(isChinese, "等待管理员配置", "Await Admin Setup");
+
+  const openConnections = () => {
+    if (!canEditIntegrations) {
+      return;
+    }
+    router.push(integrationRoute);
+  };
 
   return (
     <div className="relative h-full overflow-hidden bg-[linear-gradient(180deg,#f4f7fd_0%,#f6f8fb_32%,#f3f5f8_100%)] text-[var(--color-text)]">
@@ -763,6 +863,28 @@ export function XWorkmateWorkspacePage({
         <main className="flex min-h-0 flex-1 flex-col rounded-[30px] border border-white/75 bg-[rgba(255,255,255,0.54)] p-3 shadow-[0_24px_64px_rgba(15,23,42,0.07)] backdrop-blur">
           <div className="min-h-0 flex-1 rounded-[28px] border border-white/80 bg-[rgba(248,250,252,0.78)] p-3">
             <div className="mx-auto flex h-full max-w-[1680px] min-h-0 flex-col">
+              {profile ? (
+                <div className="mb-3 flex flex-wrap items-center gap-2 rounded-[22px] border border-[color:var(--color-surface-border)] bg-white/90 px-5 py-4 text-sm text-[var(--color-text-subtle)] shadow-[var(--shadow-sm)]">
+                  <Shield className="h-4 w-4 text-[var(--color-primary)]" />
+                  <span>
+                    {profile.edition === "shared_public"
+                      ? pickCopy(isChinese, "共享版", "Shared Edition")
+                      : pickCopy(isChinese, "租户独享版", "Tenant Edition")}
+                  </span>
+                  <span>·</span>
+                  <span>{profile.tenant.name}</span>
+                  <span>·</span>
+                  <span>{profile.membershipRole}</span>
+                  <span>·</span>
+                  <span>{profileModeLabel}</span>
+                  {requestHost ? (
+                    <>
+                      <span>·</span>
+                      <span>{requestHost}</span>
+                    </>
+                  ) : null}
+                </div>
+              ) : null}
               {activeSection === "assistant" ? (
                 <AssistantHome
                   isChinese={isChinese}
@@ -771,10 +893,17 @@ export function XWorkmateWorkspacePage({
                   connected={connected}
                   prompt={composerValue}
                   onPromptChange={setComposerValue}
-                  onOpenConnections={() => setShowConnections(true)}
+                  onOpenConnections={openConnections}
+                  primaryActionLabel={primaryActionLabel}
+                  secondaryActionLabel={secondaryActionLabel}
+                  connectionHint={connectionHint}
+                  actionDisabled={!canEditIntegrations}
                 />
               ) : (
-                <SectionOverview isChinese={isChinese} section={activeDefinition} />
+                <SectionOverview
+                  isChinese={isChinese}
+                  section={activeDefinition}
+                />
               )}
             </div>
           </div>
@@ -787,42 +916,6 @@ export function XWorkmateWorkspacePage({
           ? `${pickCopy(isChinese, "在线网关", "Gateway Online")} · ${configuredCount}/3`
           : `${pickCopy(isChinese, "集成概况", "Integrations")} · ${configuredCount}/3`}
       </div>
-
-      {showConnections ? (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-[rgba(15,23,42,0.24)] p-6 backdrop-blur-[2px]">
-          <div className="max-h-[calc(100vh-64px)] w-full max-w-[1080px] overflow-auto rounded-[28px] border border-white/80 bg-[linear-gradient(180deg,#fbfdff_0%,#f6f8fc_100%)] p-5 shadow-[0_32px_80px_rgba(15,23,42,0.20)]">
-            <div className="mb-4 flex items-center justify-between gap-4 rounded-[20px] border border-[color:var(--color-surface-border)] bg-white/92 px-5 py-4">
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-[var(--color-heading)]">
-                  {pickCopy(isChinese, "编辑 Gateway 连接", "Edit Gateway Connections")}
-                </p>
-                <p className="mt-1 text-sm text-[var(--color-text-subtle)]">
-                  {pickCopy(
-                    isChinese,
-                    "沿用当前在线版的配置、探测和会话级覆盖逻辑。",
-                    "Reuse the current web configuration, probe, and session override flow.",
-                  )}
-                </p>
-              </div>
-              <button
-                type="button"
-                aria-label="Close"
-                onClick={() => setShowConnections(false)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-[14px] border border-[color:var(--color-surface-border)] bg-white text-[var(--color-text-subtle)] transition hover:text-[var(--color-heading)]"
-              >
-                <X className="h-4.5 w-4.5" />
-              </button>
-            </div>
-            <IntegrationsConsole
-              defaults={defaults}
-              onOpenAssistant={() => {
-                setActiveSection("assistant");
-                setShowConnections(false);
-              }}
-            />
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

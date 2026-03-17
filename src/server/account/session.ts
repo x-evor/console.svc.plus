@@ -214,6 +214,20 @@ async function resolveTokenFromRequest(
   return undefined;
 }
 
+function resolveForwardedHost(request?: NextRequest): string | undefined {
+  if (!request) {
+    return undefined;
+  }
+
+  const hostHeader =
+    request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  if (!hostHeader) {
+    return undefined;
+  }
+  const trimmed = hostHeader.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
 export async function userHasRole(
   user: AccountSessionUser | null,
   roles: AccountUserRole[],
@@ -263,6 +277,7 @@ export async function getAccountSession(
   if (!token) {
     return { token: undefined, user: null };
   }
+  const requestHost = resolveForwardedHost(request);
 
   try {
     const response = await fetch(`${ACCOUNT_API_BASE}/session`, {
@@ -270,6 +285,11 @@ export async function getAccountSession(
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/json",
+        ...(requestHost
+          ? {
+              "X-Forwarded-Host": requestHost,
+            }
+          : {}),
       },
       cache: "no-store",
     });

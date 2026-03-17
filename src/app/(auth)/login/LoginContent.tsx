@@ -74,8 +74,8 @@ export default function LoginContent({
     `${accountServiceBaseUrl}/api/auth/login`;
 
   const socialButtonsDisabled = false;
-  const githubAuthUrl = `${accountServiceBaseUrl}/api/auth/oauth/login/github`;
-  const googleAuthUrl = `${accountServiceBaseUrl}/api/auth/oauth/login/google`;
+  const githubAuthUrl = "/api/auth/oauth/login/github";
+  const googleAuthUrl = "/api/auth/oauth/login/google";
 
   useEffect(() => {
     const exchangeCode = searchParams.get("exchange_code");
