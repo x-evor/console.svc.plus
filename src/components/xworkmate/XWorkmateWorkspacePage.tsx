@@ -12,12 +12,15 @@ import {
   Grip,
   KeyRound,
   ListTodo,
+  Paperclip,
   Puzzle,
   RefreshCw,
+  Send,
   Settings2,
   Shield,
   Sparkles,
   UserCircle2,
+  Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -73,7 +76,7 @@ type DetailCardProps = {
   meta: string;
 };
 
-function pickCopy(isChinese: boolean, zh: string, en: string): string {
+function pickCopy<T>(isChinese: boolean, zh: T, en: T): T {
   return isChinese ? zh : en;
 }
 
@@ -506,6 +509,7 @@ function AssistantHome({
   secondaryActionLabel,
   connectionHint,
   actionDisabled,
+  isSharedProfile,
 }: {
   isChinese: boolean;
   tabs: SectionTab[];
@@ -518,122 +522,122 @@ function AssistantHome({
   secondaryActionLabel: string;
   connectionHint?: string;
   actionDisabled?: boolean;
+  isSharedProfile?: boolean;
 }) {
-  return (
-    <>
-      <div className="rounded-[28px] border border-[color:var(--color-surface-border)] bg-white/96 px-6 py-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)]">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[var(--color-text-subtle)]">
-              <DesktopChip label={pickCopy(isChinese, "主页", "Home")} />
-              <ChevronRight className="h-4 w-4" />
-              <DesktopChip
-                label={pickCopy(isChinese, "默认任务", "Default Task")}
-              />
-            </div>
-            <h1 className="mt-4 text-[20px] font-semibold tracking-[-0.03em] text-black">
-              {pickCopy(isChinese, "默认任务", "Default Task")}
-            </h1>
-            <p className="mt-1 text-[15px] text-[var(--color-text-subtle)]">
-              {pickCopy(
-                isChinese,
-                "连接 Gateway 后，当前对话会自动作为默认任务开始执行。",
-                "After connecting the gateway, the current conversation starts as the default task.",
-              )}
-            </p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              {tabs.map((tab, index) => (
-                <DesktopChip
-                  key={tab.key}
-                  label={tab.label}
-                  active={index === 0}
-                />
-              ))}
-            </div>
-          </div>
-          <div className="inline-flex h-fit items-center rounded-full border border-[color:var(--color-surface-border)] bg-white px-4 py-2 text-sm font-semibold text-black">
-            {connected
-              ? `${pickCopy(isChinese, "在线", "Online")} · ${endpointLabel}`
-              : pickCopy(isChinese, "离线 · 未连接目标", "Offline · No target")}
-          </div>
-        </div>
-      </div>
+  const suggestions = pickCopy(
+    isChinese,
+    [
+      "幻灯片",
+      "视频生成",
+      "深度研究",
+      "文档处理",
+      "数据分析",
+      "可视化",
+      "金融服务",
+      "产品管理",
+      "设计",
+      "邮件编辑",
+    ],
+    [
+      "Slides",
+      "Video Gen",
+      "Deep Research",
+      "Docs Processing",
+      "Data Analysis",
+      "Visualization",
+      "Finance",
+      "Product Management",
+      "Design",
+      "Email Edit",
+    ]
+  );
 
-      <div className="mt-5 flex min-h-[540px] flex-1 rounded-[28px] border border-[color:var(--color-surface-border)] bg-[linear-gradient(180deg,#f6f9ff_0%,#f8fbff_18%,#ffffff_62%)] shadow-[0_24px_64px_rgba(15,23,42,0.05)]">
-        <div className="flex flex-1 items-center justify-center rounded-[28px] border border-transparent bg-[radial-gradient(circle_at_top,_rgba(51,102,255,0.08),_transparent_34%)] p-6">
-          <div className="w-full max-w-[600px] rounded-[24px] border border-[color:var(--color-surface-border)] bg-white/95 p-7 shadow-[0_14px_30px_rgba(15,23,42,0.08)]">
-            <h2 className="text-[24px] font-semibold tracking-[-0.03em] text-black">
-              {pickCopy(isChinese, "先连接 Gateway", "Connect Gateway First")}
-            </h2>
-            <p className="mt-3 text-[15px] leading-7 text-[var(--color-text-subtle)]">
-              {pickCopy(
-                isChinese,
-                "连接后可直接对话、创建任务，并在当前会话查看结果。",
-                "Connect first to start chatting, create tasks, and view results in the current conversation.",
-              )}
-            </p>
-            {connectionHint ? (
-              <p className="mt-3 text-sm leading-6 text-[var(--color-text-subtle)]">
-                {connectionHint}
-              </p>
-            ) : null}
-            <div className="mt-6 flex flex-wrap gap-3">
+  return (
+    <div className="flex h-full flex-col p-4">
+      <div className="flex-1 overflow-y-auto min-h-0">
+        {!isSharedProfile && (
+          <div className="mb-6 rounded-[16px] border border-[color:var(--color-surface-border)] bg-white/96 p-5 shadow-sm">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-black">
+                  {pickCopy(isChinese, "未连接 Gateway", "Gateway Disconnected")}
+                </h2>
+                <p className="mt-1 text-sm text-[var(--color-text-subtle)]">
+                  {connectionHint || pickCopy(isChinese, "请连接 Gateway 以获取完整能力。", "Please connect Gateway for full capabilities.")}
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={onOpenConnections}
                 disabled={actionDisabled}
-                className="inline-flex h-11 items-center gap-2 rounded-[14px] bg-[var(--color-primary)] px-5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(51,102,255,0.28)] transition hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-9 items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 text-sm font-semibold text-white transition hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <RefreshCw className="h-4 w-4" />
                 {primaryActionLabel}
               </button>
-              <button
-                type="button"
-                onClick={onOpenConnections}
-                disabled={actionDisabled}
-                className="inline-flex h-11 items-center gap-2 rounded-[14px] border border-[color:var(--color-surface-border)] bg-white px-5 text-sm font-semibold text-[var(--color-heading)] transition hover:bg-[var(--color-surface-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <Settings2 className="h-4 w-4" />
-                {secondaryActionLabel}
-              </button>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
-      <div className="mt-5 rounded-[24px] border border-[color:var(--color-surface-border)] bg-white/96 p-4 shadow-[var(--shadow-sm)]">
-        <textarea
-          value={prompt}
-          onChange={(event) => onPromptChange(event.target.value)}
-          placeholder={pickCopy(
-            isChinese,
-            "直接描述需求：运行任务、分析日志、部署节点......",
-            "Describe the task directly: run jobs, inspect logs, deploy nodes...",
-          )}
-          className="min-h-[90px] w-full resize-none rounded-[18px] border border-[color:var(--color-surface-border)] bg-[var(--color-surface-muted)] px-6 py-5 text-[15px] text-[var(--color-heading)] outline-none transition placeholder:text-[var(--color-text-subtle)] focus:border-[color:var(--color-primary-border)] focus:bg-white"
-        />
-        <div className="mt-4 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex flex-wrap gap-3">
-            <ToolbarChip label={pickCopy(isChinese, "远程", "Remote")} />
-            <ToolbarChip
-              label={pickCopy(isChinese, "默认权限", "Default Access")}
-            />
-            <ToolbarChip label="z-ai/glm5" active />
-            <ToolbarChip label={pickCopy(isChinese, "问答", "Ask")} />
-            <ToolbarChip label={pickCopy(isChinese, "高", "High")} />
+      <div className="mt-auto shrink-0 mx-auto w-full max-w-4xl pt-4">
+        <div className="rounded-[16px] border border-[color:var(--color-surface-border)] bg-white shadow-[0_4px_24px_rgba(15,23,42,0.04)] transition-all focus-within:border-[color:var(--color-primary-border)] focus-within:ring-1 focus-within:ring-[color:var(--color-primary-border)]">
+          <div className="p-2 border-b border-transparent">
+             <button type="button" className="p-2 text-[var(--color-text-subtle)] hover:text-black transition-colors rounded-lg hover:bg-[var(--color-surface-hover)]">
+                <Paperclip className="h-[18px] w-[18px]" />
+             </button>
           </div>
-          <button
-            type="button"
-            onClick={onOpenConnections}
-            disabled={actionDisabled}
-            className="inline-flex h-11 items-center justify-center gap-2 self-end rounded-[14px] bg-[var(--color-primary)] px-5 text-sm font-semibold text-white transition hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <RefreshCw className="h-4 w-4" />
-            {primaryActionLabel}
-          </button>
+          <textarea
+            value={prompt}
+            onChange={(event) => onPromptChange(event.target.value)}
+            placeholder={pickCopy(
+              isChinese,
+              "输入消息...",
+              "Enter a message..."
+            )}
+            className="w-full resize-none bg-transparent px-4 py-2 text-[15px] leading-relaxed text-[var(--color-heading)] outline-none placeholder:text-[var(--color-text-subtle)] min-h-[80px]"
+          />
+          <div className="flex items-center justify-between p-3">
+            <div className="flex items-center gap-2">
+              <button type="button" className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[color:var(--color-surface-border)] bg-[var(--color-surface-muted)] px-2.5 text-xs font-medium text-[var(--color-text-subtle)] transition hover:bg-white hover:text-black">
+                <Bot className="h-3.5 w-3.5" />
+                Agent
+                <ChevronRight className="h-3 w-3 rotate-90" />
+              </button>
+              <button type="button" className="inline-flex h-8 items-center gap-1.5 rounded-md bg-white px-2.5 text-xs font-medium text-black transition hover:bg-[var(--color-surface-hover)]">
+                <span className="flex h-4 w-4 items-center justify-center rounded bg-black text-[10px] font-bold text-white">Z</span>
+                GLM-5.0
+                <ChevronRight className="h-3 w-3 rotate-90" />
+              </button>
+              <button type="button" className="flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--color-surface-border)] bg-white text-[var(--color-text-subtle)] transition hover:text-black hover:border-[color:var(--color-text-subtle)]">
+                <Zap className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <button
+              type="button"
+              className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-lg transition",
+                prompt.trim() ? "bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)]" : "bg-[var(--color-surface-muted)] text-[var(--color-text-subtle)]"
+              )}
+            >
+              <Send className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-2 pb-2">
+          {suggestions.map((suggestion) => (
+            <button
+              key={suggestion}
+              type="button"
+              className="inline-flex h-8 items-center rounded-full border border-[color:var(--color-surface-border)] bg-white px-3.5 text-[13px] text-[var(--color-text-subtle)] transition hover:border-[color:var(--color-text-subtle)] hover:text-black"
+            >
+              {suggestion}
+            </button>
+          ))}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -710,6 +714,7 @@ export function XWorkmateWorkspacePage({
   const [activeSection, setActiveSection] =
     useState<WorkspaceDestination>("assistant");
   const [composerValue, setComposerValue] = useState("");
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
   const setScope = useOpenClawConsoleStore((state) => state.setScope);
   const applyDefaults = useOpenClawConsoleStore((state) => state.applyDefaults);
@@ -799,72 +804,88 @@ export function XWorkmateWorkspacePage({
     <div className="relative h-full overflow-hidden bg-[linear-gradient(180deg,#f4f7fd_0%,#f6f8fb_32%,#f3f5f8_100%)] text-[var(--color-text)]">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(51,102,255,0.10),_transparent_26%),radial-gradient(circle_at_bottom_right,_rgba(15,23,42,0.05),_transparent_24%)]" />
 
-      <div className="relative flex h-full min-h-0 gap-3 p-3">
-        <aside className="flex w-[76px] shrink-0 flex-col rounded-[26px] border border-white/80 bg-[rgba(255,255,255,0.74)] p-3 shadow-[0_20px_40px_rgba(15,23,42,0.06)] backdrop-blur">
-          <div className="flex flex-col gap-2">
-            {primarySections.map((section) => (
-              <SidebarButton
-                key={section.key}
-                icon={section.icon}
-                label={section.label}
-                active={section.key === activeSection}
-                onClick={() => setActiveSection(section.key)}
-              />
-            ))}
-          </div>
+      <div className="relative flex h-full min-h-0">
+        {sidebarExpanded ? (
+          <aside className="flex w-[76px] shrink-0 flex-col border-r border-white/80 bg-[rgba(255,255,255,0.74)] p-3 shadow-[0_20px_40px_rgba(15,23,42,0.06)] backdrop-blur z-10 transition-all duration-300">
+            <div className="flex flex-col gap-2">
+              {primarySections.map((section) => (
+                <SidebarButton
+                  key={section.key}
+                  icon={section.icon}
+                  label={section.label}
+                  active={section.key === activeSection}
+                  onClick={() => setActiveSection(section.key)}
+                />
+              ))}
+            </div>
 
-          <div className="my-4 h-px bg-[var(--color-divider)]" />
+            <div className="my-4 h-px bg-[var(--color-divider)]" />
 
-          <div className="flex flex-col gap-2">
-            {workspaceSections.map((section) => (
-              <SidebarButton
-                key={section.key}
-                icon={section.icon}
-                label={section.label}
-                active={section.key === activeSection}
-                onClick={() => setActiveSection(section.key)}
-              />
-            ))}
-          </div>
+            <div className="flex flex-col gap-2">
+              {workspaceSections.map((section) => (
+                <SidebarButton
+                  key={section.key}
+                  icon={section.icon}
+                  label={section.label}
+                  active={section.key === activeSection}
+                  onClick={() => setActiveSection(section.key)}
+                />
+              ))}
+            </div>
 
-          <div className="my-4 h-px bg-[var(--color-divider)]" />
+            <div className="my-4 h-px bg-[var(--color-divider)]" />
 
-          <div className="flex flex-col gap-2">
-            {toolSections.map((section) => (
-              <SidebarButton
-                key={section.key}
-                icon={section.icon}
-                label={section.label}
-                active={section.key === activeSection}
-                onClick={() => setActiveSection(section.key)}
-              />
-            ))}
-          </div>
+            <div className="flex flex-col gap-2">
+              {toolSections.map((section) => (
+                <SidebarButton
+                  key={section.key}
+                  icon={section.icon}
+                  label={section.label}
+                  active={section.key === activeSection}
+                  onClick={() => setActiveSection(section.key)}
+                />
+              ))}
+            </div>
 
-          <div className="mt-auto flex flex-col gap-2">
-            {footerSections.map((section) => (
-              <SidebarButton
-                key={section.key}
-                icon={section.icon}
-                label={section.label}
-                active={section.key === activeSection}
-                onClick={() => setActiveSection(section.key)}
-              />
-            ))}
+            <div className="mt-auto flex flex-col gap-2">
+              {footerSections.map((section) => (
+                <SidebarButton
+                  key={section.key}
+                  icon={section.icon}
+                  label={section.label}
+                  active={section.key === activeSection}
+                  onClick={() => setActiveSection(section.key)}
+                />
+              ))}
+              <button
+                type="button"
+                onClick={() => setSidebarExpanded(false)}
+                className="mt-2 flex h-12 w-12 items-center justify-center rounded-[16px] border border-transparent bg-white/50 text-[var(--color-text-subtle)] transition hover:text-[var(--color-heading)]"
+              >
+                <ChevronsRight className="h-[18px] w-[18px] rotate-180" />
+              </button>
+            </div>
+          </aside>
+        ) : (
+          <div className="absolute left-0 top-4 z-20 px-2">
             <button
               type="button"
-              className="mt-2 flex h-12 w-12 items-center justify-center rounded-[16px] border border-[color:var(--color-surface-border)] bg-white/85 text-[var(--color-text-subtle)] transition hover:text-[var(--color-heading)]"
+              onClick={() => setSidebarExpanded(true)}
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/80 bg-white/70 shadow-sm text-[var(--color-text-subtle)] transition hover:text-[var(--color-heading)] backdrop-blur"
             >
-              <ChevronsRight className="h-[18px] w-[18px]" />
+              <ListTodo className="h-[18px] w-[18px]" />
             </button>
           </div>
-        </aside>
+        )}
 
-        <main className="flex min-h-0 flex-1 flex-col rounded-[30px] border border-white/75 bg-[rgba(255,255,255,0.54)] p-3 shadow-[0_24px_64px_rgba(15,23,42,0.07)] backdrop-blur">
-          <div className="min-h-0 flex-1 rounded-[28px] border border-white/80 bg-[rgba(248,250,252,0.78)] p-3">
-            <div className="mx-auto flex h-full max-w-[1680px] min-h-0 flex-col">
+        <main className={cn(
+          "flex min-h-0 flex-1 flex-col bg-[rgba(255,255,255,0.54)] shadow-[0_24px_64px_rgba(15,23,42,0.07)] backdrop-blur transition-all duration-300",
+          !sidebarExpanded && "pl-14"
+        )}>
+          <div className="min-h-0 flex-1 bg-[rgba(248,250,252,0.78)]">
+            <div className="flex h-full min-h-0 flex-col">
               {profile ? (
-                <div className="mb-3 flex flex-wrap items-center gap-2 rounded-[22px] border border-[color:var(--color-surface-border)] bg-white/90 px-5 py-4 text-sm text-[var(--color-text-subtle)] shadow-[var(--shadow-sm)]">
+                <div className="flex flex-wrap items-center gap-2 border-b border-[color:var(--color-surface-border)] bg-white/90 px-5 py-3 text-sm text-[var(--color-text-subtle)] shadow-[var(--shadow-sm)]">
                   <Shield className="h-4 w-4 text-[var(--color-primary)]" />
                   <span>
                     {profile.edition === "shared_public"
@@ -898,6 +919,7 @@ export function XWorkmateWorkspacePage({
                   secondaryActionLabel={secondaryActionLabel}
                   connectionHint={connectionHint}
                   actionDisabled={!canEditIntegrations}
+                  isSharedProfile={profile?.profileScope === "tenant-shared"}
                 />
               ) : (
                 <SectionOverview

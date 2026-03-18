@@ -21,10 +21,13 @@ import {
 import useSWR from "swr";
 
 import Footer from "../components/Footer";
-import { HeroCard } from "../components/HeroCard";
 import UnifiedNavigation from "../components/UnifiedNavigation";
 import { useLanguage } from "../i18n/LanguageProvider";
 import { translations } from "../i18n/translations";
+import {
+  heroVideoMedia,
+  type HeroVideoMedia,
+} from "../lib/home/heroVideoMedia";
 import { useMoltbotStore } from "../lib/moltbotStore";
 import { useUserStore } from "../lib/userStore";
 import { cn } from "../lib/utils";
@@ -182,37 +185,12 @@ export function HeroSection() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 lg:pl-4">
-          <div className="flex flex-col gap-2 border-b border-slate-900/10 pb-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className={HOME_SECTION_LABEL_CLASS}>
-                {isChinese ? "主要入口" : "Launch paths"}
-              </p>
-              <p className="mt-2 max-w-md text-sm leading-6 text-text-muted">
-                {isChinese
-                  ? "从接入、托管到观测，保留原有入口，但改成更轻的阅读节奏。"
-                  : "Keep the same entry points, but present them with a calmer editorial rhythm."}
-              </p>
-            </div>
-            <span className="hidden rounded-full border border-slate-900/10 bg-white px-3 py-1 text-xs font-semibold text-slate-600 sm:inline-flex">
-              {t.heroCards.length} {isChinese ? "个入口" : "entry paths"}
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            {t.heroCards.map((card) => {
-              const Icon = getIcon(card.title, PlusCircle);
-              return (
-                <HeroCard
-                  key={card.title}
-                  icon={Icon}
-                  title={card.title}
-                  description={card.description}
-                  guide={card.guide}
-                />
-              );
-            })}
-          </div>
+        <div className="lg:pl-4">
+          <HeroVideoShell
+            items={t.heroCards.map((card) => card.title)}
+            isChinese={isChinese}
+            media={heroVideoMedia}
+          />
         </div>
       </div>
     </section>
@@ -497,6 +475,150 @@ type LatestBlogPost = {
   title: string;
   date?: string;
 };
+
+function HeroVideoShell({
+  items,
+  isChinese,
+  media,
+}: {
+  items: string[];
+  isChinese: boolean;
+  media: HeroVideoMedia;
+}) {
+  const mediaTitle = isChinese ? media.title.zh : media.title.en;
+  const mediaDescription = isChinese
+    ? media.description.zh
+    : media.description.en;
+  const mediaStatusLabel = isChinese
+    ? media.statusLabel.zh
+    : media.statusLabel.en;
+  const hasVideo = Boolean(media.videoUrl);
+  const previewStyle = media.posterUrl
+    ? {
+        backgroundImage: `linear-gradient(180deg,rgba(15,23,42,0.18),rgba(15,23,42,0.52)), url(${media.posterUrl})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }
+    : undefined;
+
+  return (
+    <div className="overflow-hidden rounded-[2rem] border border-slate-900/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.88),rgba(244,247,252,0.96))] shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
+      <div className="border-b border-slate-900/10 px-5 py-4 sm:px-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className={HOME_SECTION_LABEL_CLASS}>
+              {isChinese ? "产品演示" : "Product demo"}
+            </p>
+            <p className="mt-2 max-w-md text-sm leading-6 text-text-muted">
+              {isChinese
+                ? "这里预留为视频展示区，后续可以直接替换成产品介绍、工作流演示或 onboarding 视频。"
+                : "Reserved for a video showcase. You can later replace it with a product intro, workflow demo, or onboarding clip."}
+            </p>
+          </div>
+          <span className="hidden rounded-full border border-slate-900/10 bg-white/90 px-3 py-1 text-xs font-semibold text-slate-600 sm:inline-flex">
+            {isChinese ? "16:9 占位" : "16:9 shell"}
+          </span>
+        </div>
+      </div>
+
+      <div className="space-y-4 p-4 sm:p-5">
+        <div
+          className={cn(
+            "group relative aspect-video overflow-hidden rounded-[1.6rem] border border-slate-900/10",
+            !hasVideo &&
+              "bg-[radial-gradient(circle_at_top_left,rgba(51,102,255,0.16),transparent_34%),linear-gradient(135deg,#0f172a,#172033_52%,#1f2d4d)]",
+          )}
+          style={previewStyle}
+        >
+          {hasVideo ? (
+            <video
+              className="h-full w-full object-cover"
+              controls
+              playsInline
+              preload="metadata"
+              poster={media.posterUrl || undefined}
+            >
+              <source src={media.videoUrl} />
+            </video>
+          ) : (
+            <>
+              <div
+                aria-hidden
+                className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(15,23,42,0.18))]"
+              />
+              <div
+                aria-hidden
+                className="absolute left-5 top-5 h-20 w-20 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.18),transparent_70%)] blur-2xl"
+              />
+              <div
+                aria-hidden
+                className="absolute right-[-1.5rem] top-[-1.5rem] h-28 w-28 rounded-full border border-white/10"
+              />
+            </>
+          )}
+
+          <div className="absolute inset-0 flex flex-col justify-between p-5 sm:p-6">
+            <div className="flex items-center justify-between gap-3">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/80 backdrop-blur">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                {mediaStatusLabel}
+              </span>
+              <span className="rounded-full border border-white/10 bg-black/10 px-3 py-1 text-xs font-medium text-white/70">
+                {media.durationLabel}
+              </span>
+            </div>
+
+            <div className="space-y-4">
+              {!hasVideo ? (
+                <button
+                  type="button"
+                  className="inline-flex h-16 w-16 items-center justify-center rounded-full border border-white/15 bg-white/12 text-white shadow-[0_14px_35px_rgba(15,23,42,0.25)] backdrop-blur transition group-hover:scale-[1.02]"
+                >
+                  <Play className="ml-1 h-7 w-7" fill="currentColor" />
+                </button>
+              ) : null}
+              <div className="max-w-lg space-y-2">
+                <p className="text-xl font-semibold tracking-[-0.03em] text-white sm:text-2xl">
+                  {mediaTitle}
+                </p>
+                <p className="text-sm leading-6 text-white/72 sm:text-[0.95rem]">
+                  {mediaDescription}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="h-1.5 overflow-hidden rounded-full bg-white/12">
+                <div className="h-full w-[28%] rounded-full bg-white/75" />
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-[11px] font-medium text-white/60 sm:text-xs">
+                {media.chapters.map((chapter) => (
+                  <span
+                    key={chapter.en}
+                    className="rounded-full border border-white/10 bg-white/8 px-3 py-2 text-center"
+                  >
+                    {isChinese ? chapter.zh : chapter.en}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {items.map((item) => (
+            <span
+              key={item}
+              className="inline-flex items-center rounded-full border border-slate-900/10 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600"
+            >
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function LogoPill({ label }: { label: string }) {
   return (

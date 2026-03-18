@@ -2,6 +2,8 @@ import { Suspense } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 import { XWorkmateLoading } from "@/app/xworkmate/XWorkmateLoading";
 import { XWorkmateWorkspacePage } from "@/components/xworkmate/XWorkmateWorkspacePage";
 import {
