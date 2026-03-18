@@ -8,8 +8,8 @@ services:
       - |
         set -eu
         rm -rf /assets/_next /assets/public
-        mkdir -p /assets/_next /assets/public
-        cp -R /app/dashboard/static /assets/_next/static
+        mkdir -p /assets/_next/static /assets/public
+        cp -R /app/dashboard/static/. /assets/_next/static
         cp -R /app/dashboard/public/. /assets/public
     volumes:
       - frontend_static:/assets

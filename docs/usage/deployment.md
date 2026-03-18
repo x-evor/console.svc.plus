@@ -17,10 +17,18 @@ The production frontend is deployed as a prebuilt container image from GitHub Ac
 - The target host does not build images locally.
 - The workflow builds an `linux/amd64` image and pushes it to `ghcr.io/<owner>/dashboard:<sha>`.
 - The host only performs `docker login`, `docker compose pull`, static asset extraction, and `docker compose up`.
-- `knowledge/` is cloned during CI build and packed into the image.
+- `knowledge/` is cloned during CI build (via `scripts/sync-blog-content.sh`) and synced with other docs (via `scripts/sync-doc-content.sh`) before being packed into the image.
 - Static assets are extracted from the image into a shared Docker volume so Caddy can serve `/_next/static/*` and checked-in public files directly.
 
 This is intentionally static-first for the current weak-IO single-node host. Dynamic HTML, auth routes, and API proxy routes still run through the Next.js container. When `docs.svc.plus` is later split into an API/service, revisit this runbook and remove docs content from the frontend image.
+
+## Control Plane & DNS Stage
+
+The control repo (`github-org-cloud-neutral-toolkit`) tracks `console.svc.plus` through `console.svc.plus.code-workspace` and keeps the `subrepos/accounts.svc.plus` pointer in sync via `skills/cross-repo-upstream-submodule-sync`. Releases resolve metadata with that workspace and the `config/single-node-release` manifests. After `.github/workflows/service_release_frontend-deploy.yml` finishes pushing the new image, the control-plane workflow `.github/workflows/service_release_apiserver-deploy.yml` calls `scripts/github-actions/update-release-dns.sh` to update Cloudflare DNS so the new endpoint is reachable under `cn.svc.plus` and `cn.onwalk.net`.
+
+## Future Docs Strategy
+
+Because the frontend currently ships docs content directly (knowledge/blog + rendered markdown), any future split where `docs.svc.plus` becomes an API-backed service should include a repo-level migration plan: stop syncing docs into the frontend image, move documentation storage/serving into the dedicated API, and adjust the runbook/workflow notes above accordingly.
 
 ## Runtime Layout
 
