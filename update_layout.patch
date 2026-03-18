@@ -1,0 +1,114 @@
+--- src/components/xworkmate/XWorkmateWorkspacePage.tsx
++++ src/components/xworkmate/XWorkmateWorkspacePage.tsx
+@@ -582,6 +582,7 @@
+   const [activeSection, setActiveSection] =
+     useState<WorkspaceDestination>("assistant");
+   const [composerValue, setComposerValue] = useState("");
++  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+
+   const setScope = useOpenClawConsoleStore((state) => state.setScope);
+   const applyDefaults = useOpenClawConsoleStore((state) => state.applyDefaults);
+@@ -663,20 +664,22 @@
+     <div className="relative h-full overflow-hidden bg-[linear-gradient(180deg,#f4f7fd_0%,#f6f8fb_32%,#f3f5f8_100%)] text-[var(--color-text)]">
+       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(51,102,255,0.10),_transparent_26%),radial-gradient(circle_at_bottom_right,_rgba(15,23,42,0.05),_transparent_24%)]" />
+
+-      <div className="relative flex h-full min-h-0 gap-3 p-3">
+-        <aside className="flex w-[76px] shrink-0 flex-col rounded-[26px] border border-white/80 bg-[rgba(255,255,255,0.74)] p-3 shadow-[0_20px_40px_rgba(15,23,42,0.06)] backdrop-blur">
+-          <div className="flex flex-col gap-2">
+-            {primarySections.map((section) => (
+-              <SidebarButton
+-                key={section.key}
+-                icon={section.icon}
+-                label={section.label}
+-                active={section.key === activeSection}
+-                onClick={() => setActiveSection(section.key)}
+-              />
+-            ))}
+-          </div>
+-
++      <div className="relative flex h-full min-h-0">
++        {sidebarExpanded ? (
++          <aside className="flex w-[76px] shrink-0 flex-col border-r border-white/80 bg-[rgba(255,255,255,0.74)] p-3 shadow-[0_20px_40px_rgba(15,23,42,0.06)] backdrop-blur z-10 transition-all duration-300">
++            <div className="flex flex-col gap-2">
++              {primarySections.map((section) => (
++                <SidebarButton
++                  key={section.key}
++                  icon={section.icon}
++                  label={section.label}
++                  active={section.key === activeSection}
++                  onClick={() => setActiveSection(section.key)}
++                />
++              ))}
++            </div>
++
++            <div className="my-4 h-px bg-[var(--color-divider)]" />
++
++            <div className="flex flex-col gap-2">
++              {workspaceSections.map((section) => (
++                <SidebarButton
++                  key={section.key}
++                  icon={section.icon}
++                  label={section.label}
++                  active={section.key === activeSection}
++                  onClick={() => setActiveSection(section.key)}
++                />
++              ))}
++            </div>
++
++            <div className="my-4 h-px bg-[var(--color-divider)]" />
++
++            <div className="flex flex-col gap-2">
++              {toolSections.map((section) => (
++                <SidebarButton
++                  key={section.key}
++                  icon={section.icon}
++                  label={section.label}
++                  active={section.key === activeSection}
++                  onClick={() => setActiveSection(section.key)}
++                />
++              ))}
++            </div>
++
++            <div className="mt-auto flex flex-col gap-2">
++              {footerSections.map((section) => (
++                <SidebarButton
++                  key={section.key}
++                  icon={section.icon}
++                  label={section.label}
++                  active={section.key === activeSection}
++                  onClick={() => setActiveSection(section.key)}
++                />
++              ))}
++              <button
++                type="button"
++                onClick={() => setSidebarExpanded(false)}
++                className="mt-2 flex h-12 w-12 items-center justify-center rounded-[16px] border border-transparent bg-white/50 text-[var(--color-text-subtle)] transition hover:text-[var(--color-heading)]"
++              >
++                <ChevronsRight className="h-[18px] w-[18px] rotate-180" />
++              </button>
++            </div>
++          </aside>
++        ) : (
++          <div className="absolute left-0 top-4 z-20 px-2">
++            <button
++              type="button"
++              onClick={() => setSidebarExpanded(true)}
++              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/80 bg-white/70 shadow-sm text-[var(--color-text-subtle)] transition hover:text-[var(--color-heading)] backdrop-blur"
++            >
++              <ListTodo className="h-[18px] w-[18px]" />
++            </button>
++          </div>
++        )}
++
+-        <main className="flex min-h-0 flex-1 flex-col rounded-[30px] border border-white/75 bg-[rgba(255,255,255,0.54)] p-3 shadow-[0_24px_64px_rgba(15,23,42,0.07)] backdrop-blur">
+-          <div className="min-h-0 flex-1 rounded-[28px] border border-white/80 bg-[rgba(248,250,252,0.78)] p-3">
++        <main className={cn(
++          "flex min-h-0 flex-1 flex-col bg-[rgba(255,255,255,0.54)] shadow-[0_24px_64px_rgba(15,23,42,0.07)] backdrop-blur transition-all duration-300",
++          !sidebarExpanded && "pl-14"
++        )}>
++          <div className="min-h-0 flex-1 bg-[rgba(248,250,252,0.78)]">
+-            <div className="mx-auto flex h-full max-w-[1680px] min-h-0 flex-col">
++            <div className="flex h-full min-h-0 flex-col">
+               {profile ? (
+-                <div className="mb-3 flex flex-wrap items-center gap-2 rounded-[22px] border border-[color:var(--color-surface-border)] bg-white/90 px-5 py-4 text-sm text-[var(--color-text-subtle)] shadow-[var(--shadow-sm)]">
++                <div className="flex flex-wrap items-center gap-2 border-b border-[color:var(--color-surface-border)] bg-white/90 px-5 py-3 text-sm text-[var(--color-text-subtle)] shadow-[var(--shadow-sm)]">
