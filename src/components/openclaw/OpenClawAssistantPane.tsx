@@ -49,6 +49,7 @@ type OpenClawAssistantPaneProps = {
   defaults: IntegrationDefaults;
   initialQuestion?: string;
   initialQuestionKey?: number;
+  autoSubmitInitialQuestion?: boolean;
   variant?: "page" | "sidebar";
   showConversation?: boolean;
   emptyConversationHint?: string;
@@ -214,6 +215,7 @@ export function OpenClawAssistantPane({
   defaults,
   initialQuestion,
   initialQuestionKey,
+  autoSubmitInitialQuestion = true,
   variant = "page",
   showConversation = true,
   emptyConversationHint,
@@ -778,8 +780,16 @@ export function OpenClawAssistantPane({
 
     lastInitialQuestionKeyRef.current = resolvedKey;
     setComposerValue(initialQuestion);
-    void sendMessage(initialQuestion);
-  }, [connectionState, initialQuestion, initialQuestionKey, sendMessage]);
+    if (autoSubmitInitialQuestion) {
+      void sendMessage(initialQuestion);
+    }
+  }, [
+    autoSubmitInitialQuestion,
+    connectionState,
+    initialQuestion,
+    initialQuestionKey,
+    sendMessage,
+  ]);
 
   function handleTextareaKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key === "Enter" && !event.shiftKey) {
