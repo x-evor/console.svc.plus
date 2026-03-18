@@ -24,6 +24,8 @@ require_env FRONTEND_IMAGE
 require_env PRIMARY_DOMAIN
 require_env SECONDARY_DOMAIN
 
+GHCR_REGISTRY="${GHCR_REGISTRY:-ghcr.io}"
+
 WORK_DIR="$(mktemp -d)"
 trap 'rm -rf "${WORK_DIR}"' EXIT
 
@@ -62,7 +64,7 @@ SCP_BASE=(
   -o UserKnownHostsFile="${KNOWN_HOSTS_FILE}"
 )
 
-printf '%s' "${GHCR_PASSWORD}" | "${SSH_BASE[@]}" "docker login ghcr.io -u '${GHCR_USERNAME}' --password-stdin"
+printf '%s' "${GHCR_PASSWORD}" | "${SSH_BASE[@]}" "docker login '${GHCR_REGISTRY}' -u '${GHCR_USERNAME}' --password-stdin"
 
 "${SCP_BASE[@]}" "${RELEASE_ARCHIVE}" "${DEPLOY_USER}@${DEPLOY_HOST}:${REMOTE_ARCHIVE}"
 
