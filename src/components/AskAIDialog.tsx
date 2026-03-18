@@ -2,10 +2,12 @@
 
 import { Maximize2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-import { OpenClawAssistantPane } from "@/components/openclaw/OpenClawAssistantPane";
+import { useLanguage } from "@/i18n/LanguageProvider";
 import type { IntegrationDefaults } from "@/lib/openclaw/types";
 import { cn } from "@/lib/utils";
+import { XWorkmateAssistantShell } from "@/components/xworkmate/XWorkmateAssistantShell";
 
 export type InitialQuestionPayload = {
   key: number;
@@ -27,7 +29,10 @@ export function AskAIDialog({
   onEnd,
   initialQuestion,
 }: AskAIDialogProps) {
+  const { language } = useLanguage();
+  const isChinese = language === "zh";
   const router = useRouter();
+  const [prompt, setPrompt] = useState(initialQuestion?.text ?? "");
   const resolvedDefaults: IntegrationDefaults = defaults ?? {
     openclawUrl: "",
     openclawOrigin: "",
@@ -41,10 +46,14 @@ export function AskAIDialog({
     apisixTokenConfigured: false,
   };
 
+  useEffect(() => {
+    setPrompt(initialQuestion?.text ?? "");
+  }, [initialQuestion?.key, initialQuestion?.text]);
+
   function handleMaximize(): void {
     onEnd();
-    const query = initialQuestion?.text?.trim()
-      ? `?q=${encodeURIComponent(initialQuestion.text.trim())}`
+    const query = prompt.trim()
+      ? `?prompt=${encodeURIComponent(prompt.trim())}`
       : "";
     router.push(`/xworkmate${query}`);
   }
@@ -102,12 +111,27 @@ export function AskAIDialog({
           </div>
 
           <div className="min-h-0 flex-1">
-            <OpenClawAssistantPane
-              defaults={resolvedDefaults}
-              initialQuestion={initialQuestion?.text}
-              initialQuestionKey={initialQuestion?.key}
-              variant="sidebar"
-            />
+            <div className="h-full p-4">
+              <XWorkmateAssistantShell
+                mode="sidebar"
+                isChinese={isChinese}
+                prompt={prompt}
+                onPromptChange={setPrompt}
+                connected={Boolean(resolvedDefaults.openclawUrl.trim())}
+                endpointLabel={resolvedDefaults.openclawUrl}
+                showConnectionStatus={true}
+                secondaryActionLabel={
+                  isChinese ? "打开完整工作台" : "Open Workspace"
+                }
+                onExpand={(nextPrompt) => {
+                  onEnd();
+                  const query = nextPrompt?.trim()
+                    ? `?prompt=${encodeURIComponent(nextPrompt.trim())}`
+                    : "";
+                  router.push(`/xworkmate${query}`);
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>

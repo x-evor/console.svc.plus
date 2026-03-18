@@ -12,15 +12,11 @@ import {
   Grip,
   KeyRound,
   ListTodo,
-  Paperclip,
   Puzzle,
-  RefreshCw,
-  Send,
   Settings2,
   Shield,
   Sparkles,
   UserCircle2,
-  Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -29,6 +25,7 @@ import type { IntegrationDefaults } from "@/lib/openclaw/types";
 import type { XWorkmateProfileResponse } from "@/lib/xworkmate/types";
 import { cn } from "@/lib/utils";
 import { useOpenClawConsoleStore } from "@/state/openclawConsoleStore";
+import { XWorkmateAssistantShell } from "@/components/xworkmate/XWorkmateAssistantShell";
 
 type WorkspaceDestination =
   | "assistant"
@@ -497,150 +494,6 @@ function DetailCard({ title, description, meta }: DetailCardProps) {
   );
 }
 
-function AssistantHome({
-  isChinese,
-  tabs,
-  endpointLabel,
-  connected,
-  prompt,
-  onPromptChange,
-  onOpenConnections,
-  primaryActionLabel,
-  secondaryActionLabel,
-  connectionHint,
-  actionDisabled,
-  isSharedProfile,
-}: {
-  isChinese: boolean;
-  tabs: SectionTab[];
-  endpointLabel: string;
-  connected: boolean;
-  prompt: string;
-  onPromptChange: (value: string) => void;
-  onOpenConnections: () => void;
-  primaryActionLabel: string;
-  secondaryActionLabel: string;
-  connectionHint?: string;
-  actionDisabled?: boolean;
-  isSharedProfile?: boolean;
-}) {
-  const suggestions = pickCopy(
-    isChinese,
-    [
-      "幻灯片",
-      "视频生成",
-      "深度研究",
-      "文档处理",
-      "数据分析",
-      "可视化",
-      "金融服务",
-      "产品管理",
-      "设计",
-      "邮件编辑",
-    ],
-    [
-      "Slides",
-      "Video Gen",
-      "Deep Research",
-      "Docs Processing",
-      "Data Analysis",
-      "Visualization",
-      "Finance",
-      "Product Management",
-      "Design",
-      "Email Edit",
-    ]
-  );
-
-  return (
-    <div className="flex h-full flex-col p-4">
-      <div className="flex-1 overflow-y-auto min-h-0">
-        {!isSharedProfile && (
-          <div className="mb-6 rounded-[16px] border border-[color:var(--color-surface-border)] bg-white/96 p-5 shadow-sm">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-black">
-                  {pickCopy(isChinese, "未连接 Gateway", "Gateway Disconnected")}
-                </h2>
-                <p className="mt-1 text-sm text-[var(--color-text-subtle)]">
-                  {connectionHint || pickCopy(isChinese, "请连接 Gateway 以获取完整能力。", "Please connect Gateway for full capabilities.")}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={onOpenConnections}
-                disabled={actionDisabled}
-                className="inline-flex h-9 items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 text-sm font-semibold text-white transition hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <RefreshCw className="h-4 w-4" />
-                {primaryActionLabel}
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="mt-auto shrink-0 mx-auto w-full max-w-4xl pt-4">
-        <div className="rounded-[16px] border border-[color:var(--color-surface-border)] bg-white shadow-[0_4px_24px_rgba(15,23,42,0.04)] transition-all focus-within:border-[color:var(--color-primary-border)] focus-within:ring-1 focus-within:ring-[color:var(--color-primary-border)]">
-          <div className="p-2 border-b border-transparent">
-             <button type="button" className="p-2 text-[var(--color-text-subtle)] hover:text-black transition-colors rounded-lg hover:bg-[var(--color-surface-hover)]">
-                <Paperclip className="h-[18px] w-[18px]" />
-             </button>
-          </div>
-          <textarea
-            value={prompt}
-            onChange={(event) => onPromptChange(event.target.value)}
-            placeholder={pickCopy(
-              isChinese,
-              "输入消息...",
-              "Enter a message..."
-            )}
-            className="w-full resize-none bg-transparent px-4 py-2 text-[15px] leading-relaxed text-[var(--color-heading)] outline-none placeholder:text-[var(--color-text-subtle)] min-h-[80px]"
-          />
-          <div className="flex items-center justify-between p-3">
-            <div className="flex items-center gap-2">
-              <button type="button" className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[color:var(--color-surface-border)] bg-[var(--color-surface-muted)] px-2.5 text-xs font-medium text-[var(--color-text-subtle)] transition hover:bg-white hover:text-black">
-                <Bot className="h-3.5 w-3.5" />
-                Agent
-                <ChevronRight className="h-3 w-3 rotate-90" />
-              </button>
-              <button type="button" className="inline-flex h-8 items-center gap-1.5 rounded-md bg-white px-2.5 text-xs font-medium text-black transition hover:bg-[var(--color-surface-hover)]">
-                <span className="flex h-4 w-4 items-center justify-center rounded bg-black text-[10px] font-bold text-white">Z</span>
-                GLM-5.0
-                <ChevronRight className="h-3 w-3 rotate-90" />
-              </button>
-              <button type="button" className="flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--color-surface-border)] bg-white text-[var(--color-text-subtle)] transition hover:text-black hover:border-[color:var(--color-text-subtle)]">
-                <Zap className="h-3.5 w-3.5" />
-              </button>
-            </div>
-            <button
-              type="button"
-              className={cn(
-                "flex h-8 w-8 items-center justify-center rounded-lg transition",
-                prompt.trim() ? "bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)]" : "bg-[var(--color-surface-muted)] text-[var(--color-text-subtle)]"
-              )}
-            >
-              <Send className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-2 pb-2">
-          {suggestions.map((suggestion) => (
-            <button
-              key={suggestion}
-              type="button"
-              className="inline-flex h-8 items-center rounded-full border border-[color:var(--color-surface-border)] bg-white px-3.5 text-[13px] text-[var(--color-text-subtle)] transition hover:border-[color:var(--color-text-subtle)] hover:text-black"
-            >
-              {suggestion}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function SectionOverview({
   isChinese,
   section,
@@ -702,18 +555,20 @@ export function XWorkmateWorkspacePage({
   profile,
   scopeKey,
   requestHost,
+  initialPrompt = "",
 }: {
   defaults: IntegrationDefaults;
   profile?: XWorkmateProfileResponse | null;
   scopeKey: string;
   requestHost?: string;
+  initialPrompt?: string;
 }) {
   const { language } = useLanguage();
   const isChinese = language === "zh";
   const router = useRouter();
   const [activeSection, setActiveSection] =
     useState<WorkspaceDestination>("assistant");
-  const [composerValue, setComposerValue] = useState("");
+  const [composerValue, setComposerValue] = useState(initialPrompt);
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
   const setScope = useOpenClawConsoleStore((state) => state.setScope);
@@ -726,6 +581,10 @@ export function XWorkmateWorkspacePage({
     setScope(scopeKey, defaults);
     applyDefaults(defaults);
   }, [applyDefaults, defaults, scopeKey, setScope]);
+
+  useEffect(() => {
+    setComposerValue(initialPrompt);
+  }, [initialPrompt]);
 
   const sections = useMemo(() => createSections(isChinese), [isChinese]);
   const activeDefinition =
@@ -878,10 +737,12 @@ export function XWorkmateWorkspacePage({
           </div>
         )}
 
-        <main className={cn(
-          "flex min-h-0 flex-1 flex-col bg-[rgba(255,255,255,0.54)] shadow-[0_24px_64px_rgba(15,23,42,0.07)] backdrop-blur transition-all duration-300",
-          !sidebarExpanded && "pl-14"
-        )}>
+        <main
+          className={cn(
+            "flex min-h-0 flex-1 flex-col bg-[rgba(255,255,255,0.54)] shadow-[0_24px_64px_rgba(15,23,42,0.07)] backdrop-blur transition-all duration-300",
+            !sidebarExpanded && "pl-14",
+          )}
+        >
           <div className="min-h-0 flex-1 bg-[rgba(248,250,252,0.78)]">
             <div className="flex h-full min-h-0 flex-col">
               {profile ? (
@@ -907,19 +768,22 @@ export function XWorkmateWorkspacePage({
                 </div>
               ) : null}
               {activeSection === "assistant" ? (
-                <AssistantHome
+                <XWorkmateAssistantShell
+                  mode="full"
                   isChinese={isChinese}
-                  tabs={activeDefinition.tabs}
                   endpointLabel={endpointLabel}
                   connected={connected}
                   prompt={composerValue}
                   onPromptChange={setComposerValue}
                   onOpenConnections={openConnections}
+                  canManageConnections={canEditIntegrations}
                   primaryActionLabel={primaryActionLabel}
                   secondaryActionLabel={secondaryActionLabel}
                   connectionHint={connectionHint}
                   actionDisabled={!canEditIntegrations}
-                  isSharedProfile={profile?.profileScope === "tenant-shared"}
+                  showConnectionStatus={
+                    profile?.profileScope !== "tenant-shared"
+                  }
                 />
               ) : (
                 <SectionOverview

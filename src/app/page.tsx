@@ -2,6 +2,7 @@
 
 export const dynamic = "error";
 
+import { useState } from "react";
 import {
   AppWindow,
   ArrowRight,
@@ -15,29 +16,29 @@ import {
   Terminal,
   Users,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import useSWR from "swr";
 
-import { OpenClawAssistantPane } from "@/components/openclaw/OpenClawAssistantPane";
 import type { IntegrationDefaults } from "@/lib/openclaw/types";
+import { useUserStore } from "@/lib/userStore";
+import { XWorkmateAssistantShell } from "@/components/xworkmate/XWorkmateAssistantShell";
 import Footer from "../components/Footer";
 import UnifiedNavigation from "../components/UnifiedNavigation";
 import { useLanguage } from "../i18n/LanguageProvider";
 import { translations } from "../i18n/translations";
 import {
   DEFAULT_HOMEPAGE_VIDEO_SETTINGS,
-  resolveHomepageVideoPresentation,
-  type HomepageVideoPresentation,
   type ResolvedHomepageVideoResponse,
 } from "../lib/home/homepageVideo";
 import { useMoltbotStore } from "../lib/moltbotStore";
 import { cn } from "../lib/utils";
 
 const HOME_SECTION_CLASS =
-  "rounded-[1rem] border border-slate-900/8 bg-white/88 shadow-[var(--shadow-soft)]";
+  "rounded-[1.25rem] border border-slate-900/8 bg-white/92 shadow-[var(--shadow-md)] backdrop-blur-sm";
 const HOME_SECTION_LABEL_CLASS =
-  "text-[0.68rem] font-semibold uppercase tracking-[0.26em] text-text-subtle";
+  "text-[0.7rem] font-semibold uppercase tracking-[0.32em] text-text-subtle flex items-center gap-2";
 const HOME_LIST_CARD_CLASS =
-  "rounded-[0.9rem] border border-slate-900/8 bg-white/82 transition duration-200";
+  "rounded-[1rem] border border-slate-900/6 bg-white/90 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/95";
 const EMPTY_ASSISTANT_DEFAULTS: IntegrationDefaults = {
   openclawUrl: "",
   openclawOrigin: "",
@@ -129,7 +130,7 @@ export default function HomePage() {
       >
         <div className="relative flex-1 overflow-y-auto">
           <div className="relative w-full px-2 pb-10 sm:px-3 sm:pb-12 lg:px-4">
-            <main className="relative space-y-3 pt-3 sm:space-y-4 sm:pt-4">
+            <main className="relative space-y-4 pt-4 sm:space-y-5 sm:pt-5">
               <HeroSection />
               <StatsSection />
               <ShortcutsSection />
@@ -147,6 +148,9 @@ export default function HomePage() {
 export function HeroSection() {
   const { language } = useLanguage();
   const isChinese = language === "zh";
+  const router = useRouter();
+  const user = useUserStore((state) => state.user);
+  const [heroPrompt, setHeroPrompt] = useState("");
   const assistantDefaultsSWR = useSWR<IntegrationDefaults>(
     "/api/integrations/defaults",
     jsonFetcher,
@@ -164,93 +168,258 @@ export function HeroSection() {
       revalidateOnFocus: false,
     },
   );
+  const homeStatsSWR = useSWR<HomeStatsResponse>(
+    "/api/marketing/home-stats",
+    async (url: string) => {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`Failed to load home stats: ${response.status}`);
+      }
+      return (await response.json()) as HomeStatsResponse;
+    },
+    {
+      refreshInterval: 60 * 60 * 1000,
+      revalidateOnFocus: false,
+      shouldRetryOnError: false,
+    },
+  );
   const entry =
     homepageVideoSWR.data?.resolved ??
     DEFAULT_HOMEPAGE_VIDEO_SETTINGS.defaultEntry;
-  const presentation = resolveHomepageVideoPresentation(entry);
+  const stats = homeStatsSWR.data;
+  const locale = isChinese ? "zh-CN" : "en-US";
+  const compactFormatter = new Intl.NumberFormat(locale, {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  });
+  const displayName =
+    user?.name?.trim() ||
+    user?.username?.trim() ||
+    user?.email?.split("@")[0] ||
+    (isChinese ? "朋友" : "there");
+  const dailyVisitsValue =
+    typeof stats?.visits?.daily === "number"
+      ? compactFormatter.format(stats.visits.daily)
+      : isChinese
+        ? "同步中"
+        : "Syncing";
+  const registeredUsersValue =
+    typeof stats?.registeredUsers === "number"
+      ? compactFormatter.format(stats.registeredUsers)
+      : isChinese
+        ? "同步中"
+        : "Syncing";
 
   const heroCopy = isChinese
     ? {
         eyebrow: "AI Native Workspace",
         subtitle: "从想法到上线，AI 自动完成构建、部署与优化。",
-        demoLabel: "产品演示",
+        demoLabel: "动态欢迎",
+        greeting: "早上好",
+        todayStatus: "今日状态",
+        statusItems: [
+          { label: "服务", value: "正常" },
+          { label: "今日访问", value: dailyVisitsValue },
+          { label: "注册用户", value: registeredUsersValue },
+        ],
+        prompt: "有什么想问的？",
+        quickLinksLabel: "快速入口",
+        quickLinks: ["常用工具", "最近使用", "产品演示"],
+        helperNote: "个性化、状态感知、即时信息",
+        sourceLink: "打开原始链接",
+        maximizeLabel: "最大化到 XWorkmate",
       }
     : {
         eyebrow: "AI Native Workspace",
         subtitle:
           "From idea to launch, AI can assemble, deploy, and optimize the work.",
-        demoLabel: "Product demo",
+        demoLabel: "Dynamic welcome",
+        greeting: "Good morning",
+        todayStatus: "Today",
+        statusItems: [
+          { label: "Service", value: "Healthy" },
+          { label: "Daily visits", value: dailyVisitsValue },
+          { label: "Registered", value: registeredUsersValue },
+        ],
+        prompt: "What would you like to ask?",
+        quickLinksLabel: "Quick access",
+        quickLinks: ["Tools", "Recent", "Demo"],
+        helperNote: "Personal, status-aware, and instantly actionable.",
+        sourceLink: "Open source link",
+        maximizeLabel: "Open in XWorkmate",
       };
 
+  const openXWorkmate = () => {
+    const query = heroPrompt.trim();
+    router.push(
+      query.length > 0
+        ? `/xworkmate?prompt=${encodeURIComponent(query)}`
+        : "/xworkmate",
+    );
+  };
+
   return (
-    <section className="relative overflow-hidden rounded-[1rem] border border-slate-900/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(247,248,250,0.98))] p-2.5 shadow-[var(--shadow-soft)] sm:p-3 lg:p-3.5">
+    <section className="relative overflow-hidden rounded-[1.25rem] border border-slate-900/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.98))] p-3.5 shadow-[var(--shadow-md)] sm:p-4 lg:p-5">
       <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute left-[6%] top-[4%] h-[14rem] w-[14rem] rounded-full bg-[radial-gradient(circle,rgba(76,139,245,0.12),transparent_64%)] blur-3xl" />
-        <div className="absolute left-[28%] top-[8%] h-[12rem] w-[12rem] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.86),transparent_66%)] blur-2xl" />
-        <div className="absolute inset-x-0 top-0 h-[16rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(255,255,255,0)_72%)]" />
+        <div className="absolute left-[5%] top-[3%] h-[16rem] w-[16rem] rounded-full bg-[radial-gradient(circle,rgba(51,102,255,0.15),transparent_60%)] blur-3xl" />
+        <div className="absolute right-[8%] top-[5%] h-[14rem] w-[14rem] rounded-full bg-[radial-gradient(circle,rgba(76,139,245,0.12),transparent_65%)] blur-3xl" />
+        <div className="absolute inset-x-0 top-0 h-[20rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.85),rgba(255,255,255,0)_75%)]" />
       </div>
 
-      <div className="relative grid gap-3 lg:grid-cols-[0.98fr_1.02fr] lg:gap-3">
-        <div className="flex flex-col gap-2">
-          <div className="overflow-hidden rounded-[0.95rem] border border-slate-900/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(245,247,250,0.98))] shadow-[var(--shadow-soft)]">
-            <div className="border-b border-slate-900/10 px-4 py-3 sm:px-4.5">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className={HOME_SECTION_LABEL_CLASS}>
-                    {heroCopy.demoLabel}
+      <div className="relative space-y-4">
+        <div className="overflow-hidden rounded-[1.1rem] border border-slate-900/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.98))] shadow-[var(--shadow-md)] backdrop-blur-sm">
+          <div className="border-b border-slate-900/10 px-5 py-3.5 sm:px-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className={HOME_SECTION_LABEL_CLASS}>
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                  {heroCopy.demoLabel}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4 p-4 sm:p-4.5">
+            <div className="rounded-[1rem] border border-slate-900/8 bg-slate-50/85 p-4 shadow-[var(--shadow-soft)]">
+              <div className="max-w-[40rem] space-y-5 font-[ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace] text-[15px] leading-8 text-slate-700">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-[1.05rem] text-slate-800">
+                    <span aria-hidden>{isChinese ? "☀️" : "☀"}</span>
+                    <span>
+                      {heroCopy.greeting}, {displayName}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="font-semibold text-slate-800">
+                    {heroCopy.todayStatus}:
                   </p>
+                  <div className="space-y-0.5">
+                    {heroCopy.statusItems.map((item) => (
+                      <p key={item.label} className="text-slate-700">
+                        ├ {item.label}:{" "}
+                        <span className="font-semibold text-slate-900">
+                          {item.value}
+                        </span>
+                      </p>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-[0.9rem] border border-slate-900/15 bg-white/86 p-3 shadow-[var(--shadow-sm)]">
+                  <textarea
+                    value={heroPrompt}
+                    onChange={(event) => setHeroPrompt(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (
+                        (event.metaKey || event.ctrlKey) &&
+                        event.key === "Enter"
+                      ) {
+                        event.preventDefault();
+                        openXWorkmate();
+                      }
+                    }}
+                    placeholder={heroCopy.prompt}
+                    className="min-h-[120px] w-full resize-none bg-transparent px-1 py-1 text-[1rem] leading-8 text-slate-700 outline-none placeholder:text-slate-500"
+                  />
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-900/10 pt-3">
+                    <div className="text-xs text-slate-500">
+                      {isChinese
+                        ? "输入一句话，进入完整工作台继续对话。"
+                        : "Start here, then continue in the full workspace."}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={openXWorkmate}
+                      className="tactile-button tactile-button-primary px-4 py-2 text-sm"
+                    >
+                      {heroCopy.maximizeLabel}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 text-slate-700">
+                  <span className="font-medium">
+                    {heroCopy.quickLinksLabel}:
+                  </span>
+                  {heroCopy.quickLinks.map((item) => (
+                    <button
+                      type="button"
+                      key={item}
+                      onClick={() => setHeroPrompt(item)}
+                      className="rounded-[10px] border border-slate-900/10 bg-white/82 px-3 py-1 text-[13px] text-slate-700"
+                    >
+                      {item}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
 
-            <div className="space-y-3 p-3 sm:p-3.5">
-              <DemoVideoSurface
-                presentation={presentation}
-                isChinese={isChinese}
-              />
-              <div className="flex flex-wrap gap-2 text-xs text-slate-500">
+            <div className="space-y-2.5">
+              <p className={HOME_SECTION_LABEL_CLASS}>{heroCopy.eyebrow}</p>
+              <p className="max-w-3xl text-[1rem] leading-[1.75] text-text-muted sm:text-[1.05rem]">
+                {heroCopy.subtitle}
+              </p>
+              <div className="flex flex-wrap items-center gap-2.5 text-xs text-slate-500">
                 <a
                   href={entry.videoUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="tactile-button tactile-button-subtle px-3 text-slate-700"
+                  className="tactile-button tactile-button-subtle px-3.5 py-2 text-slate-700 hover:text-primary"
                 >
-                  {isChinese ? "打开原始链接" : "Open source link"}
+                  {heroCopy.sourceLink}
                 </a>
+                <div className="text-sm leading-6 text-text-subtle">
+                  {heroCopy.helperNote}
+                </div>
               </div>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <p className={HOME_SECTION_LABEL_CLASS}>{heroCopy.eyebrow}</p>
-              <p className="max-w-xl text-[0.95rem] leading-7 text-text-muted sm:text-[1rem]">
-                {heroCopy.subtitle}
-              </p>
             </div>
           </div>
         </div>
 
-        <div>
-          <div className="overflow-hidden rounded-[0.95rem] border border-slate-900/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(245,247,250,0.98))] shadow-[var(--shadow-soft)]">
-            <div className="border-b border-slate-900/10 px-4 py-3 sm:px-4.5">
+        <div className="mx-auto w-full max-w-[1120px]">
+          <div className="overflow-hidden rounded-[1.1rem] border border-slate-900/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.98))] shadow-[var(--shadow-md)] backdrop-blur-sm">
+            <div className="border-b border-slate-900/10 px-5 py-3.5 sm:px-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className={HOME_SECTION_LABEL_CLASS}>
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                     {isChinese ? "X 助手" : "X Assistant"}
                   </p>
                 </div>
-                <span className="hidden rounded-[12px] border border-slate-900/8 bg-white/84 px-3 py-1 text-xs font-semibold text-slate-600 sm:inline-flex">
+                <span className="hidden rounded-[14px] border border-slate-900/8 bg-white/88 px-3.5 py-1.5 text-xs font-semibold text-slate-600 sm:inline-flex shadow-sm">
                   {isChinese ? "对话即入口" : "Prompt-first"}
                 </span>
               </div>
             </div>
 
-            <div className="p-3 sm:p-3.5">
-              <OpenClawAssistantPane
-                defaults={assistantDefaultsSWR.data ?? EMPTY_ASSISTANT_DEFAULTS}
-                autoSubmitInitialQuestion={false}
-                variant="page"
+            <div className="p-4 sm:p-4.5">
+              <XWorkmateAssistantShell
+                mode="hero"
+                isChinese={isChinese}
+                prompt={heroPrompt}
+                onPromptChange={setHeroPrompt}
+                connected={Boolean(
+                  (
+                    assistantDefaultsSWR.data ?? EMPTY_ASSISTANT_DEFAULTS
+                  ).openclawUrl.trim(),
+                )}
+                endpointLabel={
+                  (assistantDefaultsSWR.data ?? EMPTY_ASSISTANT_DEFAULTS)
+                    .openclawUrl
+                }
+                showConnectionStatus={false}
+                secondaryActionLabel={heroCopy.maximizeLabel}
+                onExpand={(nextPrompt) => {
+                  const query = nextPrompt?.trim();
+                  router.push(
+                    query
+                      ? `/xworkmate?prompt=${encodeURIComponent(query)}`
+                      : "/xworkmate",
+                  );
+                }}
               />
             </div>
           </div>
@@ -328,33 +497,34 @@ export function StatsSection() {
   ];
 
   return (
-    <section className={cn(HOME_SECTION_CLASS, "space-y-4 p-4 lg:p-5")}>
+    <section className={cn(HOME_SECTION_CLASS, "space-y-4.5 p-5 lg:p-6")}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className={HOME_SECTION_LABEL_CLASS}>
+            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
             {language === "zh" ? "平台统计" : "Platform pulse"}
           </p>
-          <p className="mt-2 text-sm leading-6 text-text-muted">
+          <p className="mt-2 text-sm leading-[1.6] text-text-muted">
             {language === "zh"
-              ? "把关键数字收在同一条平静的视线上，不再单独做成重型数据舱。"
-              : "Keep key numbers in the same calm visual rhythm instead of a separate heavy dashboard block."}
+              ? "实时追踪关键数据，洞察平台活力。"
+              : "Real-time insights into platform vitality and growth."}
           </p>
         </div>
-        <span className="inline-flex w-fit items-center rounded-[12px] border border-slate-900/8 bg-white/82 px-3 py-1.5 text-xs font-semibold text-slate-600">
+        <span className="inline-flex w-fit items-center rounded-[14px] border border-slate-900/8 bg-white/88 px-3.5 py-1.5 text-xs font-semibold text-slate-600 shadow-sm">
           {language === "zh" ? "每小时更新" : "Updated hourly"}
         </span>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-5">
+      <div className="grid gap-3.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         {displayStats.map((stat, index: number) => (
           <div
             key={index}
-            className="rounded-[0.9rem] border border-slate-900/8 bg-white/80 px-4 py-4"
+            className="group rounded-[1rem] border border-slate-900/8 bg-white/85 px-4 py-4.5 transition-all duration-300 hover:bg-white/95 hover:shadow-md hover:-translate-y-0.5"
           >
-            <div className="editorial-display text-[2.2rem] leading-none text-slate-950 sm:text-[2.7rem]">
+            <div className="editorial-display text-[2.4rem] leading-none text-slate-950 sm:text-[2.8rem] group-hover:text-primary transition-colors duration-300">
               {stat.value}
             </div>
-            <p className="mt-3 text-sm leading-6 text-slate-600">
+            <p className="mt-3 text-sm leading-[1.6] text-slate-600 group-hover:text-slate-700 transition-colors duration-300">
               {stat.label}
             </p>
           </div>
@@ -400,38 +570,41 @@ export function ShortcutsSection() {
         }));
 
   return (
-    <section className={cn(HOME_SECTION_CLASS, "space-y-4 p-4 lg:p-5")}>
+    <section className={cn(HOME_SECTION_CLASS, "space-y-4.5 p-5 lg:p-6")}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className={HOME_SECTION_LABEL_CLASS}>{t.shortcuts.title}</p>
-          <p className="mt-2 text-sm leading-6 text-text-muted">
+          <p className={HOME_SECTION_LABEL_CLASS}>
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            {t.shortcuts.title}
+          </p>
+          <p className="mt-2 text-sm leading-[1.6] text-text-muted">
             {t.shortcuts.subtitle}
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2 text-xs font-semibold">
+        <div className="flex flex-wrap gap-2.5 text-xs font-semibold">
           <button
             type="button"
-            className="tactile-button tactile-button-primary px-4"
+            className="tactile-button tactile-button-primary px-4.5 py-2.5"
           >
             {t.shortcuts.buttons.start}
           </button>
           <button
             type="button"
-            className="tactile-button tactile-button-soft px-4 text-slate-700"
+            className="tactile-button tactile-button-soft px-4.5 py-2.5 text-slate-700 hover:text-primary"
           >
             {t.shortcuts.buttons.docs}
           </button>
           <button
             type="button"
-            className="tactile-button tactile-button-soft px-4 text-slate-700"
+            className="tactile-button tactile-button-soft px-4.5 py-2.5 text-slate-700 hover:text-primary"
           >
             {t.shortcuts.buttons.guides}
           </button>
         </div>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
         {shortcutItems.map((item, index: number) => {
           const Icon = getIcon(item.title, Sparkles);
           return (
@@ -440,22 +613,22 @@ export function ShortcutsSection() {
               href={item.href}
               className={cn(
                 HOME_LIST_CARD_CLASS,
-                "group flex items-start gap-3 p-4 hover:-translate-y-[1px] hover:bg-white/96",
+                "group flex items-start gap-3.5 p-4.5",
               )}
             >
-              <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-slate-900/[0.04] text-primary">
-                <Icon className="h-5 w-5" aria-hidden />
+              <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-primary/10 to-accent/10 text-primary group-hover:from-primary/20 group-hover:to-accent/20 transition-all duration-300">
+                <Icon className="h-5.5 w-5.5" aria-hidden />
               </div>
-              <div className="min-w-0 space-y-1">
-                <div className="text-base font-semibold leading-7 text-slate-900">
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <div className="text-base font-semibold leading-7 text-slate-900 group-hover:text-primary transition-colors duration-300">
                   {item.title}
                 </div>
-                <p className="text-sm leading-6 text-slate-600">
+                <p className="text-sm leading-6 text-slate-600 group-hover:text-slate-700 transition-colors duration-300">
                   {item.description}
                 </p>
               </div>
               <ArrowRight
-                className="ml-auto h-4 w-4 text-slate-500 transition group-hover:text-primary"
+                className="ml-auto h-4.5 w-4.5 text-slate-500 transition-all duration-300 group-hover:text-primary group-hover:translate-x-0.5"
                 aria-hidden
               />
             </a>
@@ -481,73 +654,3 @@ type LatestBlogPost = {
   title: string;
   date?: string;
 };
-
-function DemoVideoSurface({
-  presentation,
-  isChinese,
-}: {
-  presentation: HomepageVideoPresentation;
-  isChinese: boolean;
-}) {
-  const fallbackStyle =
-    presentation.posterUrl && presentation.kind === "empty"
-      ? {
-          backgroundImage: `linear-gradient(180deg,rgba(15,23,42,0.16),rgba(15,23,42,0.42)), url(${presentation.posterUrl})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }
-      : undefined;
-
-  return (
-    <div
-      className={cn(
-        "group relative aspect-video overflow-hidden rounded-[1.6rem] border border-slate-900/10 bg-[radial-gradient(circle_at_top_left,rgba(51,102,255,0.16),transparent_34%),linear-gradient(135deg,#0f172a,#172033_52%,#1f2d4d)]",
-        presentation.kind !== "empty" && "bg-slate-950",
-      )}
-      style={fallbackStyle}
-    >
-      {presentation.kind === "embed" ? (
-        <iframe
-          src={presentation.src}
-          title={isChinese ? "产品演示视频" : "Product demo video"}
-          className="h-full w-full"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
-        />
-      ) : null}
-
-      {presentation.kind === "direct" ? (
-        <video
-          className="h-full w-full object-cover"
-          controls
-          playsInline
-          preload="metadata"
-          poster={presentation.posterUrl || undefined}
-        >
-          <source src={presentation.src} />
-        </video>
-      ) : null}
-
-      {presentation.kind === "empty" ? (
-        <div className="absolute inset-0 flex flex-col justify-between p-5 sm:p-6">
-          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/80 backdrop-blur">
-            <span className="h-2 w-2 rounded-full bg-amber-300" />
-            {isChinese ? "待接入视频" : "Awaiting media"}
-          </div>
-          <div className="max-w-lg space-y-2">
-            <p className="text-xl font-semibold tracking-[-0.03em] text-white sm:text-2xl">
-              {isChinese
-                ? "这里会展示当前域名的视频演示"
-                : "This area shows the domain-specific product demo"}
-            </p>
-            <p className="text-sm leading-6 text-white/72 sm:text-[0.95rem]">
-              {isChinese
-                ? "管理页可为不同域名配置不同链接。若链接不是可嵌入或直链格式，这里会保留为占位状态。"
-                : "The admin page can assign a different link per host. Unsupported links remain in placeholder mode until a valid embed or direct video URL is provided."}
-            </p>
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
-}

@@ -4,9 +4,7 @@ import { Suspense } from "react";
 
 import { XWorkmateLoading } from "@/app/xworkmate/XWorkmateLoading";
 import { XWorkmateWorkspacePage } from "@/components/xworkmate/XWorkmateWorkspacePage";
-import {
-  buildXWorkmateScopeKey,
-} from "@/lib/xworkmate/types";
+import { buildXWorkmateScopeKey } from "@/lib/xworkmate/types";
 import { getConsoleIntegrationDefaults } from "@/server/consoleIntegrations";
 
 export const metadata = {
@@ -14,15 +12,25 @@ export const metadata = {
   description: "Online XWorkmate workspace powered by OpenClaw gateway",
 };
 
-export default async function XWorkmatePage() {
+export default async function XWorkmatePage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ prompt?: string }>;
+}) {
   const defaults = getConsoleIntegrationDefaults();
   const scopeKey = buildXWorkmateScopeKey(null, null);
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const initialPrompt =
+    typeof resolvedSearchParams?.prompt === "string"
+      ? resolvedSearchParams.prompt
+      : "";
 
   return (
     <div className="h-[calc(100vh-var(--app-shell-nav-offset))] w-full">
       <Suspense fallback={<XWorkmateLoading />}>
         <XWorkmateWorkspacePage
           defaults={defaults}
+          initialPrompt={initialPrompt}
           scopeKey={scopeKey}
         />
       </Suspense>
