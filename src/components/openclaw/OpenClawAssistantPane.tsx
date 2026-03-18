@@ -89,8 +89,7 @@ type PersistedPairingRequiredLookup = {
   expired: boolean;
 };
 
-const PAIRING_REQUIRED_SESSION_STORAGE_KEY =
-  "openclaw:pairing-required-state";
+const PAIRING_REQUIRED_SESSION_STORAGE_KEY = "openclaw:pairing-required-state";
 const PAIRING_REQUIRED_STATE_TTL_MS = 1000 * 60 * 60 * 12;
 const PAIRING_REQUIRED_GUEST_TTL_MS = 1000 * 60 * 60;
 
@@ -1159,7 +1158,7 @@ export function OpenClawAssistantPane({
   }
 
   const containerClassName = cn(
-    "flex h-full min-h-0 flex-col overflow-hidden rounded-[var(--radius-xl)] border border-[color:var(--color-surface-border)] bg-[var(--color-surface-elevated)] shadow-[var(--shadow-md)]",
+    "flex h-full min-h-0 flex-col overflow-hidden rounded-[14px] border border-[color:var(--color-surface-border)] bg-[var(--color-surface-elevated)] shadow-[var(--shadow-md)]",
     compact ? "rounded-none border-0 shadow-none" : "",
   );
 
@@ -1184,7 +1183,7 @@ export function OpenClawAssistantPane({
           )}
         >
           {!minimalPage ? (
-            <div className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-surface-border)] bg-[var(--color-surface-muted)] px-2.5 py-1 text-xs font-medium text-[var(--color-text-subtle)]">
+            <div className="inline-flex min-h-10 items-center gap-2 rounded-[12px] border border-[color:var(--color-surface-border)] bg-[var(--color-surface-muted)] px-3 py-2 text-xs font-medium text-[var(--color-text-subtle)] shadow-[var(--shadow-soft)]">
               <span
                 className={cn(
                   "h-2.5 w-2.5 rounded-full",
@@ -1227,7 +1226,7 @@ export function OpenClawAssistantPane({
                   setSelectedSessionKey("");
                   void connectGateway("", event.target.value, { force: true });
                 }}
-                className="w-full rounded-full border border-[color:var(--color-surface-border)] bg-[var(--color-surface)] px-3 py-1.5 text-sm text-[var(--color-text)] outline-none transition focus:border-[color:var(--color-primary)]"
+                className="tactile-control min-h-10 w-full px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[color:var(--color-primary)]"
               >
                 <option value="">{copy.mainAgent}</option>
                 {agents.map((agent) => (
@@ -1243,7 +1242,7 @@ export function OpenClawAssistantPane({
           )}
 
           {minimalPage ? (
-            <div className="ml-auto inline-flex items-center gap-2 rounded-full border border-[color:var(--color-surface-border)] bg-[var(--color-primary-muted)] px-3 py-1.5 text-xs font-semibold text-[var(--color-heading)]">
+            <div className="ml-auto inline-flex min-h-10 items-center gap-2 rounded-[12px] border border-[color:var(--color-surface-border)] bg-[var(--color-primary-muted)] px-3 py-2 text-xs font-semibold text-[var(--color-heading)] shadow-[var(--shadow-soft)]">
               <span
                 className={cn(
                   "h-2.5 w-2.5 rounded-full",
@@ -1262,10 +1261,10 @@ export function OpenClawAssistantPane({
             <>
               <button
                 type="button"
-              onClick={() => {
-                void connectGateway(undefined, undefined, { force: true });
-              }}
-                className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-surface-border)] px-3 py-1.5 text-xs font-semibold text-[var(--color-text)] transition hover:border-[color:var(--color-primary-border)] hover:bg-[var(--color-surface-muted)]"
+                onClick={() => {
+                  void connectGateway(undefined, undefined, { force: true });
+                }}
+                className="tactile-button tactile-button-soft px-3 text-xs text-[var(--color-text)]"
                 title={copy.reconnect}
               >
                 {connectionState === "connecting" ? (
@@ -1279,7 +1278,7 @@ export function OpenClawAssistantPane({
               <button
                 type="button"
                 onClick={() => router.push("/panel/api")}
-                className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-primary-border)] bg-[var(--color-primary-muted)] px-3 py-1.5 text-xs font-semibold text-[var(--color-primary)] transition hover:opacity-90"
+                className="tactile-button tactile-button-primary border border-[color:var(--color-primary-border)] px-3 text-xs text-[var(--color-primary-foreground)]"
                 title={copy.integrations}
               >
                 <Settings2 className="h-3.5 w-3.5" />
@@ -1305,10 +1304,12 @@ export function OpenClawAssistantPane({
                   type="button"
                   onClick={() => {
                     setSelectedSessionKey(session.key);
-                    void connectGateway(session.key, undefined, { force: true });
+                    void connectGateway(session.key, undefined, {
+                      force: true,
+                    });
                   }}
                   className={cn(
-                    "inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs transition",
+                    "inline-flex min-h-9 items-center gap-2 rounded-[12px] border px-3 py-1.5 text-xs transition",
                     session.key === selectedSessionKey
                       ? "border-[color:var(--color-primary)] bg-[var(--color-primary-muted)] text-[var(--color-primary)]"
                       : "border-[color:var(--color-surface-border)] bg-[var(--color-surface)] text-[var(--color-text-subtle)] hover:border-[color:var(--color-primary-border)]",
@@ -1363,7 +1364,7 @@ export function OpenClawAssistantPane({
               <button
                 type="button"
                 onClick={() => router.push("/panel/api")}
-                className="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-3.5 py-2 text-sm font-semibold text-[var(--color-primary-foreground)]"
+                className="tactile-button tactile-button-primary px-4 text-sm"
               >
                 {copy.openIntegrations}
                 <ChevronRight className="h-4 w-4" />
@@ -1392,7 +1393,7 @@ export function OpenClawAssistantPane({
                         setComposerValue(action);
                         textareaRef.current?.focus();
                       }}
-                      className="rounded-full border border-[color:var(--color-surface-border)] bg-[var(--color-surface)] px-3 py-1.5 text-xs font-medium text-[var(--color-text-subtle)] transition hover:border-[color:var(--color-primary-border)] hover:text-[var(--color-primary)]"
+                      className="tactile-button tactile-button-subtle min-h-9 px-3 text-xs font-medium text-[var(--color-text-subtle)] hover:text-[var(--color-primary)]"
                     >
                       {action}
                     </button>
@@ -1473,7 +1474,7 @@ export function OpenClawAssistantPane({
                 type="button"
                 onClick={() => setAssistantMode(option.value)}
                 className={cn(
-                  "rounded-full px-2.5 py-1 text-xs font-semibold transition",
+                  "min-h-9 rounded-[12px] px-3 py-1.5 text-xs font-semibold transition",
                   assistantMode === option.value
                     ? "bg-[var(--color-primary)] text-[var(--color-primary-foreground)]"
                     : "border border-[color:var(--color-surface-border)] text-[var(--color-text-subtle)] hover:border-[color:var(--color-primary-border)]",
@@ -1483,7 +1484,7 @@ export function OpenClawAssistantPane({
               </button>
             ))}
 
-            <div className="ml-auto flex items-center gap-2 rounded-full border border-[color:var(--color-surface-border)] bg-[var(--color-surface)] px-2.5 py-1 text-xs text-[var(--color-text-subtle)]">
+            <div className="ml-auto flex min-h-9 items-center gap-2 rounded-[12px] border border-[color:var(--color-surface-border)] bg-[var(--color-surface)] px-3 py-1.5 text-xs text-[var(--color-text-subtle)]">
               <BrainCircuit className="h-3.5 w-3.5" />
               <select
                 value={thinking}
@@ -1506,7 +1507,7 @@ export function OpenClawAssistantPane({
               {attachments.map((attachment) => (
                 <div
                   key={attachment.id}
-                  className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-surface-border)] bg-[var(--color-surface-muted)] px-2.5 py-1 text-xs text-[var(--color-text)]"
+                  className="inline-flex min-h-8 items-center gap-2 rounded-[12px] border border-[color:var(--color-surface-border)] bg-[var(--color-surface-muted)] px-3 py-1 text-xs text-[var(--color-text)]"
                 >
                   {attachment.type === "image" ? (
                     <Camera className="h-3.5 w-3.5" />
@@ -1540,14 +1541,14 @@ export function OpenClawAssistantPane({
                   <button
                     type="button"
                     onClick={() => router.push("/login")}
-                    className="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-3 py-1.5 text-xs font-semibold text-[var(--color-primary-foreground)] transition hover:opacity-90"
+                    className="tactile-button tactile-button-primary px-3 text-xs"
                   >
                     {copy.login}
                   </button>
                   <button
                     type="button"
                     onClick={() => router.push("/register")}
-                    className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-surface-border)] bg-[var(--color-surface)] px-3 py-1.5 text-xs font-semibold text-[var(--color-text)] transition hover:border-[color:var(--color-primary-border)] hover:bg-[var(--color-surface-muted)]"
+                    className="tactile-button tactile-button-soft px-3 text-xs text-[var(--color-text)]"
                   >
                     {copy.register}
                   </button>
@@ -1586,7 +1587,7 @@ export function OpenClawAssistantPane({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-surface-border)] px-2.5 py-1 text-xs font-semibold text-[var(--color-text)] transition hover:border-[color:var(--color-primary-border)] hover:bg-[var(--color-surface-muted)]"
+                className="tactile-button tactile-button-soft min-h-9 px-3 text-xs text-[var(--color-text)]"
               >
                 <Paperclip className="h-3.5 w-3.5" />
                 {copy.attachment}
@@ -1598,7 +1599,7 @@ export function OpenClawAssistantPane({
                   void capturePage();
                 }}
                 disabled={isCapturing}
-                className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-surface-border)] px-2.5 py-1 text-xs font-semibold text-[var(--color-text)] transition hover:border-[color:var(--color-primary-border)] hover:bg-[var(--color-surface-muted)] disabled:cursor-not-allowed disabled:opacity-60"
+                className="tactile-button tactile-button-soft min-h-9 px-3 text-xs text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isCapturing ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1629,7 +1630,7 @@ export function OpenClawAssistantPane({
                   isSending ||
                   (!composerValue.trim() && attachments.length === 0)
                 }
-                className="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-3.5 py-1.5 text-sm font-semibold text-[var(--color-primary-foreground)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                className="tactile-button tactile-button-primary px-4 text-sm disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

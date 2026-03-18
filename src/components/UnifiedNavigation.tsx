@@ -223,9 +223,9 @@ export default function UnifiedNavigation() {
           width: "calc(100% + var(--assistant-reserve-offset, 0px))",
           marginRight: "calc(var(--assistant-reserve-offset, 0px) * -1)",
         }}
-        className="sticky top-0 z-50 w-full border-b border-surface-border bg-background/95 text-text backdrop-blur transition-colors duration-150"
+        className="sticky top-0 z-50 w-full border-b border-surface-border/80 bg-background/92 text-text backdrop-blur-xl transition-colors duration-150"
       >
-        <div className="flex items-center justify-between border-b border-surface-border/70 bg-background px-5 pb-3 pt-[max(0.875rem,env(safe-area-inset-top))] lg:hidden">
+        <div className="flex items-center justify-between border-b border-surface-border/70 bg-background px-4 pb-3 pt-[max(0.875rem,env(safe-area-inset-top))] lg:hidden">
           <Link
             href="/"
             className="flex items-center gap-2"
@@ -245,7 +245,7 @@ export default function UnifiedNavigation() {
           </Link>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="rounded-[1.15rem] bg-surface-muted p-3 text-text transition-colors hover:bg-surface-hover"
+            className="tactile-button tactile-button-soft h-10 w-10 rounded-[12px] p-0"
             aria-label="Toggle menu"
           >
             {menuOpen ? (
@@ -270,14 +270,14 @@ export default function UnifiedNavigation() {
                         onClick={() => {
                           toggleOpen();
                         }}
-                        className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-colors whitespace-nowrap ${
+                        className={`tactile-button min-h-9 gap-1.5 rounded-[12px] px-3 py-2 text-[13px] shadow-none whitespace-nowrap ${
                           active
-                            ? "bg-primary/10 text-primary"
-                            : "text-text-muted hover:text-text hover:bg-surface-muted"
+                            ? "border border-primary/10 bg-primary/12 text-primary"
+                            : "text-text-muted hover:bg-surface-muted hover:text-text"
                         }`}
                       >
                         {item.icon && <item.icon className="w-4 h-4" />}
-                        <span className="text-[13px] tracking-tight">
+                        <span className="tracking-tight">
                           {getLabel(item.label, language)}
                         </span>
                       </button>
@@ -287,14 +287,14 @@ export default function UnifiedNavigation() {
                     <Link
                       key={item.key}
                       href={item.href}
-                      className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-colors whitespace-nowrap ${
+                      className={`tactile-button min-h-9 gap-1.5 rounded-[12px] px-3 py-2 text-[13px] shadow-none whitespace-nowrap ${
                         active
-                          ? "bg-primary/10 text-primary"
-                          : "text-text-muted hover:text-text hover:bg-surface-muted"
+                          ? "border border-primary/10 bg-primary/12 text-primary"
+                          : "text-text-muted hover:bg-surface-muted hover:text-text"
                       }`}
                     >
                       {item.icon && <item.icon className="w-4 h-4" />}
-                      <span className="text-[13px] tracking-tight">
+                      <span className="tracking-tight">
                         {getLabel(item.label, language)}
                       </span>
                     </Link>
@@ -339,7 +339,7 @@ export default function UnifiedNavigation() {
                     <DropdownMenu.Trigger asChild>
                       <button
                         type="button"
-                        className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-sm font-semibold text-white shadow-shadow-sm transition hover:from-primary-hover hover:to-accent focus:outline-none focus:ring-2 focus:ring-primary/60 focus:ring-offset-2 focus:ring-offset-background outline-none ring-offset-background"
+                        className="tactile-button tactile-button-primary h-10 w-10 rounded-[12px] p-0 text-sm outline-none"
                         aria-label="User account menu"
                       >
                         {accountInitial}
@@ -410,7 +410,7 @@ export default function UnifiedNavigation() {
                     />
                     <Link
                       href="/register"
-                      className="rounded-md border border-surface-border px-3 py-1 text-primary transition hover:border-primary/40 hover:bg-surface-muted"
+                      className="tactile-button tactile-button-soft min-h-10 px-4 text-primary"
                     >
                       {nav.account.register}
                     </Link>
@@ -460,7 +460,7 @@ export default function UnifiedNavigation() {
                   <button
                     type="button"
                     onClick={() => setLanguage(language === "zh" ? "en" : "zh")}
-                    className="inline-flex h-10 min-w-10 items-center justify-center rounded-full border border-surface-border bg-surface-muted/75 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-text shadow-sm transition hover:bg-surface-hover"
+                    className="tactile-button tactile-button-soft h-10 min-w-10 px-3 text-xs uppercase tracking-[0.18em]"
                     aria-label={
                       isChinese ? "切换到英文" : "Switch language to Chinese"
                     }
@@ -469,7 +469,7 @@ export default function UnifiedNavigation() {
                   </button>
                   <button
                     onClick={() => setMenuOpen(false)}
-                    className="rounded-full border border-surface-border bg-surface-muted/75 p-2.5 text-text shadow-sm transition-colors hover:bg-surface-hover"
+                    className="tactile-button tactile-button-soft h-10 w-10 p-0"
                     aria-label={isChinese ? "关闭菜单" : "Close menu"}
                   >
                     <X className="h-5 w-5" />
@@ -519,7 +519,7 @@ export default function UnifiedNavigation() {
 
                   {mobileQuickLinks.length > 0 ? (
                     <div className="pointer-events-none absolute right-0 top-[60%] flex -translate-y-1/2 justify-end min-[390px]:top-[59%] min-[430px]:top-[58%]">
-                      <div className="pointer-events-auto w-[min(10.75rem,45vw)] rounded-[1.75rem] bg-surface-muted/82 p-4 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
+                      <div className="pointer-events-auto w-[min(10.75rem,45vw)] rounded-[14px] border border-surface-border/70 bg-surface-muted/84 p-4 shadow-[var(--shadow-md)]">
                         <div className="space-y-2.5">
                           {mobileQuickLinks.map((item) =>
                             item.key === "chat" ? (
@@ -574,7 +574,7 @@ export default function UnifiedNavigation() {
                       <Link
                         href={primaryAccountAction.href}
                         onClick={() => setMenuOpen(false)}
-                        className="inline-flex min-h-[3.1rem] min-w-[7rem] items-center justify-center rounded-full bg-surface-muted px-6 text-[1.05rem] font-semibold text-text shadow-sm transition hover:bg-surface-hover"
+                        className="tactile-button tactile-button-soft min-h-[3.1rem] min-w-[7rem] px-6 text-[1.05rem]"
                       >
                         {typeof primaryAccountAction.label === "function"
                           ? primaryAccountAction.label(language)

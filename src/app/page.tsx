@@ -33,11 +33,11 @@ import { useMoltbotStore } from "../lib/moltbotStore";
 import { cn } from "../lib/utils";
 
 const HOME_SECTION_CLASS =
-  "rounded-[2rem] border border-slate-900/10 bg-white/90 shadow-[0_18px_40px_rgba(15,23,42,0.05)]";
+  "rounded-[1rem] border border-slate-900/8 bg-white/88 shadow-[var(--shadow-soft)]";
 const HOME_SECTION_LABEL_CLASS =
   "text-[0.68rem] font-semibold uppercase tracking-[0.26em] text-text-subtle";
 const HOME_LIST_CARD_CLASS =
-  "rounded-[1.5rem] border border-slate-900/10 bg-[#fcfbf8] transition duration-200";
+  "rounded-[0.9rem] border border-slate-900/8 bg-white/82 transition duration-200";
 const EMPTY_ASSISTANT_DEFAULTS: IntegrationDefaults = {
   openclawUrl: "",
   openclawOrigin: "",
@@ -117,7 +117,7 @@ export default function HomePage() {
     <div className="mobile-home-shell relative flex min-h-screen flex-col overflow-x-hidden bg-background text-text transition-colors duration-150">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.56),rgba(255,255,255,0))]"
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.5),rgba(255,255,255,0))]"
       />
       <UnifiedNavigation />
 
@@ -128,8 +128,8 @@ export default function HomePage() {
         )}
       >
         <div className="relative flex-1 overflow-y-auto">
-          <div className="relative mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-20">
-            <main className="relative space-y-6 pt-6 sm:space-y-8 sm:pt-10">
+          <div className="relative w-full px-2 pb-10 sm:px-3 sm:pb-12 lg:px-4">
+            <main className="relative space-y-3 pt-3 sm:space-y-4 sm:pt-4">
               <HeroSection />
               <StatsSection />
               <ShortcutsSection />
@@ -165,11 +165,12 @@ export function HeroSection() {
     },
   );
   const entry =
-    homepageVideoSWR.data?.resolved ?? DEFAULT_HOMEPAGE_VIDEO_SETTINGS.defaultEntry;
+    homepageVideoSWR.data?.resolved ??
+    DEFAULT_HOMEPAGE_VIDEO_SETTINGS.defaultEntry;
   const presentation = resolveHomepageVideoPresentation(entry);
 
   const heroCopy = isChinese
-      ? {
+    ? {
         eyebrow: "AI Native Workspace",
         subtitle: "从想法到上线，AI 自动完成构建、部署与优化。",
         demoLabel: "产品演示",
@@ -182,33 +183,37 @@ export function HeroSection() {
       };
 
   return (
-    <section className="relative overflow-hidden rounded-[1.75rem] border border-slate-900/10 bg-[linear-gradient(180deg,#ffffff,#faf7f2)] p-3 shadow-[0_18px_40px_rgba(15,23,42,0.05)] sm:p-4 lg:p-5">
+    <section className="relative overflow-hidden rounded-[1rem] border border-slate-900/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(247,248,250,0.98))] p-2.5 shadow-[var(--shadow-soft)] sm:p-3 lg:p-3.5">
       <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute left-[8%] top-[8%] h-[16rem] w-[16rem] rounded-full bg-[radial-gradient(circle,rgba(37,78,219,0.1),transparent_64%)] blur-3xl" />
-        <div className="absolute left-[30%] top-[12%] h-[14rem] w-[14rem] rounded-full bg-[radial-gradient(circle,rgba(245,211,170,0.42),transparent_66%)] blur-3xl" />
-        <div className="absolute right-[10%] top-[10%] h-[18rem] w-[18rem] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.92),transparent_72%)]" />
-        <div className="absolute inset-x-0 top-0 h-[18rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.78),rgba(255,255,255,0)_72%)]" />
+        <div className="absolute left-[6%] top-[4%] h-[14rem] w-[14rem] rounded-full bg-[radial-gradient(circle,rgba(76,139,245,0.12),transparent_64%)] blur-3xl" />
+        <div className="absolute left-[28%] top-[8%] h-[12rem] w-[12rem] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.86),transparent_66%)] blur-2xl" />
+        <div className="absolute inset-x-0 top-0 h-[16rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(255,255,255,0)_72%)]" />
       </div>
 
-      <div className="relative grid gap-4 lg:grid-cols-[0.98fr_1.02fr] lg:gap-5">
-        <div className="flex flex-col gap-3 pt-1">
-          <div className="overflow-hidden rounded-[1.35rem] border border-slate-900/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(243,246,251,0.96))] shadow-[0_18px_44px_rgba(15,23,42,0.07)]">
+      <div className="relative grid gap-3 lg:grid-cols-[0.98fr_1.02fr] lg:gap-3">
+        <div className="flex flex-col gap-2">
+          <div className="overflow-hidden rounded-[0.95rem] border border-slate-900/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(245,247,250,0.98))] shadow-[var(--shadow-soft)]">
             <div className="border-b border-slate-900/10 px-4 py-3 sm:px-4.5">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className={HOME_SECTION_LABEL_CLASS}>{heroCopy.demoLabel}</p>
+                  <p className={HOME_SECTION_LABEL_CLASS}>
+                    {heroCopy.demoLabel}
+                  </p>
                 </div>
               </div>
             </div>
 
             <div className="space-y-3 p-3 sm:p-3.5">
-              <DemoVideoSurface presentation={presentation} isChinese={isChinese} />
+              <DemoVideoSurface
+                presentation={presentation}
+                isChinese={isChinese}
+              />
               <div className="flex flex-wrap gap-2 text-xs text-slate-500">
                 <a
                   href={entry.videoUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center rounded-full border border-slate-900/10 bg-white px-2.5 py-1 font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+                  className="tactile-button tactile-button-subtle px-3 text-slate-700"
                 >
                   {isChinese ? "打开原始链接" : "Open source link"}
                 </a>
@@ -226,8 +231,8 @@ export function HeroSection() {
           </div>
         </div>
 
-        <div className="lg:pl-1">
-          <div className="overflow-hidden rounded-[1.35rem] border border-slate-900/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(246,248,251,0.98))] shadow-[0_18px_44px_rgba(15,23,42,0.07)]">
+        <div>
+          <div className="overflow-hidden rounded-[0.95rem] border border-slate-900/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(245,247,250,0.98))] shadow-[var(--shadow-soft)]">
             <div className="border-b border-slate-900/10 px-4 py-3 sm:px-4.5">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -235,7 +240,7 @@ export function HeroSection() {
                     {isChinese ? "X 助手" : "X Assistant"}
                   </p>
                 </div>
-                <span className="hidden rounded-full border border-slate-900/10 bg-white/90 px-2.5 py-0.5 text-xs font-semibold text-slate-600 sm:inline-flex">
+                <span className="hidden rounded-[12px] border border-slate-900/8 bg-white/84 px-3 py-1 text-xs font-semibold text-slate-600 sm:inline-flex">
                   {isChinese ? "对话即入口" : "Prompt-first"}
                 </span>
               </div>
@@ -323,7 +328,7 @@ export function StatsSection() {
   ];
 
   return (
-    <section className={cn(HOME_SECTION_CLASS, "space-y-5 p-5 lg:p-7")}>
+    <section className={cn(HOME_SECTION_CLASS, "space-y-4 p-4 lg:p-5")}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className={HOME_SECTION_LABEL_CLASS}>
@@ -335,7 +340,7 @@ export function StatsSection() {
               : "Keep key numbers in the same calm visual rhythm instead of a separate heavy dashboard block."}
           </p>
         </div>
-        <span className="inline-flex w-fit items-center rounded-full border border-slate-900/10 bg-white px-3 py-1 text-xs font-semibold text-slate-600">
+        <span className="inline-flex w-fit items-center rounded-[12px] border border-slate-900/8 bg-white/82 px-3 py-1.5 text-xs font-semibold text-slate-600">
           {language === "zh" ? "每小时更新" : "Updated hourly"}
         </span>
       </div>
@@ -344,7 +349,7 @@ export function StatsSection() {
         {displayStats.map((stat, index: number) => (
           <div
             key={index}
-            className="rounded-[1.5rem] border border-slate-900/10 bg-[#fcfbf8] px-4 py-5"
+            className="rounded-[0.9rem] border border-slate-900/8 bg-white/80 px-4 py-4"
           >
             <div className="editorial-display text-[2.2rem] leading-none text-slate-950 sm:text-[2.7rem]">
               {stat.value}
@@ -395,7 +400,7 @@ export function ShortcutsSection() {
         }));
 
   return (
-    <section className={cn(HOME_SECTION_CLASS, "space-y-4 p-5 lg:p-7")}>
+    <section className={cn(HOME_SECTION_CLASS, "space-y-4 p-4 lg:p-5")}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className={HOME_SECTION_LABEL_CLASS}>{t.shortcuts.title}</p>
@@ -407,19 +412,19 @@ export function ShortcutsSection() {
         <div className="flex flex-wrap gap-2 text-xs font-semibold">
           <button
             type="button"
-            className="rounded-full border border-slate-900/10 bg-slate-950 px-3 py-2 text-white transition hover:bg-primary"
+            className="tactile-button tactile-button-primary px-4"
           >
             {t.shortcuts.buttons.start}
           </button>
           <button
             type="button"
-            className="rounded-full border border-slate-900/10 bg-white px-3 py-2 text-slate-700 transition hover:bg-slate-50"
+            className="tactile-button tactile-button-soft px-4 text-slate-700"
           >
             {t.shortcuts.buttons.docs}
           </button>
           <button
             type="button"
-            className="rounded-full border border-slate-900/10 bg-white px-3 py-2 text-slate-700 transition hover:bg-slate-50"
+            className="tactile-button tactile-button-soft px-4 text-slate-700"
           >
             {t.shortcuts.buttons.guides}
           </button>
@@ -435,10 +440,10 @@ export function ShortcutsSection() {
               href={item.href}
               className={cn(
                 HOME_LIST_CARD_CLASS,
-                "group flex items-start gap-3 p-4 hover:-translate-y-[1px] hover:bg-white",
+                "group flex items-start gap-3 p-4 hover:-translate-y-[1px] hover:bg-white/96",
               )}
             >
-              <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-900/[0.04] text-primary">
+              <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-slate-900/[0.04] text-primary">
                 <Icon className="h-5 w-5" aria-hidden />
               </div>
               <div className="min-w-0 space-y-1">
