@@ -112,7 +112,7 @@ COPY --from=builder /app/dashboard/.next/standalone ./
 COPY --from=builder /app/dashboard/.next/static ./static
 COPY --from=builder /app/dashboard/public ./public
 COPY --from=builder /app/dashboard/knowledge ./knowledge
-COPY --from=builder /app/dashboard/src/content/blog ./src/content/blog
+COPY --from=builder /app/dashboard/src/content/blogs ./src/content/blogs
 
 # ---------------------------
 # 额外瘦身（可减少 15–40 MB）
