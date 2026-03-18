@@ -17,6 +17,12 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 
 import {
+  AUTH_CHECKBOX_CLASS,
+  AUTH_CODE_INPUT_CLASS,
+  AUTH_HINT_PANEL_CLASS,
+  AUTH_INPUT_CLASS,
+  AUTH_PRIMARY_BUTTON_CLASS,
+  AUTH_TEXT_LINK_CLASS,
   AuthLayout,
   AuthLayoutSocialButton,
 } from "@components/auth/AuthLayout";
@@ -332,8 +338,8 @@ export default function RegisterContent({
     setIsSubmitting(true);
     showStatus(
       t.form.validation?.submitting ??
-      t.form.submitting ??
-      "Submitting registration request…",
+        t.form.submitting ??
+        "Submitting registration request…",
     );
 
     try {
@@ -400,9 +406,9 @@ export default function RegisterContent({
     setIsSubmitting(true);
     showStatus(
       t.form.validation?.completing ??
-      t.form.completing ??
-      t.form.completeSubmit ??
-      t.form.submit,
+        t.form.completing ??
+        t.form.completeSubmit ??
+        t.form.submit,
     );
 
     try {
@@ -563,9 +569,7 @@ export default function RegisterContent({
 
   // Render Helpers
   const aboveForm = t.uuidNote ? (
-    <div className="rounded-2xl border border-dashed border-sky-200 bg-sky-50/80 px-4 py-3 text-sm text-sky-700">
-      {t.uuidNote}
-    </div>
+    <div className={AUTH_HINT_PANEL_CLASS}>{t.uuidNote}</div>
   ) : null;
 
   const submitLabel = useMemo(() => {
@@ -624,7 +628,7 @@ export default function RegisterContent({
                 placeholder={
                   t.form.namePlaceholder || "4-16 chars, starts with letter"
                 }
-                className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                className={AUTH_INPUT_CLASS}
                 required
                 value={formValues.username}
                 onChange={handleInputChange("username")}
@@ -644,7 +648,7 @@ export default function RegisterContent({
                 type="email"
                 autoComplete="email"
                 placeholder={t.form.emailPlaceholder}
-                className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                className={AUTH_INPUT_CLASS}
                 required
                 value={formValues.email}
                 onChange={handleInputChange("email")}
@@ -665,7 +669,7 @@ export default function RegisterContent({
                   type="password"
                   autoComplete="new-password"
                   placeholder={t.form.passwordPlaceholder}
-                  className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                  className={AUTH_INPUT_CLASS}
                   required
                   value={formValues.password}
                   onChange={handleInputChange("password")}
@@ -684,7 +688,7 @@ export default function RegisterContent({
                   type="password"
                   autoComplete="new-password"
                   placeholder={t.form.confirmPasswordPlaceholder}
-                  className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                  className={AUTH_INPUT_CLASS}
                   required
                   value={formValues.confirmPassword}
                   onChange={handleInputChange("confirmPassword")}
@@ -697,16 +701,13 @@ export default function RegisterContent({
                 type="checkbox"
                 name="agreement"
                 required
-                className="mt-1 h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+                className={AUTH_CHECKBOX_CLASS}
                 checked={formValues.agreement}
                 onChange={handleAgreementChange}
               />
               <span>
                 {t.form.agreement}{" "}
-                <Link
-                  href="/docs"
-                  className="font-semibold text-sky-600 hover:text-sky-500"
-                >
+                <Link href="/docs" className={AUTH_TEXT_LINK_CLASS}>
                   {t.form.terms}
                 </Link>
               </span>
@@ -716,7 +717,7 @@ export default function RegisterContent({
 
         {currentStep === 1 && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-dashed border-sky-200 bg-sky-50/80 px-4 py-3 text-sm text-sky-700">
+            <div className={AUTH_HINT_PANEL_CLASS}>
               我们已向你的邮箱 <strong>{formValues.email}</strong>{" "}
               发送一封验证邮件。
               <br />
@@ -738,7 +739,7 @@ export default function RegisterContent({
                     inputMode="numeric"
                     autoComplete="one-time-code"
                     maxLength={1}
-                    className="h-12 w-full rounded-xl border border-slate-200 bg-white/90 text-center text-lg font-semibold text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                    className={AUTH_CODE_INPUT_CLASS}
                     value={digit}
                     onChange={(e) => handleCodeChange(index, e.target.value)}
                     onKeyDown={(e) => handleCodeKeyDown(index, e)}
@@ -752,7 +753,7 @@ export default function RegisterContent({
               <button
                 type="button"
                 onClick={() => setCurrentStep(0)}
-                className="text-sm text-slate-500 hover:text-slate-700"
+                className="text-sm font-medium text-slate-500 transition hover:text-slate-800"
               >
                 ← 返回修改信息
               </button>
@@ -761,7 +762,7 @@ export default function RegisterContent({
                 type="button"
                 onClick={handleResend}
                 disabled={isResending || resendCooldown > 0}
-                className="text-sm font-medium text-sky-600 transition hover:text-sky-500 disabled:cursor-not-allowed disabled:opacity-50"
+                className={`${AUTH_TEXT_LINK_CLASS} text-sm disabled:cursor-not-allowed disabled:opacity-50`}
                 style={{ zIndex: 10, position: "relative" }}
               >
                 {resendLabel}
@@ -775,7 +776,7 @@ export default function RegisterContent({
           disabled={
             isSubmitting || (currentStep === 1 && codeDigits.some((d) => !d))
           }
-          className="w-full rounded-2xl bg-gradient-to-r from-sky-500 to-blue-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition hover:from-sky-500 hover:to-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 disabled:cursor-not-allowed disabled:opacity-70"
+          className={`w-full ${AUTH_PRIMARY_BUTTON_CLASS}`}
         >
           {submitLabel}
         </button>

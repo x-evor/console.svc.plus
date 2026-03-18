@@ -14,6 +14,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Github } from "lucide-react";
 
 import {
+  AUTH_CHECKBOX_CLASS,
+  AUTH_INPUT_CLASS,
+  AUTH_PRIMARY_BUTTON_CLASS,
+  AUTH_TEXT_LINK_CLASS,
   AuthLayout,
   AuthLayoutSocialButton,
 } from "@components/auth/AuthLayout";
@@ -382,7 +386,7 @@ export default function LoginContent({
             type="text"
             autoComplete="username"
             placeholder={t.form.emailPlaceholder}
-            className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
+            className={AUTH_INPUT_CLASS}
             required
           />
         </div>
@@ -394,10 +398,7 @@ export default function LoginContent({
             >
               {t.form.password}
             </label>
-            <Link
-              href="#"
-              className="font-medium text-sky-600 hover:text-sky-500"
-            >
+            <Link href="#" className={AUTH_TEXT_LINK_CLASS}>
               {t.forgotPassword}
             </Link>
           </div>
@@ -407,7 +408,7 @@ export default function LoginContent({
             type="password"
             autoComplete="current-password"
             placeholder={t.form.passwordPlaceholder}
-            className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
+            className={AUTH_INPUT_CLASS}
             required
           />
         </div>
@@ -415,7 +416,7 @@ export default function LoginContent({
           <input
             type="checkbox"
             name="remember"
-            className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+            className={AUTH_CHECKBOX_CLASS}
           />
           {t.form.remember}
         </label>
@@ -423,7 +424,7 @@ export default function LoginContent({
           type="submit"
           disabled={isSubmitting}
           aria-busy={isSubmitting}
-          className="w-full rounded-2xl bg-gradient-to-r from-sky-500 to-blue-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition hover:from-sky-500 hover:to-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 disabled:cursor-not-allowed disabled:opacity-70"
+          className={`w-full ${AUTH_PRIMARY_BUTTON_CLASS}`}
         >
           {isSubmitting ? (t.form.submitting ?? t.form.submit) : t.form.submit}
         </button>

@@ -1,136 +1,144 @@
-export const dynamic = 'error'
+export const dynamic = "error";
 
-import DownloadListingContent from '../../../components/download/DownloadListingContent'
-import DownloadNotFound from '../../../components/download/DownloadNotFound'
+import DownloadListingContent from "@/components/download/DownloadListingContent";
+import DownloadNotFound from "@/components/download/DownloadNotFound";
+import { PublicPageShell } from "@/components/public/PublicPageShell";
 import {
   buildSectionsForListing,
   countFiles,
   findListing,
   formatSegmentLabel,
-} from '../../../lib/download-data'
-import { getDownloadListings, getDownloadListingsForBuildTime } from '../../../lib/download/dl-index-data-artifacts'
-import type { DirListing } from '@lib/download/types'
+} from "@/lib/download-data";
+import {
+  getDownloadListings,
+  getDownloadListingsForBuildTime,
+} from "@/lib/download/dl-index-data-artifacts";
+import type { DirListing } from "@lib/download/types";
 
 async function getAllListings(): Promise<DirListing[]> {
-  return getDownloadListings()
+  return getDownloadListings();
 }
 
-// 构建时获取：优先使用本地数据，保证构建成功
 async function getAllListingsForBuildTime(): Promise<DirListing[]> {
-  return getDownloadListingsForBuildTime()
+  return getDownloadListingsForBuildTime();
 }
 
-function collectDownloadParams(listings: DirListing[]): { segments: string[] }[] {
-  const params: { segments: string[] }[] = []
-  const root = findListing(listings, [])
+function collectDownloadParams(
+  listings: DirListing[],
+): { segments: string[] }[] {
+  const params: { segments: string[] }[] = [];
+  const root = findListing(listings, []);
   if (!root) {
-    return params
+    return params;
   }
 
-  const stack: { segments: string[]; listing: DirListing }[] = []
-  stack.push({ segments: [], listing: root })
+  const stack: { segments: string[]; listing: DirListing }[] = [];
+  stack.push({ segments: [], listing: root });
 
   while (stack.length > 0) {
-    const current = stack.pop()
+    const current = stack.pop();
     if (!current) {
-      continue
+      continue;
     }
 
     for (const entry of current.listing.entries) {
-      if (entry.type !== 'dir') {
-        continue
+      if (entry.type !== "dir") {
+        continue;
       }
 
-      const segment = entry.name.replace(/\/+$/g, '').trim()
+      const segment = entry.name.replace(/\/+$/g, "").trim();
       if (!segment) {
-        continue
+        continue;
       }
 
-      const nextSegments = [...current.segments, segment]
-      params.push({ segments: nextSegments })
+      const nextSegments = [...current.segments, segment];
+      params.push({ segments: nextSegments });
 
-      const child = findListing(listings, nextSegments)
+      const child = findListing(listings, nextSegments);
       if (child) {
-        stack.push({ segments: nextSegments, listing: child })
+        stack.push({ segments: nextSegments, listing: child });
       }
     }
   }
 
-  return params
+  return params;
 }
 
 export async function generateStaticParams() {
-  // 构建时优先使用本地 fallback 数据，避免外部API调用
-  const allListings = await getAllListingsForBuildTime()
-  return collectDownloadParams(allListings)
+  const allListings = await getAllListingsForBuildTime();
+  return collectDownloadParams(allListings);
 }
 
-export const dynamicParams = false
+export const dynamicParams = false;
 
 function getLatestModified(listing: DirListing): string | undefined {
-  let latest: string | undefined
+  let latest: string | undefined;
   for (const entry of listing.entries) {
     if (entry.lastModified && (!latest || entry.lastModified > latest)) {
-      latest = entry.lastModified
+      latest = entry.lastModified;
     }
   }
-  return latest
+  return latest;
 }
 
 export default async function DownloadListing({
   params,
 }: {
-  params: Promise<{ segments: string[] }>
+  params: Promise<{ segments: string[] }>;
 }) {
-  const { segments: rawSegments } = await params
+  const { segments: rawSegments } = await params;
   const segments = rawSegments
-    .map((segment) => segment.trim().replace(/\/+$/g, ''))
-    .filter((segment) => segment.length > 0)
+    .map((segment) => segment.trim().replace(/\/+$/g, ""))
+    .filter((segment) => segment.length > 0);
 
-  const allListings = await getAllListings()
+  const allListings = await getAllListings();
 
   if (segments.length === 0) {
     return (
-      <main className="px-4 py-10 md:px-8">
+      <PublicPageShell>
         <DownloadNotFound />
-      </main>
-    )
+      </PublicPageShell>
+    );
   }
 
-  const listing = findListing(allListings, segments)
+  const listing = findListing(allListings, segments);
 
   if (!listing) {
     return (
-      <main className="px-4 py-10 md:px-8">
+      <PublicPageShell>
         <DownloadNotFound />
-      </main>
-    )
+      </PublicPageShell>
+    );
   }
 
-  const subdirectorySections = buildSectionsForListing(listing, allListings, segments)
-  const fileEntries = listing.entries.filter((entry: DirListing['entries'][number]) => entry.type === 'file')
-  const fileListing: DirListing = { path: listing.path, entries: fileEntries }
+  const subdirectorySections = buildSectionsForListing(
+    listing,
+    allListings,
+    segments,
+  );
+  const fileEntries = listing.entries.filter(
+    (entry: DirListing["entries"][number]) => entry.type === "file",
+  );
+  const fileListing: DirListing = { path: listing.path, entries: fileEntries };
 
-  const totalFiles = countFiles(listing, allListings)
-  const latestModified = getLatestModified(listing)
-  const displayTitle = formatSegmentLabel(segments[segments.length - 1] ?? '')
-  const relativePath = segments.join('/')
-  const remotePath = `https://dl.svc.plus/${listing.path}`
+  const totalFiles = countFiles(listing, allListings);
+  const latestModified = getLatestModified(listing);
+  const displayTitle = formatSegmentLabel(segments[segments.length - 1] ?? "");
+  const relativePath = segments.join("/");
+  const remotePath = `https://dl.svc.plus/${listing.path}`;
 
   return (
-    <main className="px-4 py-10 md:px-8">
-      <div className="mx-auto max-w-7xl">
-        <DownloadListingContent
-          segments={segments}
-          title={displayTitle}
-          subdirectorySections={subdirectorySections}
-          fileListing={fileListing}
-          totalFiles={totalFiles}
-          latestModified={latestModified}
-          relativePath={relativePath}
-          remotePath={remotePath}
-        />
-      </div>
-    </main>
-  )
+    <PublicPageShell>
+      <DownloadListingContent
+        segments={segments}
+        title={displayTitle}
+        subdirectorySections={subdirectorySections}
+        fileListing={fileListing}
+        totalFiles={totalFiles}
+        latestModified={latestModified}
+        relativePath={relativePath}
+        remotePath={remotePath}
+      />
+    </PublicPageShell>
+  );
 }

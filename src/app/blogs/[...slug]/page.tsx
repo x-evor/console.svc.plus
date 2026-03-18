@@ -1,110 +1,134 @@
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
 
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import type { Metadata } from 'next'
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 
-import { getBlogPostBySlug } from '@lib/blogContent'
-import { renderMarkdownContent } from '@server/render-markdown'
-import BrandCTA from '@components/BrandCTA'
+import BrandCTA from "@components/BrandCTA";
+import { PublicPageShell } from "@/components/public/PublicPageShell";
+import { getBlogPostBySlug } from "@lib/blogContent";
+import { renderMarkdownContent } from "@server/render-markdown";
 
 type PageProps = {
-  params: { slug: string | string[] }
-}
+  params: Promise<{ slug: string | string[] }>;
+};
 
-function formatDate(dateStr: string, language: 'zh' | 'en'): string {
-  const date = new Date(dateStr)
+function formatDate(dateStr: string, language: "zh" | "en"): string {
+  const date = new Date(dateStr);
 
-  if (language === 'zh') {
-    return date.toLocaleDateString('zh-CN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
+  if (language === "zh") {
+    return date.toLocaleDateString("zh-CN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
   }
 
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const slugParam = await params
-  const slugPath = Array.isArray(slugParam.slug) ? slugParam.slug.join('/') : slugParam.slug
-  const post = await getBlogPostBySlug(slugPath)
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const slugParam = await params;
+  const slugPath = Array.isArray(slugParam.slug)
+    ? slugParam.slug.join("/")
+    : slugParam.slug;
+  const post = await getBlogPostBySlug(slugPath);
 
   if (!post) {
-    return { title: 'Blog Post | Cloud-Neutral' }
+    return { title: "Blog Post | Cloud-Neutral" };
   }
 
   return {
     title: `${post.title} | Cloud-Neutral Blog`,
     description: post.excerpt,
-  }
+  };
 }
 
 export default async function BlogPostPage({ params }: PageProps) {
-  const slugParam = await params
-  const slugPath = Array.isArray(slugParam.slug) ? slugParam.slug.join('/') : slugParam.slug
-  const post = await getBlogPostBySlug(slugPath)
+  const slugParam = await params;
+  const slugPath = Array.isArray(slugParam.slug)
+    ? slugParam.slug.join("/")
+    : slugParam.slug;
+  const post = await getBlogPostBySlug(slugPath);
 
   if (!post) {
-    notFound()
+    notFound();
   }
 
-  const html = renderMarkdownContent(post.content)
-  const language: 'zh' | 'en' = /[\u4e00-\u9fff]/.test(`${post.title} ${post.content}`) ? 'zh' : 'en'
+  const html = renderMarkdownContent(post.content);
+  const language: "zh" | "en" = /[\u4e00-\u9fff]/.test(
+    `${post.title} ${post.content}`,
+  )
+    ? "zh"
+    : "en";
+  const isChinese = language === "zh";
 
   return (
-    <main className="flex min-h-screen flex-col bg-slate-50">
-      <div className="mx-auto w-full max-w-4xl px-4 py-16">
-        <Link
-          href="/blogs"
-          className="mb-8 inline-flex items-center text-sm font-semibold text-brand transition hover:text-brand-dark"
-        >
-          ← {post.date ? 'Back to Blog' : '返回博客'}
-        </Link>
-
-        <header className="mb-12">
-          <h1 className="mb-4 text-4xl font-bold text-slate-900 sm:text-5xl">{post.title}</h1>
-
-          {post.author && <p className="mb-2 text-sm text-slate-600">{post.date ? 'By' : '作者'} {post.author}</p>}
-
-          {post.date && (
-            <time className="text-sm text-slate-500">{formatDate(post.date, 'en')}</time>
-          )}
-
-          {post.tags && post.tags.length > 0 && (
-            <div className="mt-6 flex flex-wrap gap-2">
-              {post.tags.map((tag) => (
-                <span key={tag} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-        </header>
-
-        <article
-          className="prose prose-slate max-w-none text-[15px] prose-headings:scroll-mt-24 prose-a:text-brand prose-a:no-underline hover:prose-a:underline"
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
-
-        <div className="mt-12">
-          <BrandCTA lang={language} />
-        </div>
-
-        <footer className="mt-16 border-t border-slate-200 pt-8">
+    <PublicPageShell>
+      <div className="space-y-6">
+        <section className="rounded-[2.4rem] border border-slate-900/10 bg-[linear-gradient(180deg,#ffffff,#faf7f2)] p-6 shadow-[0_22px_50px_rgba(15,23,42,0.05)] sm:p-8 lg:p-10">
           <Link
             href="/blogs"
-            className="inline-flex items-center text-sm font-semibold text-brand transition hover:text-brand-dark"
+            className="inline-flex rounded-full border border-slate-900/10 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:border-slate-900/15 hover:text-primary"
           >
-            ← Back to Blog
+            {isChinese ? "← 返回博客" : "← Back to Blog"}
           </Link>
-        </footer>
+
+          <div className="mt-6 space-y-4">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-text-subtle">
+              {post.category?.label ?? "Blog"}
+            </p>
+            <h1
+              className={
+                isChinese
+                  ? "text-[2.7rem] font-semibold leading-[0.9] tracking-[-0.08em] text-slate-900 sm:text-[3.4rem]"
+                  : "editorial-display text-[2.9rem] leading-[0.92] tracking-[-0.06em] text-slate-900 sm:text-[3.6rem]"
+              }
+            >
+              {post.title}
+            </h1>
+            <p className="max-w-3xl text-[1rem] leading-8 text-slate-600 sm:text-[1.05rem]">
+              {post.excerpt}
+            </p>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            {post.author ? (
+              <span className="rounded-full border border-slate-900/10 bg-white px-3 py-1 text-sm text-slate-600">
+                {isChinese ? "作者" : "By"} {post.author}
+              </span>
+            ) : null}
+            {post.date ? (
+              <time className="rounded-full border border-slate-900/10 bg-white px-3 py-1 text-sm text-slate-600">
+                {formatDate(post.date, language)}
+              </time>
+            ) : null}
+            {post.tags?.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full border border-slate-900/10 bg-[#f8f4ec] px-3 py-1 text-xs font-semibold text-slate-600"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-[2rem] border border-slate-900/10 bg-white/92 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.05)] lg:p-8">
+          <article
+            className="public-doc-prose"
+            dangerouslySetInnerHTML={{ __html: html }}
+          />
+        </section>
+
+        <BrandCTA lang={language} />
       </div>
-    </main>
-  )
+    </PublicPageShell>
+  );
 }
