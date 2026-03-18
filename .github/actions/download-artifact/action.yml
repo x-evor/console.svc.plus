@@ -1,0 +1,22 @@
+name: Download Artifact
+description: Download artifact files
+
+inputs:
+  name:
+    description: Artifact name
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        # Restore artifact from artifacts directory
+        if [ -d "artifacts/${{ inputs.name }}" ]; then
+          cp -r artifacts/${{ inputs.name }}/* . || true
+        elif [ -f "${{ inputs.name }}" ]; then
+          echo "Artifact file found: ${{ inputs.name }}"
+        else
+          echo "Artifact not found: ${{ inputs.name }}"
+          exit 1
+        fi

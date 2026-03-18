@@ -8,6 +8,7 @@ if [[ -z "${IMAGE_TAG}" ]]; then
 fi
 
 GHCR_NAMESPACE="${GITHUB_REPOSITORY_OWNER,,}"
+GHCR_REGISTRY="${GHCR_REGISTRY:-ghcr.io}"
 
 if [[ -z "${GITHUB_OUTPUT-}" ]]; then
   echo "GITHUB_OUTPUT is not set" >&2
@@ -17,5 +18,5 @@ fi
 {
   printf 'ghcr_namespace=%s\n' "${GHCR_NAMESPACE}"
   printf 'image_tag=%s\n' "${IMAGE_TAG}"
-  printf 'image_ref=ghcr.io/%s/dashboard:%s\n' "${GHCR_NAMESPACE}" "${IMAGE_TAG}"
+  printf 'image_ref=%s/%s/dashboard:%s\n' "${GHCR_REGISTRY}" "${GHCR_NAMESPACE}" "${IMAGE_TAG}"
 } >> "${GITHUB_OUTPUT}"

@@ -1,0 +1,30 @@
+name: Upload Artifact
+description: Upload artifact files
+
+inputs:
+  name:
+    description: Artifact name
+    required: true
+  path:
+    description: File paths to upload
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        # Create artifacts directory
+        mkdir -p artifacts
+        
+        # Copy files to artifacts directory
+        cp -r ${{ inputs.path }} artifacts/
+        
+        # Save artifact metadata
+        echo "${{ inputs.name }}" > artifacts/metadata.txt
+        echo "${{ inputs.path }}" >> artifacts/metadata.txt
+        ls -la artifacts/ >> artifacts/metadata.txt
+        
+        # For now, just keep files in workspace
+        # In CI/CD system, this would be collected
+        echo "Artifact uploaded to artifacts/ directory"

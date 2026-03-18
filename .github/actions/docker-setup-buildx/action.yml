@@ -1,0 +1,7 @@
+name: docker-setup-buildx
+description: Wrapper around docker/setup-buildx-action pinned to a SHA inside cloud-neutral-toolkit repo.
+runs:
+  using: composite
+  steps:
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f

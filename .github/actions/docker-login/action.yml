@@ -1,0 +1,20 @@
+name: Docker Login
+description: Login to Docker registry using docker CLI
+
+inputs:
+  registry:
+    description: Docker registry URL
+    required: true
+  username:
+    description: Username for registry login
+    required: true
+  password:
+    description: Password or token for registry login
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        echo "${{ inputs.password }}" | docker login -u "${{ inputs.username }}" --password-stdin ${{ inputs.registry }}

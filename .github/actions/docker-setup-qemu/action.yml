@@ -1,0 +1,10 @@
+name: Docker Setup QEMU
+description: Set up QEMU for multi-platform builds
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        # Install QEMU emulation support
+        docker run --privileged --rm tonistiigi/binfmt --install all

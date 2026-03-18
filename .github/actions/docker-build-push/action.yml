@@ -1,0 +1,111 @@
+name: Docker Build Push
+description: Build and push Docker images using docker buildx
+
+inputs:
+  context:
+    description: Build context
+    required: false
+    default: .
+  file:
+    description: Dockerfile path
+    required: false
+    default: Dockerfile
+  platforms:
+    description: Build platforms
+    required: false
+    default: linux/amd64
+  push:
+    description: Push image
+    required: false
+    default: false
+  tags:
+    description: Image tags
+    required: false
+  build-args:
+    description: Build arguments
+    required: false
+  labels:
+    description: Build labels
+    required: false
+  cache-from:
+    description: Cache sources
+    required: false
+  cache-to:
+    description: Cache destinations
+    required: false
+  outputs:
+    description: Build outputs
+    required: false
+
+outputs:
+  digest:
+    description: Image digest
+    value: ${{ steps.build.outputs.digest }}
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      id: build
+      run: |
+        set -euo pipefail
+
+        # Parse build args
+        BUILD_ARGS=""
+        if [ -n "${{ inputs.build-args }}" ]; then
+          echo "${{ inputs.build-args }}" | while IFS= read -r line; do
+            [ -n "$line" ] && BUILD_ARGS="$BUILD_ARGS --build-arg $line"
+          done
+        fi
+
+        # Parse labels
+        LABELS=""
+        if [ -n "${{ inputs.labels }}" ]; then
+          echo "${{ inputs.labels }}" | while IFS= read -r line; do
+            [ -n "$line" ] && LABELS="$LABELS --label $line"
+          done
+        fi
+
+        # Parse outputs
+        OUTPUTS=""
+        if [ -n "${{ inputs.outputs }}" ]; then
+          OUTPUTS="--output ${{ inputs.outputs }}"
+        elif [ "${{ inputs.push }}" = "true" ]; then
+          OUTPUTS="--type=registry"
+        else
+          OUTPUTS="--type=image,push=false"
+        fi
+
+        # Parse tags
+        TAGS_ARG=""
+        if [ -n "${{ inputs.tags }}" ]; then
+          TAGS_ARG="--tag $(echo '${{ inputs.tags }}' | tr '\n' ' ' | sed 's/  */ --tag /g')"
+        fi
+
+        # Build command
+        echo "::group::Docker Buildx Build"
+        docker buildx build \
+          --platform ${{ inputs.platforms }} \
+          --file ${{ inputs.file }} \
+          $TAGS_ARG \
+          $BUILD_ARGS \
+          $LABELS \
+          $OUTPUTS \
+          --progress=plain \
+          ${{ inputs.context }}
+
+        BUILD_STATUS=$?
+
+        # Get digest if successful
+        if [ $BUILD_STATUS -eq 0 ] && [ "${{ inputs.push }}" = "true" ]; then
+          # Extract first tag
+          FIRST_TAG=$(echo "${{ inputs.tags }}" | head -n1)
+          # Get image digest by pulling image info
+          DIGEST=$(docker buildx imagetools inspect $FIRST_TAG --format '{{json .Manifest.Digest}}' 2>/dev/null || echo "")
+          if [ -n "$DIGEST" ]; then
+            echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+          fi
+        fi
+
+        exit $BUILD_STATUS
+        echo "::endgroup::"

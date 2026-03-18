@@ -41,10 +41,13 @@ env:
   DEPLOY_DIR: /opt/console-svc-plus
   PRIMARY_DOMAIN: cn.svc.plus
   SECONDARY_DOMAIN: cn.onwalk.net
+  GHCR_REGISTRY: ghcr.io
 
 jobs:
-  prepare:
+  stage-1-build-image:
+    name: "1. Build and push frontend image"
     runs-on: ubuntu-latest
+    environment: production
     outputs:
       ghcr_namespace: ${{ steps.meta.outputs.ghcr_namespace }}
       image_tag: ${{ steps.meta.outputs.image_tag }}
@@ -54,32 +57,27 @@ jobs:
         id: meta
         run: bash scripts/github-actions/compute-frontend-release-metadata.sh "${{ github.event.inputs.image_tag }}"
 
-  build:
-    runs-on: ubuntu-latest
-    needs: prepare
-    environment: production
-    steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
       - name: Clone knowledge content
         run: git clone --depth=1 https://github.com/Cloud-Neutral-Workshop/knowledge.git knowledge
 
-      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+      - uses: ./.github/actions/docker-login
         with:
-          registry: ghcr.io
+          registry: ${{ env.GHCR_REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ github.token }}
 
-      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+      - uses: ./.github/actions/docker-setup-buildx
 
       - name: Build and push frontend image
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        uses: ./.github/actions/docker-build-push
         with:
           context: .
           file: Dockerfile
           platforms: linux/amd64
           push: true
-          tags: ${{ needs.prepare.outputs.image_ref }}
+          tags: ${{ steps.meta.outputs.image_ref }}
           build-args: |
             NODE_BUILDER_IMAGE=node:22-bookworm
             NODE_RUNTIME_IMAGE=node:22-slim
@@ -102,11 +100,10 @@ jobs:
             NEXT_PUBLIC_STRIPE_PRICE_XCLOUDFLOW_PAYGO=${{ vars.NEXT_PUBLIC_STRIPE_PRICE_XCLOUDFLOW_PAYGO }}
             NEXT_PUBLIC_STRIPE_PRICE_XCLOUDFLOW_SUBSCRIPTION=${{ vars.NEXT_PUBLIC_STRIPE_PRICE_XCLOUDFLOW_SUBSCRIPTION }}
 
-  deploy:
+  stage-2-deploy:
+    name: "2. Deploy frontend stack"
     runs-on: ubuntu-latest
-    needs:
-      - prepare
-      - build
+    needs: stage-1-build-image
     environment: production
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -116,7 +113,7 @@ jobs:
           GHCR_USERNAME: ${{ github.actor }}
           GHCR_PASSWORD: ${{ github.token }}
           SSH_PRIVATE_KEY: ${{ secrets.FRONTEND_DEPLOY_SSH_KEY }}
-          FRONTEND_IMAGE: ${{ needs.prepare.outputs.image_ref }}
+          FRONTEND_IMAGE: ${{ needs.stage-1-build-image.outputs.image_ref }}
           APP_BASE_URL: ${{ vars.APP_BASE_URL || format('https://{0}', env.PRIMARY_DOMAIN) }}
           NEXT_PUBLIC_APP_BASE_URL: ${{ vars.NEXT_PUBLIC_APP_BASE_URL || format('https://{0}', env.PRIMARY_DOMAIN) }}
           NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || format('https://{0}', env.PRIMARY_DOMAIN) }}
