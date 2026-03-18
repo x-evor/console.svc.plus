@@ -50,6 +50,7 @@ type OpenClawAssistantPaneProps = {
   defaults: IntegrationDefaults;
   initialQuestion?: string;
   initialQuestionKey?: number;
+  initialSessionKey?: string;
   autoSubmitInitialQuestion?: boolean;
   variant?: "page" | "sidebar";
   showConversation?: boolean;
@@ -395,6 +396,7 @@ export function OpenClawAssistantPane({
   defaults,
   initialQuestion,
   initialQuestionKey,
+  initialSessionKey,
   autoSubmitInitialQuestion = true,
   variant = "page",
   showConversation = true,
@@ -615,6 +617,13 @@ export function OpenClawAssistantPane({
   useEffect(() => {
     applyDefaults(defaults);
   }, [applyDefaults, defaults]);
+
+  useEffect(() => {
+    if (!initialSessionKey?.trim()) {
+      return;
+    }
+    setSelectedSessionKey(initialSessionKey.trim());
+  }, [initialSessionKey, setSelectedSessionKey]);
 
   const activeSession = useMemo(
     () => sessions.find((session) => session.key === selectedSessionKey),
@@ -1073,8 +1082,14 @@ export function OpenClawAssistantPane({
     }
 
     bootstrappedRef.current = true;
-    void connectGateway();
-  }, [connectGateway, defaultsLoaded, guestSessionExpired, openclawUrl]);
+    void connectGateway(initialSessionKey?.trim() || undefined);
+  }, [
+    connectGateway,
+    defaultsLoaded,
+    guestSessionExpired,
+    initialSessionKey,
+    openclawUrl,
+  ]);
 
   useEffect(() => {
     lastConnectPairingSignatureRef.current = null;

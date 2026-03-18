@@ -25,7 +25,7 @@ import type { IntegrationDefaults } from "@/lib/openclaw/types";
 import type { XWorkmateProfileResponse } from "@/lib/xworkmate/types";
 import { cn } from "@/lib/utils";
 import { useOpenClawConsoleStore } from "@/state/openclawConsoleStore";
-import { XWorkmateAssistantShell } from "@/components/xworkmate/XWorkmateAssistantShell";
+import { OpenClawAssistantPane } from "@/components/openclaw/OpenClawAssistantPane";
 
 type WorkspaceDestination =
   | "assistant"
@@ -570,7 +570,6 @@ export function XWorkmateWorkspacePage({
   const router = useRouter();
   const [activeSection, setActiveSection] =
     useState<WorkspaceDestination>("assistant");
-  const [composerValue, setComposerValue] = useState(initialPrompt);
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
   const setScope = useOpenClawConsoleStore((state) => state.setScope);
@@ -586,10 +585,6 @@ export function XWorkmateWorkspacePage({
     setScope(scopeKey, defaults);
     applyDefaults(defaults);
   }, [applyDefaults, defaults, scopeKey, setScope]);
-
-  useEffect(() => {
-    setComposerValue(initialPrompt);
-  }, [initialPrompt]);
 
   useEffect(() => {
     if (!initialSessionKey.trim()) {
@@ -780,22 +775,13 @@ export function XWorkmateWorkspacePage({
                 </div>
               ) : null}
               {activeSection === "assistant" ? (
-                <XWorkmateAssistantShell
-                  mode="full"
-                  isChinese={isChinese}
-                  endpointLabel={endpointLabel}
-                  connected={connected}
-                  prompt={composerValue}
-                  onPromptChange={setComposerValue}
-                  onOpenConnections={openConnections}
-                  canManageConnections={canEditIntegrations}
-                  primaryActionLabel={primaryActionLabel}
-                  secondaryActionLabel={secondaryActionLabel}
-                  connectionHint={connectionHint}
-                  actionDisabled={!canEditIntegrations}
-                  showConnectionStatus={
-                    profile?.profileScope !== "tenant-shared"
-                  }
+                <OpenClawAssistantPane
+                  defaults={defaults}
+                  initialQuestion={initialPrompt}
+                  initialQuestionKey={initialPrompt ? 1 : undefined}
+                  initialSessionKey={initialSessionKey}
+                  autoSubmitInitialQuestion={false}
+                  variant="page"
                 />
               ) : (
                 <SectionOverview
