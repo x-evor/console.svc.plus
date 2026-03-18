@@ -187,7 +187,7 @@ export function XWorkmateAssistantShell({
             >
               <Paperclip className="h-[18px] w-[18px]" />
             </button>
-            {mode !== "full" ? (
+            {mode === "sidebar" ? (
               <button
                 type="button"
                 onClick={openWorkspace}
