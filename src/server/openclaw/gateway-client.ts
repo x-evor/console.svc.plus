@@ -311,7 +311,7 @@ export class OpenClawGatewayClient {
         allowSharedTokenFallback &&
         Boolean(sharedGatewayToken) &&
         Boolean(storedDeviceToken) &&
-        (detailCode === 'AUTH_DEVICE_TOKEN_MISMATCH' || detailCode === 'PAIRING_REQUIRED')
+        detailCode === 'AUTH_DEVICE_TOKEN_MISMATCH'
 
       if (shouldRetryWithSharedToken) {
         await clearOpenClawDeviceToken({
