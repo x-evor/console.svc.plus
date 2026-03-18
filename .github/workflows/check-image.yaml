@@ -16,34 +16,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Authenticate to GHCR
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "$GITHUB_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check images exist and are pullable
         env:
           TAG: ${{ inputs.tag }}
-        run: |
-          set -euo pipefail
-
-          IMAGES=(
-            "ghcr.io/cloud-neutral-toolkit/openresty-geoip"
-            "ghcr.io/cloud-neutral-toolkit/postgres-runtime"
-            "ghcr.io/cloud-neutral-toolkit/account"
-            "ghcr.io/cloud-neutral-toolkit/dashboard"
-            "ghcr.io/cloud-neutral-toolkit/rag-server"
-            "ghcr.io/cloud-neutral-toolkit/xcontrol-init"
-            "docker.io/cloudneutral/openresty-geoip"
-            "docker.io/cloudneutral/postgres-runtime"
-            "docker.io/cloudneutral/account"
-            "docker.io/cloudneutral/dashboard"
-            "docker.io/cloudneutral/rag-server"
-            "docker.io/cloudneutral/xcontrol-init"
-          )
-
-          for IMAGE in "${IMAGES[@]}"; do
-            echo "Checking ${IMAGE}:${TAG}"
-            docker manifest inspect "${IMAGE}:${TAG}" > /dev/null
-            docker pull "${IMAGE}:${TAG}" > /dev/null
-          done
+          IMAGE_LIST_FILE: .github/scripts/check-image/images.txt
+        run: bash .github/scripts/check-image/check-images.sh

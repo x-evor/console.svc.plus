@@ -122,9 +122,10 @@ jobs:
             CONTENTLAYER_BUILD=true
 
       - name: Record digest
-        run: |
-          set -euo pipefail
-          echo "${{ steps.build.outputs.digest }}" > digest-${{ matrix.service.name }}-${{ matrix.arch.artifact }}.txt
+        env:
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+          OUTPUT_FILE: digest-${{ matrix.service.name }}-${{ matrix.arch.artifact }}.txt
+        run: bash .github/scripts/build-images/record-digest.sh
 
       - uses: actions/upload-artifact@v4
         with:
@@ -152,14 +153,16 @@ jobs:
           name: digest-${{ matrix.service.name }}-${{ matrix.arch.artifact }}
 
       - name: Load image digest
-        run: |
-          set -euo pipefail
-          echo "IMAGE_DIGEST=$(cat digest-${{ matrix.service.name }}-${{ matrix.arch.artifact }}.txt)" >> "$GITHUB_ENV"
+        env:
+          DIGEST_FILE: digest-${{ matrix.service.name }}-${{ matrix.arch.artifact }}.txt
+        run: bash .github/scripts/build-images/load-image-digest.sh
 
       - name: Set image ref
-        run: |
-          set -euo pipefail
-          echo "IMG=${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}:build-${{ github.sha }}-${{ matrix.arch.artifact }}@${{ env.IMAGE_DIGEST }}" >> "$GITHUB_ENV"
+        env:
+          SERVICE_NAME: ${{ matrix.service.name }}
+          IMAGE_SHA: ${{ github.sha }}
+          IMAGE_ARTIFACT: ${{ matrix.arch.artifact }}
+        run: bash .github/scripts/build-images/set-image-ref.sh
 
       - uses: anchore/sbom-action@v0
         with:
@@ -216,10 +219,10 @@ jobs:
           name: digest-dashboard-linux-arm64
 
       - name: Load digests
-        run: |
-          set -euo pipefail
-          echo "AMD_DIGEST=$(cat digest-dashboard-linux-amd64.txt)" >> "$GITHUB_ENV"
-          echo "ARM_DIGEST=$(cat digest-dashboard-linux-arm64.txt)" >> "$GITHUB_ENV"
+        env:
+          AMD_DIGEST_FILE: digest-dashboard-linux-amd64.txt
+          ARM_DIGEST_FILE: digest-dashboard-linux-arm64.txt
+        run: bash .github/scripts/build-images/load-manifest-digests.sh
 
       - name: Generate Auto Tags
         id: meta
@@ -236,23 +239,10 @@ jobs:
 
       - name: Create & Push Multi-Arch Manifests (GHCR)
         if: matrix.registry == 'ghcr.io'
-        run: |
-          set -euo pipefail
-
-          SRC_AMD="${{ env.REGISTRY }}/${{ env.ORG }}/dashboard:build-${{ github.sha }}-linux-amd64@${{ env.AMD_DIGEST }}"
-          SRC_ARM="${{ env.REGISTRY }}/${{ env.ORG }}/dashboard:build-${{ github.sha }}-linux-arm64@${{ env.ARM_DIGEST }}"
-
-          FIRST_TAG=""
-          echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n' | while read -r TAG; do
-            [ -z "$TAG" ] && continue
-            if [ -z "$FIRST_TAG" ]; then FIRST_TAG="$TAG"; fi
-            docker buildx imagetools create -t "$TAG" "$SRC_AMD" "$SRC_ARM"
-          done
-
-          TAG1="$(echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n' | head -n 1)"
-          DIGEST="$(docker buildx imagetools inspect "$TAG1" --format '{{.Digest}}')"
-          echo "MANIFEST_DIGEST=$DIGEST" >> "$GITHUB_ENV"
-          echo "FINAL_TAG=$TAG1" >> "$GITHUB_ENV"
+        env:
+          IMAGE_SHA: ${{ github.sha }}
+          TAGS_CSV: ${{ steps.meta.outputs.tags }}
+        run: bash .github/scripts/build-images/create-ghcr-manifest.sh
 
       - name: Clone knowledge content
         if: matrix.registry == 'ghcr.io'
@@ -260,14 +250,10 @@ jobs:
 
       - name: Validate blog content mount
         if: matrix.registry == 'ghcr.io'
-        run: |
-          set -euo pipefail
-          IMAGE="${{ env.REGISTRY }}/${{ env.ORG }}/dashboard@${{ env.MANIFEST_DIGEST }}"
-          docker pull "$IMAGE"
-          docker run --rm \
-            -v "${{ github.workspace }}/knowledge/content:/app/dashboard/src/content/blog:ro" \
-            "$IMAGE" \
-            sh -c 'test -d /app/dashboard/src/content/blog'
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ env.ORG }}/dashboard@${{ env.MANIFEST_DIGEST }}
+          KNOWLEDGE_CONTENT_DIR: ${{ github.workspace }}/knowledge/content
+        run: bash .github/scripts/build-images/validate-blog-content-mount.sh
 
       - name: Login to Docker Hub
         if: matrix.registry == 'docker.io'
@@ -281,16 +267,8 @@ jobs:
         if: matrix.registry == 'docker.io'
         env:
           TARGET_NS: ${{ inputs.dockerhub_namespace || github.event.inputs.dockerhub_namespace || 'cloudneutral' }}
-        run: |
-          set -euo pipefail
-
-          sudo apt-get update -y
-          sudo apt-get install -y skopeo
-
-          SRC="docker://ghcr.io/${{ env.ORG }}/dashboard@${{ env.MANIFEST_DIGEST }}"
-          DST="docker://docker.io/${TARGET_NS}/dashboard:latest"
-
-          skopeo login ghcr.io -u "${{ github.actor }}" -p "${{ secrets.GITHUB_TOKEN }}"
-          skopeo login docker.io -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_TOKEN }}"
-
-          skopeo copy --all "$SRC" "$DST"
+          GHCR_USERNAME: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: bash .github/scripts/build-images/copy-image-to-dockerhub.sh
