@@ -43,26 +43,6 @@ env:
   SECONDARY_DOMAIN: cn.onwalk.net
 
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    outputs:
-      ghcr_namespace: ${{ steps.meta.outputs.ghcr_namespace }}
-      image_tag: ${{ steps.meta.outputs.image_tag }}
-      image_ref: ${{ steps.meta.outputs.image_ref }}
-    steps:
-      - name: Compute image metadata
-        id: meta
-        shell: bash
-        run: |
-          set -euo pipefail
-          image_tag="${{ github.event.inputs.image_tag }}"
-          if [[ -z "${image_tag}" ]]; then
-            image_tag="${GITHUB_SHA}"
-          fi
-          ghcr_namespace="${GITHUB_REPOSITORY_OWNER,,}"
-          echo "ghcr_namespace=${ghcr_namespace}" >> "${GITHUB_OUTPUT}"
-          echo "image_tag=${image_tag}" >> "${GITHUB_OUTPUT}"
-          echo "image_ref=ghcr.io/${ghcr_namespace}/dashboard:${image_tag}" >> "${GITHUB_OUTPUT}"
 
   build:
     runs-on: ubuntu-latest
