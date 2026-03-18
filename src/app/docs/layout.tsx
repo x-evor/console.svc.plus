@@ -13,9 +13,9 @@ export default async function DocsLayout({
   return (
     <div className="flex min-h-screen flex-col bg-background text-text">
       <UnifiedNavigation />
-      <div className="mx-auto flex w-full max-w-[1536px] items-start">
+      <div className="flex w-full flex-1 items-start px-2 pb-8 pt-3 sm:px-3 lg:px-4">
         <DocsSidebar collections={collections} />
-        <main className="min-h-[calc(100vh-64px)] flex-1 overflow-x-hidden py-8 px-4 sm:px-8 lg:px-10">
+        <main className="min-h-[calc(100vh-64px)] flex-1 overflow-x-hidden px-3 py-3 sm:px-5 lg:px-6">
           {children}
         </main>
       </div>

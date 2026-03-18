@@ -28,10 +28,10 @@ function DocsBreadcrumbs({
           ) : null}
           <Link
             href={item.href}
-            className={`rounded-full border px-3 py-1.5 transition ${
+            className={`rounded-[12px] border px-3 py-1.5 transition ${
               index === items.length - 1
-                ? "border-slate-900/10 bg-[#f8f4ec] font-medium text-slate-900"
-                : "border-slate-900/10 bg-white text-slate-600 hover:text-primary"
+                ? "border-slate-900/8 bg-white/84 font-medium text-slate-900"
+                : "border-slate-900/8 bg-white text-slate-600 hover:text-primary"
             }`}
           >
             {item.label}
@@ -96,9 +96,9 @@ export default async function DocVersionPage({
   ];
 
   return (
-    <div className="flex gap-8 xl:gap-10">
+    <div className="flex gap-6 xl:gap-8">
       <article className="min-w-0 flex-1 space-y-6">
-        <section className="rounded-[2rem] border border-slate-900/10 bg-[linear-gradient(180deg,#ffffff,#faf7f2)] p-6 shadow-[0_20px_48px_rgba(15,23,42,0.05)] lg:p-7">
+        <section className="rounded-[1rem] border border-slate-900/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(247,248,250,0.98))] p-5 shadow-[var(--shadow-soft)] lg:p-6">
           <DocsBreadcrumbs items={breadcrumbs} />
           <PublicPageIntro
             eyebrow="Documentation"
@@ -108,7 +108,7 @@ export default async function DocVersionPage({
           />
         </section>
 
-        <section className="rounded-[2rem] border border-slate-900/10 bg-white/92 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.05)] lg:p-8">
+        <section className="rounded-[1rem] border border-slate-900/8 bg-white/90 p-5 shadow-[var(--shadow-soft)] lg:p-6">
           <DocArticle content={version.content} />
         </section>
 
@@ -117,7 +117,7 @@ export default async function DocVersionPage({
 
       <aside className="hidden w-64 shrink-0 lg:block xl:w-72">
         <div className="sticky top-[100px]">
-          <div className="rounded-[1.6rem] border border-slate-900/10 bg-white/90 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.05)]">
+          <div className="rounded-[0.95rem] border border-slate-900/8 bg-white/88 p-5 shadow-[var(--shadow-soft)]">
             <p className="mb-4 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-text-subtle">
               Metadata
             </p>

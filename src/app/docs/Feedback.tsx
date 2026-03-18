@@ -7,7 +7,7 @@ export default function Feedback() {
   const [voted, setVoted] = useState<"yes" | "no" | null>(null);
 
   return (
-    <section className="rounded-[1.6rem] border border-slate-900/10 bg-[#fcfbf8] p-5 shadow-[0_14px_30px_rgba(15,23,42,0.04)]">
+    <section className="rounded-[0.95rem] border border-slate-900/8 bg-white/82 p-5 shadow-[var(--shadow-soft)]">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-text-subtle">
@@ -22,14 +22,14 @@ export default function Feedback() {
           <div className="flex gap-3">
             <button
               onClick={() => setVoted("yes")}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-900/10 bg-white px-4 py-2 text-sm font-semibold text-slate-800 transition hover:border-primary/20 hover:text-primary"
+              className="tactile-button tactile-button-soft px-4 text-sm text-slate-800"
             >
               <ThumbsUp className="h-4 w-4" />
               Yes
             </button>
             <button
               onClick={() => setVoted("no")}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-900/10 bg-white px-4 py-2 text-sm font-semibold text-slate-800 transition hover:border-danger/20 hover:text-danger"
+              className="tactile-button tactile-button-soft px-4 text-sm text-slate-800 hover:text-danger"
             >
               <ThumbsDown className="h-4 w-4" />
               No

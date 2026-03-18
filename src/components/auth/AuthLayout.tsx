@@ -36,16 +36,16 @@ type AuthLayoutProps = {
 };
 
 export const AUTH_INPUT_CLASS =
-  "w-full rounded-[1.25rem] border border-slate-900/10 bg-[#fcfbf8] px-4 py-3 text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition focus:border-slate-900/15 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400";
+  "tactile-control w-full rounded-[12px] px-4 py-3 text-slate-900 transition focus:border-slate-900/15 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400";
 
 export const AUTH_HINT_PANEL_CLASS =
-  "rounded-[1.25rem] border border-slate-900/10 bg-[#fcfbf8] px-4 py-3 text-sm leading-6 text-slate-600";
+  "rounded-[14px] border border-slate-900/8 bg-white/82 px-4 py-3 text-sm leading-6 text-slate-600 shadow-[var(--shadow-soft)]";
 
 export const AUTH_PRIMARY_BUTTON_CLASS =
-  "inline-flex items-center justify-center rounded-[1.25rem] bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-70";
+  "tactile-button tactile-button-primary inline-flex px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70";
 
 export const AUTH_SECONDARY_BUTTON_CLASS =
-  "inline-flex items-center justify-center rounded-[1.25rem] border border-slate-900/10 bg-white px-4 py-3 text-sm font-semibold text-slate-800 transition hover:border-slate-900/15 hover:bg-[#fcfbf8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-300 disabled:cursor-not-allowed disabled:opacity-60";
+  "tactile-button tactile-button-soft inline-flex px-4 py-3 text-sm font-semibold text-slate-800 disabled:cursor-not-allowed disabled:opacity-60";
 
 export const AUTH_TEXT_LINK_CLASS =
   "font-semibold text-primary transition hover:text-primary-hover";
@@ -54,7 +54,7 @@ export const AUTH_CHECKBOX_CLASS =
   "h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/30";
 
 export const AUTH_CODE_INPUT_CLASS =
-  "h-12 w-full rounded-[1rem] border border-slate-900/10 bg-[#fcfbf8] text-center text-lg font-semibold text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition focus:border-slate-900/15 focus:outline-none focus:ring-2 focus:ring-primary/15";
+  "tactile-control h-12 w-full rounded-[12px] text-center text-lg font-semibold text-slate-900 transition focus:border-slate-900/15 focus:outline-none focus:ring-2 focus:ring-primary/15";
 
 function AuthLayoutTab({
   href,
@@ -69,10 +69,10 @@ function AuthLayoutTab({
     <Link
       href={href}
       className={clsx(
-        "flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition",
+        "flex min-h-10 items-center justify-center rounded-[12px] px-4 py-2 text-sm font-semibold transition",
         active
-          ? "bg-white text-slate-900 shadow-sm shadow-slate-900/5"
-          : "text-slate-500 hover:text-slate-800",
+          ? "bg-white text-slate-900 shadow-[var(--shadow-soft)]"
+          : "text-slate-500 hover:bg-white/70 hover:text-slate-800",
       )}
       aria-current={active ? "page" : undefined}
     >
@@ -101,10 +101,10 @@ function AuthSocialButton({
       href={href}
       onClick={handleClick}
       className={clsx(
-        "inline-flex items-center justify-center gap-3 rounded-[1.25rem] px-4 py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+        "inline-flex min-h-10 items-center justify-center gap-3 rounded-[12px] px-4 py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
         disabled
           ? "cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400 focus-visible:outline-slate-200"
-          : "border border-slate-900/10 bg-white text-slate-800 hover:border-slate-900/15 hover:bg-[#fcfbf8] focus-visible:outline-slate-300",
+          : "border border-slate-900/8 bg-white text-slate-800 shadow-[var(--shadow-soft)] hover:bg-[#fcfbf8] focus-visible:outline-slate-300",
       )}
       aria-disabled={disabled}
       tabIndex={disabled ? -1 : undefined}
@@ -135,7 +135,7 @@ export function AuthLayout({
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-background text-text transition-colors duration-150">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.56),rgba(255,255,255,0))]"
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.5),rgba(255,255,255,0))]"
       />
       <div
         aria-hidden
@@ -143,7 +143,7 @@ export function AuthLayout({
       />
 
       <main
-        className="relative flex flex-1 items-center justify-center px-4 py-12 sm:px-6 lg:px-8"
+        className="relative flex flex-1 items-center justify-center px-4 py-8 sm:px-6 lg:px-8"
         data-testid="auth-layout"
       >
         <div className="w-full max-w-[32rem]">
@@ -156,13 +156,13 @@ export function AuthLayout({
                 Svc.Plus
               </p>
             </Link>
-            <span className="rounded-full border border-slate-900/10 bg-white/90 px-3 py-1 text-xs font-semibold text-slate-600">
+            <span className="rounded-[12px] border border-slate-900/8 bg-white/88 px-3 py-1.5 text-xs font-semibold text-slate-600">
               {modeLabel}
             </span>
           </div>
 
-          <div className="overflow-hidden rounded-[2.25rem] border border-slate-900/10 bg-white/94 p-6 shadow-[0_22px_50px_rgba(15,23,42,0.05)] backdrop-blur sm:p-8">
-            <div className="grid grid-cols-2 gap-2 rounded-full bg-[#f3efe8] p-1">
+          <div className="overflow-hidden rounded-[1rem] border border-slate-900/8 bg-white/92 p-5 shadow-[var(--shadow-soft)] backdrop-blur sm:p-6">
+            <div className="grid grid-cols-2 gap-2 rounded-[14px] bg-surface-muted/70 p-1">
               <AuthLayoutTab href="/login" active={mode === "login"}>
                 Sign In
               </AuthLayoutTab>
@@ -173,7 +173,7 @@ export function AuthLayout({
 
             <div className="mt-6 space-y-6">
               {badge ? (
-                <span className="inline-flex items-center rounded-full border border-slate-900/10 bg-[#f8f4ec] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">
+                <span className="inline-flex items-center rounded-[12px] border border-slate-900/8 bg-white/84 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">
                   {badge}
                 </span>
               ) : null}
@@ -192,7 +192,7 @@ export function AuthLayout({
               {alert ? (
                 <div
                   className={clsx(
-                    "rounded-[1.25rem] border px-4 py-3 text-sm leading-6",
+                    "rounded-[14px] border px-4 py-3 text-sm leading-6 shadow-[var(--shadow-soft)]",
                     alert.type === "error"
                       ? "border-danger/20 bg-danger-muted text-danger-foreground"
                       : alert.type === "success"

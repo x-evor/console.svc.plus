@@ -1,96 +1,104 @@
+"use client";
 
-'use client'
+import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 
-import { useEffect, useMemo, useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import Header from "./components/Header";
+import Sidebar from "./components/Sidebar";
+import { getExtensionRegistry } from "@extensions/loader";
+import { useLanguage } from "@i18n/LanguageProvider";
+import { translations } from "@i18n/translations";
+import { resolveAccess, type AccessRule } from "@lib/accessControl";
+import { useUserStore } from "@lib/userStore";
 
-import Header from './components/Header'
-import Sidebar from './components/Sidebar'
-import { getExtensionRegistry } from '@extensions/loader'
-import { useLanguage } from '@i18n/LanguageProvider'
-import { translations } from '@i18n/translations'
-import { resolveAccess, type AccessRule } from '@lib/accessControl'
-import { useUserStore } from '@lib/userStore'
-
-const registry = getExtensionRegistry()
+const registry = getExtensionRegistry();
 
 type RouteGuard = {
-  path: string
-  match: 'exact' | 'startsWith'
+  path: string;
+  match: "exact" | "startsWith";
   redirect?: {
-    unauthenticated?: string
-    forbidden?: string
-  }
-  rule: AccessRule
-}
+    unauthenticated?: string;
+    forbidden?: string;
+  };
+  rule: AccessRule;
+};
 
-export default function PanelLayout({ children }: { children: React.ReactNode }) {
-  const [open, setOpen] = useState(false)
-  const [isCollapsed, setIsCollapsed] = useState(false)
-  const router = useRouter()
-  const pathname = usePathname()
-  const { language } = useLanguage()
-  const copy = translations[language].userCenter.mfa
-  const user = useUserStore((state) => state.user)
-  const isLoading = useUserStore((state) => state.isLoading)
-  const logout = useUserStore((state) => state.logout)
-  const requiresSetup = Boolean(user && !user.isReadOnly && (!user.mfaEnabled || user.mfaPending))
+export default function PanelLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+  const { language } = useLanguage();
+  const copy = translations[language].userCenter.mfa;
+  const user = useUserStore((state) => state.user);
+  const isLoading = useUserStore((state) => state.isLoading);
+  const logout = useUserStore((state) => state.logout);
+  const requiresSetup = Boolean(
+    user && !user.isReadOnly && (!user.mfaEnabled || user.mfaPending),
+  );
 
   const routeGuards = useMemo<RouteGuard[]>(() => {
     return registry.routes
       .filter((route) => route.guard)
       .map((route) => ({
         path: route.path,
-        match: route.match ?? 'exact',
+        match: route.match ?? "exact",
         redirect: route.redirect,
         rule: route.guard!,
       }))
-      .sort((a, b) => b.path.length - a.path.length)
-  }, [])
+      .sort((a, b) => b.path.length - a.path.length);
+  }, []);
 
   useEffect(() => {
     if (isLoading) {
-      return
+      return;
     }
 
     const guard = routeGuards.find((entry) =>
-      entry.match === 'startsWith' ? pathname.startsWith(entry.path) : pathname === entry.path,
-    )
+      entry.match === "startsWith"
+        ? pathname.startsWith(entry.path)
+        : pathname === entry.path,
+    );
     if (!guard) {
-      return
+      return;
     }
 
-    const decision = resolveAccess(user, guard.rule)
+    const decision = resolveAccess(user, guard.rule);
     if (!decision.allowed) {
-      const redirect = guard.redirect ?? {}
+      const redirect = guard.redirect ?? {};
       const destination =
-        decision.reason === 'unauthenticated'
-          ? redirect.unauthenticated ?? '/login'
-          : redirect.forbidden ?? redirect.unauthenticated ?? '/login'
+        decision.reason === "unauthenticated"
+          ? (redirect.unauthenticated ?? "/login")
+          : (redirect.forbidden ?? redirect.unauthenticated ?? "/login");
       if (destination && destination !== pathname) {
-        router.replace(destination)
+        router.replace(destination);
       }
     }
-  }, [isLoading, pathname, routeGuards, router, user])
+  }, [isLoading, pathname, routeGuards, router, user]);
 
   useEffect(() => {
-    if (!requiresSetup || pathname.startsWith('/panel/account')) {
-      return
+    if (!requiresSetup || pathname.startsWith("/panel/account")) {
+      return;
     }
-    router.replace('/panel/account?setupMfa=1')
-  }, [pathname, requiresSetup, router])
+    router.replace("/panel/account?setupMfa=1");
+  }, [pathname, requiresSetup, router]);
 
   const handleLogout = async () => {
-    await logout()
-    router.replace('/login')
-    router.refresh()
-  }
+    await logout();
+    router.replace("/login");
+    router.refresh();
+  };
 
   return (
     <div className="relative flex min-h-screen bg-gradient-to-br from-[var(--gradient-app-from)] via-[var(--gradient-app-via)] to-[var(--gradient-app-to)] text-[var(--color-text)]">
       <Sidebar
-        className={`fixed inset-y-0 left-0 z-40 transform transition-transform duration-200 ease-in-out md:static md:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-          }`}
+        className={`fixed inset-y-0 left-0 z-40 transform transition-transform duration-200 ease-in-out md:static md:translate-x-0 ${
+          open ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        }`}
         onNavigate={() => setOpen(false)}
         collapsed={isCollapsed}
       />
@@ -108,15 +116,15 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
           onCollapse={() => setIsCollapsed((prev) => !prev)}
           isCollapsed={isCollapsed}
         />
-        <main className="flex flex-1 flex-col space-y-6 bg-[var(--color-surface-translucent)] px-3 py-5 text-[var(--color-text)] transition-colors sm:px-4 md:px-6 lg:px-8">
+        <main className="flex flex-1 flex-col space-y-4 bg-transparent px-3 py-4 text-[var(--color-text)] transition-colors sm:px-4 md:px-5 lg:px-6">
           {requiresSetup ? (
-            <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-warning-muted)] bg-[var(--color-warning-muted)] p-4 text-sm text-[var(--color-warning-foreground)] transition-colors">
+            <div className="rounded-[14px] border border-[color:var(--color-warning-muted)] bg-[var(--color-warning-muted)]/90 p-4 text-sm text-[var(--color-warning-foreground)] shadow-[var(--shadow-soft)] transition-colors">
               <p className="text-sm">{copy.lockedMessage}</p>
               <div className="mt-3 flex flex-wrap gap-2 text-xs">
                 <button
                   type="button"
-                  onClick={() => router.replace('/panel/account?setupMfa=1')}
-                  className="inline-flex items-center justify-center rounded-md bg-[var(--color-primary)] px-3 py-1.5 text-sm font-medium text-[var(--color-primary-foreground)] shadow-[var(--shadow-sm)] transition-colors hover:bg-[var(--color-primary-hover)]"
+                  onClick={() => router.replace("/panel/account?setupMfa=1")}
+                  className="tactile-button tactile-button-primary px-3 text-sm"
                 >
                   {copy.actions.setup}
                 </button>
@@ -124,28 +132,30 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
                   href={copy.actions.docsUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center justify-center rounded-md border border-[color:var(--color-primary-border)] px-3 py-1.5 text-sm font-medium text-[var(--color-primary)] transition-colors hover:border-[color:var(--color-primary)] hover:bg-[var(--color-primary-muted)]"
+                  className="tactile-button tactile-button-soft border border-[color:var(--color-primary-border)] px-3 text-sm text-[var(--color-primary)]"
                 >
                   {copy.actions.docs}
                 </a>
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="inline-flex items-center justify-center rounded-md border border-transparent px-3 py-1.5 text-sm font-medium text-[var(--color-warning-foreground)] transition-colors hover:bg-[var(--color-warning-muted)]"
+                  className="tactile-button tactile-button-subtle px-3 text-sm text-[var(--color-warning-foreground)]"
                 >
                   {copy.actions.logout}
                 </button>
                 {isLoading ? (
-                  <span className="inline-flex items-center rounded-md border border-[color:var(--color-warning-muted)] bg-[var(--color-warning-muted)] px-3 py-1.5 text-xs text-[var(--color-warning-foreground)]">
+                  <span className="inline-flex min-h-10 items-center rounded-[12px] border border-[color:var(--color-warning-muted)] bg-[var(--color-warning-muted)] px-3 py-1.5 text-xs text-[var(--color-warning-foreground)]">
                     …
                   </span>
                 ) : null}
               </div>
             </div>
           ) : null}
-          <div className="flex w-full flex-1 flex-col gap-5 text-[var(--color-text)] transition-colors md:gap-6">{children}</div>
+          <div className="flex w-full flex-1 flex-col gap-4 rounded-[16px] border border-[color:var(--color-surface-border)] bg-white/72 p-3 text-[var(--color-text)] shadow-[var(--shadow-soft)] backdrop-blur md:gap-5 md:p-4">
+            {children}
+          </div>
         </main>
       </div>
     </div>
-  )
+  );
 }
