@@ -121,7 +121,7 @@ jobs:
 
       - name: Ensure Cloudflare DNS Records
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_DNS_API_TOKEN: ${{ secrets.CLOUDFLARE_DNS_API_TOKEN }}
           CLOUDFLARE_ZONE_TAG: ${{ vars.CLOUDFLARE_ZONE_TAG }}
         run: >
           bash scripts/github-actions/ensure-frontend-dns.sh

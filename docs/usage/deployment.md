@@ -67,7 +67,8 @@ Secrets required:
 - `VAULT_TOKEN` if used
 - `AI_GATEWAY_ACCESS_TOKEN` if used
 - `INTERNAL_SERVICE_TOKEN` if used
-- `CLOUDFLARE_API_TOKEN` if used
+- `CLOUDFLARE_DNS_API_TOKEN` for the Cloudflare DNS stage
+- `CLOUDFLARE_API_TOKEN` if homepage Cloudflare analytics are enabled at runtime
 
 Repository/environment variables recommended:
 

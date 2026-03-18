@@ -48,7 +48,7 @@ upsert_record() {
 
   response="$(
     curl -fsS \
-      -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+      -H "Authorization: Bearer ${CLOUDFLARE_DNS_API_TOKEN}" \
       -H "Content-Type: application/json" \
       "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_TAG}/dns_records?type=A&name=${domain}"
   )"
@@ -63,7 +63,7 @@ upsert_record() {
   if [[ -n "${record_id}" ]]; then
     response="$(
       curl -fsS -X PUT \
-        -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+        -H "Authorization: Bearer ${CLOUDFLARE_DNS_API_TOKEN}" \
         -H "Content-Type: application/json" \
         --data "${payload}" \
         "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_TAG}/dns_records/${record_id}"
@@ -71,7 +71,7 @@ upsert_record() {
   else
     response="$(
       curl -fsS -X POST \
-        -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+        -H "Authorization: Bearer ${CLOUDFLARE_DNS_API_TOKEN}" \
         -H "Content-Type: application/json" \
         --data "${payload}" \
         "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_TAG}/dns_records"
@@ -87,7 +87,7 @@ upsert_record() {
 }
 
 if [[ "${DRY_RUN}" != "true" ]]; then
-  require_env CLOUDFLARE_API_TOKEN
+  require_env CLOUDFLARE_DNS_API_TOKEN
   require_env CLOUDFLARE_ZONE_TAG
 fi
 
