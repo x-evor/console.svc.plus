@@ -161,6 +161,156 @@ button {
     font-family: var(--font-editorial-display);
     letter-spacing: -0.04em;
   }
+
+  .public-doc-prose {
+    max-width: none;
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    line-height: 1.85;
+  }
+
+  .public-doc-prose > :first-child {
+    margin-top: 0;
+  }
+
+  .public-doc-prose > :last-child {
+    margin-bottom: 0;
+  }
+
+  .public-doc-prose h1,
+  .public-doc-prose h2,
+  .public-doc-prose h3,
+  .public-doc-prose h4,
+  .public-doc-prose h5,
+  .public-doc-prose h6 {
+    scroll-margin-top: calc(var(--app-shell-nav-offset) + 1rem);
+    margin-top: 2.75rem;
+    margin-bottom: 0.9rem;
+    color: var(--color-heading);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 1.08;
+  }
+
+  .public-doc-prose h1 {
+    font-size: clamp(2rem, 4vw, 2.9rem);
+  }
+
+  .public-doc-prose h2 {
+    font-size: clamp(1.55rem, 2.2vw, 2rem);
+  }
+
+  .public-doc-prose h3 {
+    font-size: clamp(1.25rem, 1.8vw, 1.5rem);
+  }
+
+  .public-doc-prose p,
+  .public-doc-prose ul,
+  .public-doc-prose ol,
+  .public-doc-prose blockquote,
+  .public-doc-prose pre,
+  .public-doc-prose table {
+    margin: 1rem 0;
+  }
+
+  .public-doc-prose p,
+  .public-doc-prose li {
+    color: var(--color-text-muted);
+    line-height: 1.85;
+  }
+
+  .public-doc-prose strong {
+    color: var(--color-heading);
+    font-weight: 600;
+  }
+
+  .public-doc-prose a {
+    color: var(--color-primary);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .public-doc-prose a:hover {
+    text-decoration: underline;
+  }
+
+  .public-doc-prose ul,
+  .public-doc-prose ol {
+    padding-left: 1.35rem;
+  }
+
+  .public-doc-prose li + li {
+    margin-top: 0.35rem;
+  }
+
+  .public-doc-prose code {
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 999px;
+    background: #f8f4ec;
+    padding: 0.12rem 0.42rem;
+    color: var(--color-heading);
+    font-family: var(--font-geist-mono);
+    font-size: 0.92em;
+  }
+
+  .public-doc-prose pre {
+    overflow-x: auto;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 1.25rem;
+    background: #f5f2eb;
+    padding: 1rem 1.15rem;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+
+  .public-doc-prose pre code {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: 0.92rem;
+  }
+
+  .public-doc-prose blockquote {
+    border-left: 2px solid rgba(51, 102, 255, 0.24);
+    border-radius: 0 1rem 1rem 0;
+    background: rgba(248, 244, 236, 0.78);
+    padding: 0.75rem 0 0.75rem 1rem;
+    color: var(--color-heading);
+  }
+
+  .public-doc-prose hr {
+    margin: 2rem 0;
+    border: none;
+    border-top: 1px solid var(--color-divider);
+  }
+
+  .public-doc-prose table {
+    width: 100%;
+    border-collapse: collapse;
+    overflow: hidden;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 1rem;
+  }
+
+  .public-doc-prose th,
+  .public-doc-prose td {
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    padding: 0.8rem 1rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .public-doc-prose th {
+    background: rgba(248, 244, 236, 0.82);
+    color: var(--color-heading);
+    font-weight: 600;
+  }
+
+  .public-doc-prose img {
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 1rem;
+  }
 }
 
 @media (max-width: 1023px) {
