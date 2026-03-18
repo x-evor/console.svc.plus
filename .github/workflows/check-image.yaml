@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Authenticate to GHCR
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        uses: ./.github/actions/docker-login
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
