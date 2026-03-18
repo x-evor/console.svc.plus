@@ -556,12 +556,14 @@ export function XWorkmateWorkspacePage({
   scopeKey,
   requestHost,
   initialPrompt = "",
+  initialSessionKey = "",
 }: {
   defaults: IntegrationDefaults;
   profile?: XWorkmateProfileResponse | null;
   scopeKey: string;
   requestHost?: string;
   initialPrompt?: string;
+  initialSessionKey?: string;
 }) {
   const { language } = useLanguage();
   const isChinese = language === "zh";
@@ -573,6 +575,9 @@ export function XWorkmateWorkspacePage({
 
   const setScope = useOpenClawConsoleStore((state) => state.setScope);
   const applyDefaults = useOpenClawConsoleStore((state) => state.applyDefaults);
+  const setSelectedSessionKey = useOpenClawConsoleStore(
+    (state) => state.setSelectedSessionKey,
+  );
   const openclawUrl = useOpenClawConsoleStore((state) => state.openclawUrl);
   const vaultUrl = useOpenClawConsoleStore((state) => state.vaultUrl);
   const apisixUrl = useOpenClawConsoleStore((state) => state.apisixUrl);
@@ -585,6 +590,13 @@ export function XWorkmateWorkspacePage({
   useEffect(() => {
     setComposerValue(initialPrompt);
   }, [initialPrompt]);
+
+  useEffect(() => {
+    if (!initialSessionKey.trim()) {
+      return;
+    }
+    setSelectedSessionKey(initialSessionKey);
+  }, [initialSessionKey, setSelectedSessionKey]);
 
   const sections = useMemo(() => createSections(isChinese), [isChinese]);
   const activeDefinition =

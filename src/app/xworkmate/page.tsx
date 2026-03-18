@@ -15,7 +15,7 @@ export const metadata = {
 export default async function XWorkmatePage({
   searchParams,
 }: {
-  searchParams?: Promise<{ prompt?: string }>;
+  searchParams?: Promise<{ prompt?: string; sessionKey?: string }>;
 }) {
   const defaults = getConsoleIntegrationDefaults();
   const scopeKey = buildXWorkmateScopeKey(null, null);
@@ -24,6 +24,10 @@ export default async function XWorkmatePage({
     typeof resolvedSearchParams?.prompt === "string"
       ? resolvedSearchParams.prompt
       : "";
+  const initialSessionKey =
+    typeof resolvedSearchParams?.sessionKey === "string"
+      ? resolvedSearchParams.sessionKey
+      : "";
 
   return (
     <div className="h-[calc(100vh-var(--app-shell-nav-offset))] w-full">
@@ -31,6 +35,7 @@ export default async function XWorkmatePage({
         <XWorkmateWorkspacePage
           defaults={defaults}
           initialPrompt={initialPrompt}
+          initialSessionKey={initialSessionKey}
           scopeKey={scopeKey}
         />
       </Suspense>

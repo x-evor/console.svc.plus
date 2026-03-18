@@ -2,7 +2,6 @@
 
 export const dynamic = "error";
 
-import { useState } from "react";
 import {
   AppWindow,
   ArrowRight,
@@ -16,20 +15,14 @@ import {
   Terminal,
   Users,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import useSWR from "swr";
 
 import type { IntegrationDefaults } from "@/lib/openclaw/types";
-import { useUserStore } from "@/lib/userStore";
-import { XWorkmateAssistantShell } from "@/components/xworkmate/XWorkmateAssistantShell";
+import { GatewayHero } from "@/components/home/GatewayHero";
 import Footer from "../components/Footer";
 import UnifiedNavigation from "../components/UnifiedNavigation";
 import { useLanguage } from "../i18n/LanguageProvider";
 import { translations } from "../i18n/translations";
-import {
-  DEFAULT_HOMEPAGE_VIDEO_SETTINGS,
-  type ResolvedHomepageVideoResponse,
-} from "../lib/home/homepageVideo";
 import { useMoltbotStore } from "../lib/moltbotStore";
 import { cn } from "../lib/utils";
 
@@ -84,33 +77,6 @@ const iconMap: Record<string, any> = {
 
 const getIcon = (key: string, fallback: any) => iconMap[key] || fallback;
 
-async function jsonFetcher<T>(
-  input: RequestInfo,
-  init?: RequestInit,
-): Promise<T> {
-  const response = await fetch(input, {
-    ...init,
-    credentials: "include",
-    headers: {
-      Accept: "application/json",
-      ...(init?.headers instanceof Headers
-        ? Object.fromEntries(init.headers.entries())
-        : init?.headers),
-    },
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    const payload = (await response.json().catch(() => ({}))) as {
-      error?: string;
-      message?: string;
-    };
-    throw new Error(payload.error ?? payload.message ?? "请求失败");
-  }
-
-  return (await response.json()) as T;
-}
-
 export default function HomePage() {
   const { mode, isOpen } = useMoltbotStore();
 
@@ -146,287 +112,23 @@ export default function HomePage() {
 }
 
 export function HeroSection() {
-  const { language } = useLanguage();
-  const isChinese = language === "zh";
-  const router = useRouter();
-  const user = useUserStore((state) => state.user);
-  const [heroPrompt, setHeroPrompt] = useState("");
   const assistantDefaultsSWR = useSWR<IntegrationDefaults>(
     "/api/integrations/defaults",
-    jsonFetcher,
-    {
-      revalidateOnFocus: false,
-    },
-  );
-  const homepageVideoSWR = useSWR<ResolvedHomepageVideoResponse>(
-    "/api/homepage-video",
-    jsonFetcher,
-    {
-      fallbackData: {
-        resolved: DEFAULT_HOMEPAGE_VIDEO_SETTINGS.defaultEntry,
-      },
-      revalidateOnFocus: false,
-    },
-  );
-  const homeStatsSWR = useSWR<HomeStatsResponse>(
-    "/api/marketing/home-stats",
     async (url: string) => {
-      const response = await fetch(url, { cache: "no-store" });
+      const response = await fetch(url, {
+        cache: "no-store",
+        credentials: "include",
+      });
       if (!response.ok) {
-        throw new Error(`Failed to load home stats: ${response.status}`);
+        throw new Error(`Failed to load integrations defaults: ${response.status}`);
       }
-      return (await response.json()) as HomeStatsResponse;
+      return (await response.json()) as IntegrationDefaults;
     },
     {
-      refreshInterval: 60 * 60 * 1000,
       revalidateOnFocus: false,
-      shouldRetryOnError: false,
     },
   );
-  const entry =
-    homepageVideoSWR.data?.resolved ??
-    DEFAULT_HOMEPAGE_VIDEO_SETTINGS.defaultEntry;
-  const stats = homeStatsSWR.data;
-  const locale = isChinese ? "zh-CN" : "en-US";
-  const compactFormatter = new Intl.NumberFormat(locale, {
-    notation: "compact",
-    maximumFractionDigits: 1,
-  });
-  const displayName =
-    user?.name?.trim() ||
-    user?.username?.trim() ||
-    user?.email?.split("@")[0] ||
-    (isChinese ? "朋友" : "there");
-  const dailyVisitsValue =
-    typeof stats?.visits?.daily === "number"
-      ? compactFormatter.format(stats.visits.daily)
-      : isChinese
-        ? "同步中"
-        : "Syncing";
-  const registeredUsersValue =
-    typeof stats?.registeredUsers === "number"
-      ? compactFormatter.format(stats.registeredUsers)
-      : isChinese
-        ? "同步中"
-        : "Syncing";
-
-  const heroCopy = isChinese
-    ? {
-        eyebrow: "AI Native Workspace",
-        subtitle: "从想法到上线，AI 自动完成构建、部署与优化。",
-        demoLabel: "动态欢迎",
-        greeting: "早上好",
-        todayStatus: "今日状态",
-        statusItems: [
-          { label: "服务", value: "正常" },
-          { label: "今日访问", value: dailyVisitsValue },
-          { label: "注册用户", value: registeredUsersValue },
-        ],
-        prompt: "有什么想问的？",
-        quickLinksLabel: "快速入口",
-        quickLinks: ["常用工具", "最近使用", "产品演示"],
-        helperNote: "个性化、状态感知、即时信息",
-        sourceLink: "打开原始链接",
-        maximizeLabel: "最大化到 XWorkmate",
-      }
-    : {
-        eyebrow: "AI Native Workspace",
-        subtitle:
-          "From idea to launch, AI can assemble, deploy, and optimize the work.",
-        demoLabel: "Dynamic welcome",
-        greeting: "Good morning",
-        todayStatus: "Today",
-        statusItems: [
-          { label: "Service", value: "Healthy" },
-          { label: "Daily visits", value: dailyVisitsValue },
-          { label: "Registered", value: registeredUsersValue },
-        ],
-        prompt: "What would you like to ask?",
-        quickLinksLabel: "Quick access",
-        quickLinks: ["Tools", "Recent", "Demo"],
-        helperNote: "Personal, status-aware, and instantly actionable.",
-        sourceLink: "Open source link",
-        maximizeLabel: "Open in XWorkmate",
-      };
-
-  const openXWorkmate = () => {
-    const query = heroPrompt.trim();
-    router.push(
-      query.length > 0
-        ? `/xworkmate?prompt=${encodeURIComponent(query)}`
-        : "/xworkmate",
-    );
-  };
-
-  return (
-    <section className="relative overflow-hidden rounded-[1.25rem] border border-slate-900/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.98))] p-3.5 shadow-[var(--shadow-md)] sm:p-4 lg:p-5">
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute left-[5%] top-[3%] h-[16rem] w-[16rem] rounded-full bg-[radial-gradient(circle,rgba(51,102,255,0.15),transparent_60%)] blur-3xl" />
-        <div className="absolute right-[8%] top-[5%] h-[14rem] w-[14rem] rounded-full bg-[radial-gradient(circle,rgba(76,139,245,0.12),transparent_65%)] blur-3xl" />
-        <div className="absolute inset-x-0 top-0 h-[20rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.85),rgba(255,255,255,0)_75%)]" />
-      </div>
-
-      <div className="relative space-y-4">
-        <div className="overflow-hidden rounded-[1.1rem] border border-slate-900/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.98))] shadow-[var(--shadow-md)] backdrop-blur-sm">
-          <div className="border-b border-slate-900/10 px-5 py-3.5 sm:px-5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className={HOME_SECTION_LABEL_CLASS}>
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                  {heroCopy.demoLabel}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4 p-4 sm:p-4.5">
-            <div className="rounded-[1rem] border border-slate-900/8 bg-slate-50/85 p-4 shadow-[var(--shadow-soft)]">
-              <div className="max-w-[40rem] space-y-5 font-[ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace] text-[15px] leading-8 text-slate-700">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-[1.05rem] text-slate-800">
-                    <span aria-hidden>{isChinese ? "☀️" : "☀"}</span>
-                    <span>
-                      {heroCopy.greeting}, {displayName}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <p className="font-semibold text-slate-800">
-                    {heroCopy.todayStatus}:
-                  </p>
-                  <div className="space-y-0.5">
-                    {heroCopy.statusItems.map((item) => (
-                      <p key={item.label} className="text-slate-700">
-                        ├ {item.label}:{" "}
-                        <span className="font-semibold text-slate-900">
-                          {item.value}
-                        </span>
-                      </p>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="rounded-[0.9rem] border border-slate-900/15 bg-white/86 p-3 shadow-[var(--shadow-sm)]">
-                  <textarea
-                    value={heroPrompt}
-                    onChange={(event) => setHeroPrompt(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (
-                        (event.metaKey || event.ctrlKey) &&
-                        event.key === "Enter"
-                      ) {
-                        event.preventDefault();
-                        openXWorkmate();
-                      }
-                    }}
-                    placeholder={heroCopy.prompt}
-                    className="min-h-[120px] w-full resize-none bg-transparent px-1 py-1 text-[1rem] leading-8 text-slate-700 outline-none placeholder:text-slate-500"
-                  />
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-900/10 pt-3">
-                    <div className="text-xs text-slate-500">
-                      {isChinese
-                        ? "输入一句话，进入完整工作台继续对话。"
-                        : "Start here, then continue in the full workspace."}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={openXWorkmate}
-                      className="tactile-button tactile-button-primary px-4 py-2 text-sm"
-                    >
-                      {heroCopy.maximizeLabel}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 text-slate-700">
-                  <span className="font-medium">
-                    {heroCopy.quickLinksLabel}:
-                  </span>
-                  {heroCopy.quickLinks.map((item) => (
-                    <button
-                      type="button"
-                      key={item}
-                      onClick={() => setHeroPrompt(item)}
-                      className="rounded-[10px] border border-slate-900/10 bg-white/82 px-3 py-1 text-[13px] text-slate-700"
-                    >
-                      {item}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2.5">
-              <p className={HOME_SECTION_LABEL_CLASS}>{heroCopy.eyebrow}</p>
-              <p className="max-w-3xl text-[1rem] leading-[1.75] text-text-muted sm:text-[1.05rem]">
-                {heroCopy.subtitle}
-              </p>
-              <div className="flex flex-wrap items-center gap-2.5 text-xs text-slate-500">
-                <a
-                  href={entry.videoUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="tactile-button tactile-button-subtle px-3.5 py-2 text-slate-700 hover:text-primary"
-                >
-                  {heroCopy.sourceLink}
-                </a>
-                <div className="text-sm leading-6 text-text-subtle">
-                  {heroCopy.helperNote}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mx-auto w-full max-w-[1120px]">
-          <div className="overflow-hidden rounded-[1.1rem] border border-slate-900/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.98))] shadow-[var(--shadow-md)] backdrop-blur-sm">
-            <div className="border-b border-slate-900/10 px-5 py-3.5 sm:px-5">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className={HOME_SECTION_LABEL_CLASS}>
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                    {isChinese ? "X 助手" : "X Assistant"}
-                  </p>
-                </div>
-                <span className="hidden rounded-[14px] border border-slate-900/8 bg-white/88 px-3.5 py-1.5 text-xs font-semibold text-slate-600 sm:inline-flex shadow-sm">
-                  {isChinese ? "对话即入口" : "Prompt-first"}
-                </span>
-              </div>
-            </div>
-
-            <div className="p-4 sm:p-4.5">
-              <XWorkmateAssistantShell
-                mode="hero"
-                isChinese={isChinese}
-                prompt={heroPrompt}
-                onPromptChange={setHeroPrompt}
-                connected={Boolean(
-                  (
-                    assistantDefaultsSWR.data ?? EMPTY_ASSISTANT_DEFAULTS
-                  ).openclawUrl.trim(),
-                )}
-                endpointLabel={
-                  (assistantDefaultsSWR.data ?? EMPTY_ASSISTANT_DEFAULTS)
-                    .openclawUrl
-                }
-                showConnectionStatus={false}
-                secondaryActionLabel={heroCopy.maximizeLabel}
-                onExpand={(nextPrompt) => {
-                  const query = nextPrompt?.trim();
-                  router.push(
-                    query
-                      ? `/xworkmate?prompt=${encodeURIComponent(query)}`
-                      : "/xworkmate",
-                  );
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
+  return <GatewayHero defaults={assistantDefaultsSWR.data ?? EMPTY_ASSISTANT_DEFAULTS} />;
 }
 
 export function StatsSection() {
