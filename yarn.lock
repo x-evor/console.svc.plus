@@ -6849,6 +6849,7 @@ __metadata:
     qrcode: "npm:^1.5.4"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
+    react-draggable: "npm:^4.5.0"
     react-grid-layout: "npm:^1.4.4"
     react-pdf: "npm:^9.1.0"
     react-resizable: "npm:^3.0.4"

@@ -91,7 +91,7 @@ export function GatewayHero({
         }}
       />
 
-      <div className="relative z-10 max-w-5xl mx-auto flex flex-col items-center">
+      <div className="relative z-10 max-w-7xl mx-auto flex flex-col items-center">
         {/* Header */}
         <div className="w-full flex justify-between items-center mb-10">
           <div className="flex items-center gap-4">
