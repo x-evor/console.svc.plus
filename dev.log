@@ -1,31 +1,39 @@
+▲ Next.js 16.1.6 (Turbopack)
 
-> dashboard@1.0.0 dev
-> bash scripts/Dev-MCP-Server.sh && next dev --turbo
-
-[MCP] Cleaning stale Chrome processes...
-[MCP] Starting Chrome (remote debugging)...
-[MCP] Waiting for Chrome DevTools endpoint...
-[MCP] Chrome DevTools ready on port 9222
-[MCP] (Optional) Pre-warming chrome-devtools-mcp...
-[MCP] Done. You can now run: npm run dev
-▲ Next.js 16.1.2 (Turbopack)
 - Local:         http://localhost:3000
 - Network:       http://192.168.0.2:3000
 
 ✓ Starting...
-✓ Ready in 2.5s
-○ Compiling /services ...
- GET /services 200 in 6.8s (compile: 6.4s, render: 327ms)
+
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+
+✓ Ready in 4.4s
+
+○ Compiling / ...
+
+ GET / 200 in 11.8s (compile: 11.0s, render: 755ms)
+
+ GET / 200 in 513ms (compile: 159ms, render: 354ms)
+
+ GET /api/integrations/defaults 200 in 1276ms (compile: 1242ms, render: 35ms)
+
 [runtime-config] Loaded env: PROD
- GET /api/auth/session 200 in 1021ms (compile: 993ms, render: 29ms)
- GET /services 200 in 87ms (compile: 5ms, render: 82ms)
- GET /api/auth/session 200 in 11ms (compile: 3ms, render: 7ms)
-✓ Compiled in 310ms
- GET /services 200 in 441ms (compile: 149ms, render: 293ms)
- GET /api/auth/session 200 in 16ms (compile: 5ms, render: 10ms)
- GET /services 200 in 252ms (compile: 100ms, render: 152ms)
- GET /api/auth/session 200 in 14ms (compile: 5ms, render: 8ms)
- GET /services 200 in 251ms (compile: 86ms, render: 165ms)
- GET /api/auth/session 200 in 13ms (compile: 4ms, render: 8ms)
- GET /services 200 in 281ms (compile: 94ms, render: 187ms)
- GET /api/auth/session 200 in 12ms (compile: 4ms, render: 8ms)
+
+ GET /api/auth/session 200 in 2.2s (compile: 2.2s, render: 15ms)
+
+ GET /api/marketing/home-stats 200 in 1435ms (compile: 1425ms, render: 9ms)
+
+ GET / 200 in 150ms (compile: 5ms, render: 145ms)
+
+ GET /api/auth/session 200 in 16ms (compile: 4ms, render: 12ms)
+
+ GET /api/integrations/defaults 200 in 20ms (compile: 12ms, render: 8ms)
+
+ GET /api/marketing/home-stats 200 in 29ms (compile: 22ms, render: 7ms)
+
+ GET /api/blogs/latest?limit=7 200 in 37ms (compile: 29ms, render: 8ms)

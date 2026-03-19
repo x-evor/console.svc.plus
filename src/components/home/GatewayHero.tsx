@@ -1,12 +1,14 @@
 "use client";
 
 import {
+  Search,
   ArrowRight,
   Cloud,
-  Send,
-  Sparkles,
-  SunMedium,
-  Workflow,
+  Bell,
+  Sun,
+  Wrench,
+  History,
+  Globe,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -14,22 +16,7 @@ import { useState } from "react";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import type { IntegrationDefaults } from "@/lib/openclaw/types";
 import { useUserStore } from "@/lib/userStore";
-import { cn } from "@/lib/utils";
-import {
-  buildHomeGatewayHeroViewModel,
-  type HomeGatewayStatusNode,
-} from "@/components/home/gatewayHeroModel";
 import { useGatewayHero } from "@/components/home/useGatewayHero";
-
-function toneClasses(tone: HomeGatewayStatusNode["tone"]): string {
-  if (tone === "healthy") {
-    return "border-lime-300/70 bg-lime-50/90 text-lime-950";
-  }
-  if (tone === "warning") {
-    return "border-amber-300/70 bg-amber-50/95 text-amber-950";
-  }
-  return "border-slate-200 bg-white/90 text-slate-900";
-}
 
 function resolveDisplayName(params: {
   isChinese: boolean;
@@ -65,8 +52,7 @@ export function GatewayHero({
   const router = useRouter();
   const user = useUserStore((state) => state.user);
   const [prompt, setPrompt] = useState("");
-  const { bootstrap, bootstrapError, bootstrapLoading, gatewayConfigured, sendPrompt, sendState } =
-    useGatewayHero(defaults);
+  const { bootstrap, sendState } = useGatewayHero(defaults);
 
   const displayName = resolveDisplayName({
     isChinese,
@@ -74,37 +60,9 @@ export function GatewayHero({
     username: user?.username,
     email: user?.email,
   });
-  const model = buildHomeGatewayHeroViewModel({
-    isChinese,
-    displayName,
-    bootstrap,
-    bootstrapError,
-    connected: gatewayConfigured && !bootstrapError,
-  });
-  const badgeClass =
-    model.statusTone === "healthy"
-      ? "bg-lime-400 text-lime-950 shadow-[0_0_30px_rgba(163,230,53,0.55)]"
-      : model.statusTone === "warning"
-        ? "bg-amber-300 text-amber-950"
-        : "bg-slate-200 text-slate-700";
-  const periodAccent =
-    model.period === "morning"
-      ? "from-lime-100/90 via-white to-sky-50"
-      : model.period === "afternoon"
-        ? "from-amber-50 via-white to-cyan-50"
-        : model.period === "evening"
-          ? "from-emerald-50 via-white to-slate-100"
-          : "from-slate-100 via-white to-indigo-50";
-  const responseText = sendState.responseText.trim();
+
   const sessionKey =
     sendState.activeSessionKey || bootstrap?.activeSessionKey || "";
-
-  async function handleSend(): Promise<void> {
-    if (!prompt.trim()) {
-      return;
-    }
-    await sendPrompt(prompt);
-  }
 
   function openWorkspace(): void {
     const query = new URLSearchParams();
@@ -118,232 +76,194 @@ export function GatewayHero({
     router.push(suffix ? `/xworkmate?${suffix}` : "/xworkmate");
   }
 
-  return (
-    <section className="relative overflow-hidden rounded-[1.6rem] border border-lime-200/85 bg-white shadow-[0_24px_70px_rgba(143,214,38,0.12)]">
-      <div
-        aria-hidden
-        className={cn(
-          "pointer-events-none absolute inset-0 bg-gradient-to-br",
-          periodAccent,
-        )}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(163,230,53,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(163,230,53,0.08)_1px,transparent_1px)] bg-[size:32px_32px] opacity-40"
-      />
-      <div className="relative p-5 sm:p-6 lg:p-8">
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-lime-200 bg-white/85 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-600">
-                <SunMedium className="h-3.5 w-3.5 text-lime-600" />
-                {model.panelLabel}
-              </div>
-              <div className="space-y-1">
-                <p className="text-[1.05rem] font-semibold text-slate-800">
-                  {model.greeting}
-                </p>
-                <h1 className="text-[2rem] font-semibold tracking-[-0.05em] text-slate-950 sm:text-[2.35rem]">
-                  {model.headline}
-                </h1>
-                <p className="max-w-2xl text-[15px] leading-7 text-slate-600 sm:text-[16px]">
-                  {model.summary}
-                </p>
-              </div>
-            </div>
+  function handleInputSubmit() {
+    if (!prompt.trim()) return;
+    openWorkspace();
+  }
 
-            <div className="flex items-start gap-3 self-start rounded-[1.2rem] border border-white/80 bg-white/85 px-4 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)] backdrop-blur">
-              <div
-                className={cn(
-                  "flex h-12 w-12 items-center justify-center rounded-full text-sm font-bold",
-                  badgeClass,
-                )}
-              >
-                {model.statusTone === "healthy" ? "✓" : model.statusTone === "warning" ? "!" : "·"}
+  return (
+    <section className="relative w-full overflow-hidden bg-[#fafafa] pt-12 pb-16 px-6 lg:px-12 font-sans rounded-3xl border border-gray-100 shadow-sm">
+      <div
+        className="absolute inset-0 z-0 opacity-40 pointer-events-none"
+        style={{
+          backgroundImage: `linear-gradient(to right, #e5e7eb 1px, transparent 1px), linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)`,
+          backgroundSize: "40px 40px",
+        }}
+      />
+
+      <div className="relative z-10 max-w-5xl mx-auto flex flex-col items-center">
+        {/* Header */}
+        <div className="w-full flex justify-between items-center mb-10">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center w-12 h-12 bg-blue-100 text-blue-500 rounded-2xl shadow-sm">
+              <Sun size={24} className="text-blue-500" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+              {isChinese ? "早上好，" : "Good morning, "}{displayName}
+            </h1>
+          </div>
+          <div className="flex flex-col items-end">
+            <span className="text-xs font-semibold tracking-wider text-gray-500 mb-1">
+              SYSTEM STATUS
+            </span>
+            <div className="flex items-center gap-1.5 text-blue-500 font-bold text-sm tracking-wide">
+              <span className="w-2 h-2 rounded-full bg-blue-500 opacity-50"></span>
+              OPTIMIZED
+            </div>
+          </div>
+        </div>
+
+        {/* 3 Top Cards */}
+        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          {/* Services Card */}
+          <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+            <div className="text-sm font-semibold text-gray-800 mb-4">
+              Services
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-blue-500 flex items-baseline gap-1 font-mono tracking-tight">
+                Normal <span className="w-2 h-2 rounded-full bg-blue-500 mb-1"></span>
               </div>
-              <div>
-                <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                  {isChinese ? "首屏状态" : "Hero Status"}
-                </div>
-                <div className="mt-1 text-[1.6rem] font-semibold tracking-[-0.05em] text-slate-950">
-                  {model.statusBadge}
-                </div>
-                <p className="mt-1 max-w-[18rem] text-sm leading-6 text-slate-600">
-                  {model.statusDescription}
-                </p>
+              <div className="text-xs text-gray-400 mt-2 font-medium">
+                All 12 microservices active
               </div>
             </div>
           </div>
 
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
-            <div className="rounded-[1.35rem] border border-lime-200/80 bg-white/88 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.05)]">
-              <div className="flex items-center gap-3">
-                <div className="h-3 w-3 rounded-full bg-lime-400 shadow-[0_0_18px_rgba(163,230,53,0.9)]" />
-                <div className="h-px flex-1 bg-lime-200" />
+          {/* Clusters Card */}
+          <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 flex flex-col justify-between relative">
+            <div className="flex justify-between items-start mb-4">
+              <div className="text-sm font-semibold text-gray-800">Clusters</div>
+              <Cloud className="text-gray-400 w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl font-bold text-gray-900 tracking-tight">
+                  4/4
+                </span>
+                <span className="text-xs font-semibold text-gray-400 tracking-wider">
+                  ONLINE
+                </span>
               </div>
-              <div className="mt-5 space-y-5">
-                {model.statusNodes.map((node) => (
-                  <div key={node.key} className="flex items-center gap-4">
-                    <div className="relative flex w-[9.5rem] items-center gap-3 text-[1rem] font-semibold text-slate-800">
-                      <div className="h-3 w-3 rounded-full bg-lime-400 shadow-[0_0_12px_rgba(163,230,53,0.75)]" />
-                      <span>{node.label}</span>
-                    </div>
-                    <div className="h-10 w-px bg-slate-200" />
-                    <div className={cn("min-w-0 rounded-full border px-4 py-2 text-lg font-semibold", toneClasses(node.tone))}>
-                      {node.value}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-[1rem] border border-slate-200 bg-slate-50/90 p-4">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                    <Workflow className="h-4 w-4 text-slate-500" />
-                    {isChinese ? "最近会话" : "Recent Sessions"}
-                  </div>
-                  <div className="mt-3 space-y-2">
-                    {model.recentSessions.length > 0 ? (
-                      model.recentSessions.map((session) => (
-                        <div
-                          key={session.key}
-                          className="rounded-[0.9rem] border border-white bg-white/90 px-3 py-2 text-sm text-slate-700"
-                        >
-                          {session.derivedTitle ||
-                            session.displayName ||
-                            session.lastMessagePreview ||
-                            session.key}
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm leading-6 text-slate-500">
-                        {isChinese
-                          ? "当前还没有可展示的会话摘要。"
-                          : "No recent session summary is available yet."}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="rounded-[1rem] border border-slate-200 bg-slate-50/90 p-4">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                    <Cloud className="h-4 w-4 text-slate-500" />
-                    {isChinese ? "可用代理" : "Available Agents"}
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {model.featuredAgents.length > 0 ? (
-                      model.featuredAgents.map((agent) => (
-                        <div
-                          key={agent.id}
-                          className="inline-flex items-center gap-2 rounded-full border border-white bg-white/95 px-3 py-2 text-sm font-medium text-slate-700"
-                        >
-                          <Sparkles className="h-3.5 w-3.5 text-lime-600" />
-                          {agent.name}
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm leading-6 text-slate-500">
-                        {isChinese
-                          ? "未从 Gateway 拉到代理摘要，先使用默认助手。"
-                          : "No agent summary was returned yet, so the default assistant remains available."}
-                      </p>
-                    )}
-                  </div>
-                </div>
+              <div className="w-full h-1.5 bg-blue-100 rounded-full mt-3">
+                <div className="w-full h-full bg-blue-300 rounded-full"></div>
               </div>
             </div>
+          </div>
 
-            <div className="rounded-[1.35rem] border border-sky-200/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(241,247,255,0.95))] p-4 shadow-[0_22px_45px_rgba(96,165,250,0.14)]">
-              <div className="rounded-[1.1rem] border border-white/80 bg-white/95 p-4 shadow-[inset_0_0_0_1px_rgba(148,163,184,0.08)]">
-                <textarea
-                  value={prompt}
-                  onChange={(event) => setPrompt(event.target.value)}
-                  onKeyDown={(event) => {
-                    if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-                      event.preventDefault();
-                      void handleSend();
-                    }
-                  }}
-                  placeholder={
-                    isChinese ? "有什么想问的？" : "What would you like to ask?"
-                  }
-                  className="min-h-[150px] w-full resize-none bg-transparent text-[1.05rem] leading-8 text-slate-700 outline-none placeholder:text-slate-400"
-                />
-                <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
-                  <div className="text-xs leading-5 text-slate-500">
-                    {gatewayConfigured
-                      ? isChinese
-                        ? "首页会直接通过 Gateway 发起首轮对话。"
-                        : "The homepage sends the first live turn through the gateway."
-                      : isChinese
-                        ? "当前未配置 Gateway，可先跳到 XWorkmate。"
-                        : "Gateway is not configured yet. You can continue in XWorkmate."}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => void handleSend()}
-                    disabled={!prompt.trim() || sendState.isSending || !gatewayConfigured}
-                    className="tactile-button tactile-button-primary min-h-10 px-4 text-sm disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    <Send className="h-4 w-4" />
-                    {sendState.isSending
-                      ? isChinese
-                        ? "发送中"
-                        : "Sending"
-                      : isChinese
-                        ? "发送"
-                        : "Send"}
-                  </button>
+          {/* Alerts Card */}
+          <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 flex flex-col justify-between relative">
+            <div className="flex justify-between items-start mb-4">
+              <div className="text-sm font-semibold text-gray-800">Alerts</div>
+              <Bell className="text-gray-400 w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl font-bold text-gray-300 tracking-tight">
+                  0
+                </span>
+                <span className="text-xs font-semibold text-gray-400 tracking-wider">
+                  CRITICAL
+                </span>
+              </div>
+              <div className="text-xs text-gray-400 mt-3 font-medium">
+                Last check: 2 mins ago
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Central Prompt Input Bar */}
+        <div className="w-full max-w-4xl bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-2 flex items-center mb-10 transition-shadow focus-within:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
+          <div className="pl-4 pr-2 text-gray-400">
+            <Search className="w-6 h-6" />
+          </div>
+          <input
+            type="text"
+            className="flex-1 bg-transparent border-none outline-none text-lg text-gray-700 placeholder:text-gray-400 px-2 py-3"
+            placeholder={
+              isChinese ? "有什么想问的？" : "What would you like to ask?"
+            }
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleInputSubmit();
+              }
+            }}
+          />
+          <button
+            className="w-12 h-12 bg-blue-500 hover:bg-blue-600 transition-colors rounded-full flex items-center justify-center text-white shadow-md disabled:opacity-50 ml-2"
+            onClick={handleInputSubmit}
+            disabled={!prompt.trim()}
+          >
+            <ArrowRight className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Quick Access */}
+        <div className="flex flex-col items-center mb-12">
+          <div className="text-xs font-semibold tracking-widest text-gray-400 mb-4 uppercase">
+            Quick Access
+          </div>
+          <div className="flex gap-3">
+            <button className="flex items-center gap-2 bg-blue-100 hover:bg-blue-200 text-blue-600 px-5 py-2.5 rounded-full text-sm font-medium transition-colors">
+              <Wrench className="w-4 h-4" />
+              {isChinese ? "常用工具" : "Common Tools"}
+            </button>
+            <button className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-600 px-5 py-2.5 rounded-full text-sm font-medium border border-gray-100 shadow-sm transition-colors">
+              <History className="w-4 h-4" />
+              {isChinese ? "最近使用" : "Recent"}
+            </button>
+          </div>
+        </div>
+
+        {/* 2 Bottom Cards */}
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Network Load Card */}
+          <div className="bg-[#f5f5f7] rounded-[2rem] p-8 shadow-sm border border-gray-100 overflow-hidden relative min-h-[220px]">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              Network Load
+            </h3>
+            <p className="text-sm text-gray-500">
+              Real-time traffic distribution across global nodes.
+            </p>
+
+            {/* Bar Chart Mockup */}
+            <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between px-6 gap-2 h-32">
+              <div className="w-full bg-[#d0e1fd] rounded-t-full h-[30%]"></div>
+              <div className="w-full bg-[#d0e1fd] rounded-t-full h-[50%]"></div>
+              <div className="w-full bg-[#d0e1fd] rounded-t-full h-[65%]"></div>
+              <div className="w-full bg-[#abc5fa] rounded-t-full h-[90%]"></div>
+              <div className="w-full bg-[#d0e1fd] rounded-t-full h-[45%]"></div>
+              <div className="w-full bg-[#d0e1fd] rounded-t-full h-[35%]"></div>
+              <div className="w-full bg-[#d0e1fd] rounded-t-full h-[55%]"></div>
+            </div>
+          </div>
+
+          {/* Global Mesh Card */}
+          <div className="bg-[#111] rounded-[2rem] p-8 shadow-lg overflow-hidden relative min-h-[220px] text-white">
+            {/* Background globe glow effect mockup */}
+            <div className="absolute -right-10 -bottom-10 w-72 h-72 bg-blue-900/30 rounded-full blur-3xl"></div>
+            <div className="absolute right-0 top-0 w-64 h-64 bg-emerald-900/20 rounded-full blur-3xl"></div>
+
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <div className="inline-block bg-blue-500 text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-wider mb-4 uppercase">
+                  Active Deployment
                 </div>
+                <h3 className="text-2xl font-bold text-white">Global Mesh</h3>
               </div>
 
-              <div className="mt-4 rounded-[1rem] border border-slate-200 bg-white/92 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="text-sm font-semibold text-slate-700">
-                    {isChinese ? "快速入口" : "Quick Access"}
+              <div className="flex justify-between items-end mt-12">
+                <div>
+                  <div className="text-[10px] font-bold tracking-wider text-gray-400 mb-1 uppercase">
+                    Latency
                   </div>
-                  <button
-                    type="button"
-                    onClick={openWorkspace}
-                    className="inline-flex items-center gap-1 text-sm font-semibold text-slate-500 transition hover:text-slate-900"
-                  >
-                    {isChinese ? "继续到工作台" : "Continue in workspace"}
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
+                  <div className="text-xl font-bold">24ms</div>
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {model.quickPrompts.map((item) => (
-                    <button
-                      type="button"
-                      key={item}
-                      onClick={() => setPrompt(item)}
-                      className="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 transition hover:border-lime-300 hover:bg-lime-50"
-                    >
-                      {item}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-4 rounded-[1rem] border border-slate-200 bg-white/92 p-4">
-                <div className="text-sm font-semibold text-slate-700">
-                  {isChinese ? "首轮演示结果" : "First Turn Demo"}
-                </div>
-                <div className="mt-3 min-h-[120px] rounded-[0.95rem] border border-dashed border-slate-200 bg-slate-50/75 p-4 text-sm leading-7 text-slate-600">
-                  {sendState.errorMessage ? (
-                    <p className="text-amber-700">{sendState.errorMessage}</p>
-                  ) : responseText ? (
-                    <p>{responseText}</p>
-                  ) : bootstrapLoading ? (
-                    <p>{isChinese ? "正在同步 Gateway 状态…" : "Syncing gateway state…"}</p>
-                  ) : (
-                    <p>
-                      {isChinese
-                        ? "发送一个 prompt，这里会显示首页首轮真实响应。"
-                        : "Send a prompt to show the first live response directly on the homepage."}
-                    </p>
-                  )}
-                </div>
+                <Globe className="w-6 h-6 text-gray-300" />
               </div>
             </div>
           </div>

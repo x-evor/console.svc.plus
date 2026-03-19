@@ -96,12 +96,12 @@ export default function HomePage() {
       >
         <div className="relative flex-1 overflow-y-auto">
           <div className="relative w-full px-2 pb-10 sm:px-3 sm:pb-12 lg:px-4">
-            <main className="relative space-y-4 pt-4 sm:space-y-5 sm:pt-5">
+            <main className="relative space-y-6 pt-4 sm:space-y-8 sm:pt-6">
               <HeroSection />
               <StatsSection />
               <ShortcutsSection />
             </main>
-            <div className="relative">
+            <div className="relative mt-12">
               <Footer />
             </div>
           </div>
