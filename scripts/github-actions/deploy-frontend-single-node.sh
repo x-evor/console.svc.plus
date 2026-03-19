@@ -64,7 +64,72 @@ SCP_BASE=(
   -o UserKnownHostsFile="${KNOWN_HOSTS_FILE}"
 )
 
-printf '%s' "${GHCR_PASSWORD}" | "${SSH_BASE[@]}" "docker login '${GHCR_REGISTRY}' -u '${GHCR_USERNAME}' --password-stdin"
+printf '%s' "${GHCR_PASSWORD}" | "${SSH_BASE[@]}" \
+  "GHCR_REGISTRY='${GHCR_REGISTRY}' GHCR_USERNAME='${GHCR_USERNAME}' bash -s" <<'EOF'
+set -euo pipefail
+
+require_sudo_prefix() {
+  if [[ "${EUID}" -eq 0 ]]; then
+    return 0
+  fi
+
+  if command -v sudo >/dev/null 2>&1 && sudo -n true >/dev/null 2>&1; then
+    printf 'sudo -n'
+    return 0
+  fi
+
+  echo "Remote host requires root or passwordless sudo to install or manage Docker." >&2
+  exit 1
+}
+
+ensure_docker() {
+  if command -v docker >/dev/null 2>&1; then
+    return 0
+  fi
+
+  local sudo_prefix
+  sudo_prefix="$(require_sudo_prefix)"
+
+  if command -v apt-get >/dev/null 2>&1; then
+    ${sudo_prefix} apt-get update
+    if ! DEBIAN_FRONTEND=noninteractive ${sudo_prefix} apt-get install -y docker.io docker-compose-plugin; then
+      DEBIAN_FRONTEND=noninteractive ${sudo_prefix} apt-get install -y docker.io docker-compose-v2
+    fi
+
+    if command -v systemctl >/dev/null 2>&1; then
+      ${sudo_prefix} systemctl enable --now docker
+    else
+      ${sudo_prefix} service docker start
+    fi
+
+    return 0
+  fi
+
+  echo "Docker is not installed and this script only knows how to install it on apt-based hosts." >&2
+  exit 1
+}
+
+docker_runner() {
+  if docker info >/dev/null 2>&1; then
+    return 0
+  fi
+
+  local sudo_prefix
+  sudo_prefix="$(require_sudo_prefix)"
+
+  if ${sudo_prefix} docker info >/dev/null 2>&1; then
+    printf '%s' "${sudo_prefix}"
+    return 0
+  fi
+
+  echo "Docker is installed but not accessible for the deploy user." >&2
+  exit 1
+}
+
+ensure_docker
+docker_prefix="$(docker_runner)"
+printf '%s' "${GHCR_PASSWORD}" | ${docker_prefix:+${docker_prefix} }docker login "${GHCR_REGISTRY}" -u "${GHCR_USERNAME}" --password-stdin
+EOF
 
 "${SCP_BASE[@]}" "${RELEASE_ARCHIVE}" "${DEPLOY_USER}@${DEPLOY_HOST}:${REMOTE_ARCHIVE}"
 
@@ -72,8 +137,69 @@ printf '%s' "${GHCR_PASSWORD}" | "${SSH_BASE[@]}" "docker login '${GHCR_REGISTRY
   "DEPLOY_DIR='${DEPLOY_DIR}' REMOTE_ARCHIVE='${REMOTE_ARCHIVE}' PROJECT_NAME='console-svc-plus' bash -s" <<'EOF'
 set -euo pipefail
 
+require_sudo_prefix() {
+  if [[ "${EUID}" -eq 0 ]]; then
+    return 0
+  fi
+
+  if command -v sudo >/dev/null 2>&1 && sudo -n true >/dev/null 2>&1; then
+    printf 'sudo -n'
+    return 0
+  fi
+
+  echo "Remote host requires root or passwordless sudo to install or manage Docker." >&2
+  exit 1
+}
+
+ensure_docker() {
+  if command -v docker >/dev/null 2>&1; then
+    return 0
+  fi
+
+  local sudo_prefix
+  sudo_prefix="$(require_sudo_prefix)"
+
+  if command -v apt-get >/dev/null 2>&1; then
+    ${sudo_prefix} apt-get update
+    if ! DEBIAN_FRONTEND=noninteractive ${sudo_prefix} apt-get install -y docker.io docker-compose-plugin; then
+      DEBIAN_FRONTEND=noninteractive ${sudo_prefix} apt-get install -y docker.io docker-compose-v2
+    fi
+
+    if command -v systemctl >/dev/null 2>&1; then
+      ${sudo_prefix} systemctl enable --now docker
+    else
+      ${sudo_prefix} service docker start
+    fi
+
+    return 0
+  fi
+
+  echo "Docker is not installed and this script only knows how to install it on apt-based hosts." >&2
+  exit 1
+}
+
+docker_runner() {
+  if docker info >/dev/null 2>&1; then
+    return 0
+  fi
+
+  local sudo_prefix
+  sudo_prefix="$(require_sudo_prefix)"
+
+  if ${sudo_prefix} docker info >/dev/null 2>&1; then
+    printf '%s' "${sudo_prefix}"
+    return 0
+  fi
+
+  echo "Docker is installed but not accessible for the deploy user." >&2
+  exit 1
+}
+
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "${tmp_dir}" "${REMOTE_ARCHIVE}"' EXIT
+
+ensure_docker
+docker_prefix="$(docker_runner)"
 
 mkdir -p "${DEPLOY_DIR}"
 tar -xzf "${REMOTE_ARCHIVE}" -C "${tmp_dir}"
@@ -83,8 +209,8 @@ install -m 0644 "${tmp_dir}/Caddyfile" "${DEPLOY_DIR}/Caddyfile"
 install -m 0600 "${tmp_dir}/.env.runtime" "${DEPLOY_DIR}/.env.runtime"
 
 cd "${DEPLOY_DIR}"
-docker compose --project-name "${PROJECT_NAME}" --env-file .env.runtime pull dashboard caddy
-docker compose --project-name "${PROJECT_NAME}" --env-file .env.runtime run --rm frontend-assets
-docker compose --project-name "${PROJECT_NAME}" --env-file .env.runtime up -d --remove-orphans dashboard caddy
-docker compose --project-name "${PROJECT_NAME}" --env-file .env.runtime ps
+${docker_prefix:+${docker_prefix} }docker compose --project-name "${PROJECT_NAME}" --env-file .env.runtime pull dashboard caddy
+${docker_prefix:+${docker_prefix} }docker compose --project-name "${PROJECT_NAME}" --env-file .env.runtime run --rm frontend-assets
+${docker_prefix:+${docker_prefix} }docker compose --project-name "${PROJECT_NAME}" --env-file .env.runtime up -d --remove-orphans dashboard caddy
+${docker_prefix:+${docker_prefix} }docker compose --project-name "${PROJECT_NAME}" --env-file .env.runtime ps
 EOF
