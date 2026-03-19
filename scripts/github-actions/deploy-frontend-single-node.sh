@@ -17,7 +17,7 @@ require_env() {
 require_env DEPLOY_HOST
 require_env DEPLOY_USER
 require_env DEPLOY_DIR
-require_env SSH_PRIVATE_KEY
+require_env SINGLE_NODE_VPS_SSH_PRIVATE_KEY
 require_env GHCR_USERNAME
 require_env GHCR_PASSWORD
 require_env FRONTEND_IMAGE
@@ -45,7 +45,7 @@ tar -C "${WORK_DIR}" -czf "${RELEASE_ARCHIVE}" \
   Caddyfile \
   .env.runtime
 
-printf '%s\n' "${SSH_PRIVATE_KEY}" > "${SSH_KEY_FILE}"
+printf '%s\n' "${SINGLE_NODE_VPS_SSH_PRIVATE_KEY}" > "${SSH_KEY_FILE}"
 chmod 600 "${SSH_KEY_FILE}"
 ssh-keyscan -H "${DEPLOY_HOST}" > "${KNOWN_HOSTS_FILE}"
 

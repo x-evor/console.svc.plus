@@ -149,7 +149,7 @@ jobs:
           GHCR_REGISTRY: ${{ env.GHCR_REGISTRY }}
           GHCR_USERNAME: ${{ env.GHCR_USERNAME }}
           GHCR_PASSWORD: ${{ secrets.GHCR_TOKEN }}
-          SSH_PRIVATE_KEY: ${{ secrets.FRONTEND_DEPLOY_SSH_KEY }}
+          SINGLE_NODE_VPS_SSH_PRIVATE_KEY: ${{ secrets.FRONTEND_DEPLOY_SSH_KEY }}
           FRONTEND_IMAGE: ${{ needs.stage-1-build-image.outputs.image_ref }}
           APP_BASE_URL: ${{ vars.APP_BASE_URL || format('https://{0}', env.PRIMARY_DOMAIN) }}
           NEXT_PUBLIC_APP_BASE_URL: ${{ vars.NEXT_PUBLIC_APP_BASE_URL || format('https://{0}', env.PRIMARY_DOMAIN) }}
