@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { resolveCredentialReady } from "@/lib/integrations/credentialStatus";
 import type { IntegrationDefaults } from "@/lib/openclaw/types";
 import { useOpenClawConsoleStore } from "@/state/openclawConsoleStore";
 
@@ -199,10 +200,14 @@ export function IntegrationsConsole({
         key: "openclaw",
         label: "OpenClaw Gateway",
         configured: Boolean(openclawUrl.trim()),
-        tokenConfigured:
-          resolvedDefaults.openclawTokenConfigured ||
-          Boolean(vaultSecretPath.trim() && (vaultToken.trim() || resolvedDefaults.vaultTokenConfigured)) ||
-          Boolean(openclawToken.trim()),
+        tokenConfigured: resolveCredentialReady({
+          inlineToken: openclawToken,
+          storedTokenConfigured: resolvedDefaults.openclawTokenConfigured,
+          vaultUrl,
+          vaultSecretPath,
+          vaultAuthToken: vaultToken,
+          storedVaultAuthConfigured: resolvedDefaults.vaultTokenConfigured,
+        }),
       },
       {
         key: "vault",
@@ -215,8 +220,14 @@ export function IntegrationsConsole({
         key: "apisix",
         label: "APISIX AI Gateway",
         configured: Boolean(apisixUrl.trim()),
-        tokenConfigured:
-          resolvedDefaults.apisixTokenConfigured || Boolean(apisixToken.trim()),
+        tokenConfigured: resolveCredentialReady({
+          inlineToken: apisixToken,
+          storedTokenConfigured: resolvedDefaults.apisixTokenConfigured,
+          vaultUrl,
+          vaultSecretPath,
+          vaultAuthToken: vaultToken,
+          storedVaultAuthConfigured: resolvedDefaults.vaultTokenConfigured,
+        }),
       },
     ],
     [
@@ -332,7 +343,9 @@ export function IntegrationsConsole({
                   </p>
                   <p className="mt-1 text-xs text-[var(--color-text-subtle)]">
                     {item.configured ? "address ready" : "missing address"} ·{" "}
-                    {item.tokenConfigured ? "token ready" : "token pending"}
+                    {item.tokenConfigured
+                      ? "credential path ready"
+                      : "credential pending"}
                   </p>
                 </div>
                 <StatusBadge

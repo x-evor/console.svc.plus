@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
+import { resolveCredentialReady } from "@/lib/integrations/credentialStatus";
 import type { IntegrationDefaults } from "@/lib/openclaw/types";
 import type { XWorkmateProfileResponse } from "@/lib/xworkmate/types";
 import { toXWorkmateIntegrationDefaults } from "@/lib/xworkmate/types";
@@ -147,10 +148,14 @@ export function XWorkmateProfileEditor({
         key: "openclaw",
         label: "OpenClaw",
         configured: Boolean(openclawUrl.trim()),
-        tokenConfigured:
-          payload.tokenConfigured.openclaw ||
-          Boolean(vaultSecretPath.trim()) ||
-          Boolean(openclawToken.trim()),
+        tokenConfigured: resolveCredentialReady({
+          inlineToken: openclawToken,
+          storedTokenConfigured: payload.tokenConfigured.openclaw,
+          vaultUrl,
+          vaultSecretPath,
+          vaultAuthToken: vaultToken,
+          storedVaultAuthConfigured: payload.tokenConfigured.vault,
+        }),
       },
       {
         key: "vault",
@@ -163,8 +168,14 @@ export function XWorkmateProfileEditor({
         key: "apisix",
         label: "APISIX",
         configured: Boolean(apisixUrl.trim()),
-        tokenConfigured:
-          payload.tokenConfigured.apisix || Boolean(apisixToken.trim()),
+        tokenConfigured: resolveCredentialReady({
+          inlineToken: apisixToken,
+          storedTokenConfigured: payload.tokenConfigured.apisix,
+          vaultUrl,
+          vaultSecretPath,
+          vaultAuthToken: vaultToken,
+          storedVaultAuthConfigured: payload.tokenConfigured.vault,
+        }),
       },
     ],
     [
