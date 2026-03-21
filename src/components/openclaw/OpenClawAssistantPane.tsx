@@ -55,6 +55,7 @@ type OpenClawAssistantPaneProps = {
   variant?: "page" | "sidebar";
   showConversation?: boolean;
   emptyConversationHint?: string;
+  integrationsHref?: string;
   onStateChange?: (state: OpenClawAssistantViewState) => void;
 };
 
@@ -401,6 +402,7 @@ export function OpenClawAssistantPane({
   variant = "page",
   showConversation = true,
   emptyConversationHint,
+  integrationsHref = "/panel/api",
   onStateChange,
 }: OpenClawAssistantPaneProps) {
   const router = useRouter();
@@ -1292,7 +1294,7 @@ export function OpenClawAssistantPane({
 
               <button
                 type="button"
-                onClick={() => router.push("/panel/api")}
+                onClick={() => router.push(integrationsHref)}
                 className="tactile-button tactile-button-primary border border-[color:var(--color-primary-border)] px-3 text-xs text-[var(--color-primary-foreground)]"
                 title={copy.integrations}
               >
@@ -1378,7 +1380,7 @@ export function OpenClawAssistantPane({
               </div>
               <button
                 type="button"
-                onClick={() => router.push("/panel/api")}
+                onClick={() => router.push(integrationsHref)}
                 className="tactile-button tactile-button-primary px-4 text-sm"
               >
                 {copy.openIntegrations}
