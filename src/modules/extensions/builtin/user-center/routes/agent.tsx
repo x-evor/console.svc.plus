@@ -8,6 +8,7 @@ import Breadcrumbs from '@/app/panel/components/Breadcrumbs'
 import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'
 import { useUserStore } from '@lib/userStore'
+import { fetchAgentNodes } from '../lib/fetchAgentNodes'
 import { fetchSandboxNodeBinding } from '../lib/sandboxNodeBinding'
 
 
@@ -35,33 +36,11 @@ function isDisplayableNode(node: VlessNode): boolean {
   return true
 }
 
-async function fetcher(url: string): Promise<VlessNode[]> {
-  const res = await fetch(url, { credentials: 'include', cache: 'no-store' })
-
-  const payload = await res.json().catch(() => null)
-  if (!res.ok) {
-    const message =
-      (payload && typeof payload.message === 'string' && payload.message) ||
-      (payload && typeof payload.error === 'string' && payload.error) ||
-      `Request failed (${res.status})`
-    throw new Error(message)
-  }
-
-  if (Array.isArray(payload)) {
-    return payload as VlessNode[]
-  }
-  if (payload && Array.isArray((payload as { nodes?: unknown }).nodes)) {
-    return (payload as { nodes: VlessNode[] }).nodes
-  }
-
-  return []
-}
-
 export default function UserCenterAgentRoute() {
   const { language } = useLanguage()
   const t = translations[language].userCenter
   const user = useUserStore((state) => state.user)
-  const { data: nodes, error, isLoading, mutate } = useSWR<VlessNode[]>('/api/agent-server/v1/nodes', fetcher)
+  const { data: nodes, error, isLoading, mutate } = useSWR<VlessNode[]>('user-center-agent-nodes', fetchAgentNodes)
   const [boundNode, setBoundNode] = useState<VlessNode | null>(null)
   const normalizedEmail = user?.email?.toLowerCase() ?? ''
   const isGuestSandboxReadOnly = Boolean(

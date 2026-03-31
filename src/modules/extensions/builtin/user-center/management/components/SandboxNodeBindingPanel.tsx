@@ -4,37 +4,11 @@ import { useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
 
 import Card from '../../components/Card'
+import { fetchAgentNodes } from '../../lib/fetchAgentNodes'
 import type { VlessNode } from '../../lib/vless'
 
-async function fetcher(url: string): Promise<VlessNode[]> {
-  const response = await fetch(url, {
-    credentials: 'include',
-    cache: 'no-store',
-    headers: {
-      Accept: 'application/json',
-    },
-  })
-
-  const payload = await response.json().catch(() => null)
-  if (!response.ok) {
-    const message =
-      (payload && typeof payload.message === 'string' && payload.message) ||
-      (payload && typeof payload.error === 'string' && payload.error) ||
-      `Request failed (${response.status})`
-    throw new Error(message)
-  }
-
-  if (Array.isArray(payload)) {
-    return payload as VlessNode[]
-  }
-  if (payload && Array.isArray((payload as { nodes?: unknown }).nodes)) {
-    return (payload as { nodes: VlessNode[] }).nodes
-  }
-  return []
-}
-
 export default function SandboxNodeBindingPanel() {
-  const { data: nodes, error, isLoading } = useSWR<VlessNode[]>('/api/agent-server/v1/nodes', fetcher, {
+  const { data: nodes, error, isLoading } = useSWR<VlessNode[]>('user-center-agent-nodes', fetchAgentNodes, {
     revalidateOnFocus: false,
   })
   const [message, setMessage] = useState<string | null>(null)
