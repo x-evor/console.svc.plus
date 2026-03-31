@@ -18,5 +18,6 @@ fi
 {
   printf 'ghcr_namespace=%s\n' "${GHCR_NAMESPACE}"
   printf 'image_tag=%s\n' "${IMAGE_TAG}"
-  printf 'image_ref=%s/%s/dashboard:%s\n' "${GHCR_REGISTRY}" "${GHCR_NAMESPACE}" "${IMAGE_TAG}"
+  printf 'image_ref=%s/%s/console:%s\n' "${GHCR_REGISTRY}" "${GHCR_NAMESPACE}" "${IMAGE_TAG}"
+  printf 'image_latest_ref=%s/%s/console:latest\n' "${GHCR_REGISTRY}" "${GHCR_NAMESPACE}"
 } >> "${GITHUB_OUTPUT}"
