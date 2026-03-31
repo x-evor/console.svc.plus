@@ -7,9 +7,9 @@ services:
       - -c
       - |
         set -eu
-        rm -rf /assets/_next /assets/public
-        mkdir -p /assets/_next/static /assets/public
-        cp -R /app/dashboard/static/. /assets/_next/static
+        rm -rf /assets/_next /assets/chunks /assets/public
+        mkdir -p /assets /assets/public
+        cp -R /app/dashboard/static/. /assets/
         cp -R /app/dashboard/public/. /assets/public
     volumes:
       - frontend_static:/assets
@@ -22,6 +22,8 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
+    volumes:
+      - frontend_static:/app/dashboard/.next/static:ro
     networks:
       - frontend
 
