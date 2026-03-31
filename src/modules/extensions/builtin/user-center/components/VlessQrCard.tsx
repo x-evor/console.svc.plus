@@ -14,28 +14,7 @@ import {
   VlessNode,
   VlessTransport,
 } from '../lib/vless'
-
-async function fetcher(url: string): Promise<VlessNode[]> {
-  const res = await fetch(url, { credentials: 'include', cache: 'no-store' })
-  const payload = await res.json().catch(() => null)
-
-  if (!res.ok) {
-    const message =
-      (payload && typeof payload.message === 'string' && payload.message) ||
-      (payload && typeof payload.error === 'string' && payload.error) ||
-      `Request failed (${res.status})`
-    throw new Error(message)
-  }
-
-  if (Array.isArray(payload)) {
-    return payload as VlessNode[]
-  }
-  if (payload && Array.isArray((payload as { nodes?: unknown }).nodes)) {
-    return (payload as { nodes: VlessNode[] }).nodes
-  }
-
-  return []
-}
+import { fetchAgentNodes } from '../lib/fetchAgentNodes'
 
 export type VlessQrCopy = {
   label: string
@@ -65,7 +44,7 @@ export default function VlessQrCard({
   allowSandboxFallbackNode = false,
   boundNodeAddress,
 }: VlessQrCardProps) {
-  const { data: allNodes, error: nodesError } = useSWR<VlessNode[]>('/api/agent-server/v1/nodes', fetcher)
+  const { data: allNodes, error: nodesError } = useSWR<VlessNode[]>('user-center-agent-nodes', fetchAgentNodes)
 
   const nodes = useMemo(() => {
     return (allNodes ?? []).filter((node) => {
