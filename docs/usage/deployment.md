@@ -4,11 +4,11 @@
 
 - Runtime: `console.svc.plus`
 - Topology: `Caddy + Docker Compose + GitHub Actions`
-- Deploy host: `root@47.120.61.35`
+- Deploy host: `root@cn-console.svc.plus`
 - Public domains:
-  - `https://cn.svc.plus`
-  - `https://cn.onwalk.net`
-- Primary origin: `https://cn.svc.plus`
+  - `https://cn-console.svc.plus`
+  - `https://cn-console.onwalk.net`
+- Primary origin: `https://cn-console.svc.plus`
 
 ## Current Delivery Model
 
@@ -24,7 +24,7 @@ This is intentionally static-first for the current weak-IO single-node host. Dyn
 
 ## Control Plane & DNS Stage
 
-The control repo (`github-org-x-evor`) tracks `console.svc.plus` through `console.svc.plus.code-workspace` and keeps the `subrepos/accounts.svc.plus` pointer in sync via `skills/cross-repo-upstream-submodule-sync`. Releases resolve metadata with that workspace and the `config/single-node-release` manifests. After `.github/workflows/service_release_frontend-deploy.yml` finishes pushing the new image, the control-plane workflow `.github/workflows/service_release_apiserver-deploy.yml` calls `scripts/github-actions/update-release-dns.sh` to update Cloudflare DNS so the new endpoint is reachable under `cn.svc.plus` and `cn.onwalk.net`.
+The control repo (`github-org-x-evor`) tracks `console.svc.plus` through `console.svc.plus.code-workspace` and keeps the `subrepos/accounts.svc.plus` pointer in sync via `skills/cross-repo-upstream-submodule-sync`. Releases resolve metadata with that workspace and the `config/single-node-release` manifests. After `.github/workflows/service_release_frontend-deploy.yml` finishes pushing the new image, the control-plane workflow `.github/workflows/service_release_apiserver-deploy.yml` calls `scripts/github-actions/update-release-dns.sh` to update Cloudflare DNS so the new endpoint is reachable under `cn-console.svc.plus` and `cn-console.onwalk.net`.
 
 ## Runtime Layout
 
@@ -95,10 +95,10 @@ Repository/environment variables recommended:
 2. Docker builds the frontend image with the public `NEXT_PUBLIC_*` values needed at build time.
 3. The image is pushed to GHCR.
 4. The workflow runs a matrix DNS stage, updating one public domain per job.
-5. The workflow renders `.env.runtime`, including docs service runtime endpoints.
+5. The workflow renders `.env.runtime`, including docs service runtime endpoints and the `cn-console` origin settings.
 6. The workflow uploads `docker-compose.yml`, `Caddyfile`, and `.env.runtime` to the host.
 7. The host pulls the new image, refreshes the static asset volume, and starts `dashboard + caddy`.
-8. The workflow verifies `cn.svc.plus` and `cn.onwalk.net`.
+8. The workflow verifies `cn-console.svc.plus` and `cn-console.onwalk.net`.
 
 ## Verification Commands
 
@@ -122,10 +122,10 @@ PY
 Remote checks:
 
 ```bash
-ssh root@47.120.61.35 "cd /opt/console-svc-plus && docker compose --env-file .env.runtime ps"
-ssh root@47.120.61.35 "curl -fsSI -H 'Host: cn.svc.plus' http://127.0.0.1/"
-curl -fsSIL https://cn.svc.plus
-curl -fsSIL https://cn.onwalk.net
+ssh root@cn-console.svc.plus "cd /opt/console-svc-plus && docker compose --env-file .env.runtime ps"
+ssh root@cn-console.svc.plus "curl -fsSI -H 'Host: cn-console.svc.plus' http://127.0.0.1/"
+curl -fsSIL https://cn-console.svc.plus
+curl -fsSIL https://cn-console.onwalk.net
 ```
 
 ## Failure Signatures
@@ -134,9 +134,9 @@ curl -fsSIL https://cn.onwalk.net
   The workflow token or package visibility is wrong.
 - `frontend-assets` fails
   The image layout changed and no longer contains `/app/dashboard/static` or `/app/dashboard/public`.
-- `cn.svc.plus` returns `502`
+- `cn-console.svc.plus` returns `502`
   Caddy is up, but the `dashboard` container failed or is not reachable on port `3000`.
-- `cn.onwalk.net` does not redirect
+- `cn-console.onwalk.net` does not redirect
   Check the deployed `Caddyfile` and domain DNS.
 
 ## Rollback
@@ -146,8 +146,8 @@ curl -fsSIL https://cn.onwalk.net
 3. Restart the services:
 
 ```bash
-ssh root@47.120.61.35 "cd /opt/console-svc-plus && docker compose --env-file .env.runtime run --rm frontend-assets"
-ssh root@47.120.61.35 "cd /opt/console-svc-plus && docker compose --env-file .env.runtime up -d dashboard caddy"
+ssh root@cn-console.svc.plus "cd /opt/console-svc-plus && docker compose --env-file .env.runtime run --rm frontend-assets"
+ssh root@cn-console.svc.plus "cd /opt/console-svc-plus && docker compose --env-file .env.runtime up -d dashboard caddy"
 ```
 
-4. Verify `https://cn.svc.plus` again before closing the incident.
+4. Verify `https://cn-console.svc.plus` again before closing the incident.

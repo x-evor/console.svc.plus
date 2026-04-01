@@ -3,10 +3,10 @@
 ## Scope
 
 - Repository: `console.svc.plus`
-- Target host: `root@47.120.61.35`
+- Target host: `root@cn-console.svc.plus`
 - Public domains:
-  - `cn.svc.plus`
-  - `cn.onwalk.net`
+  - `cn-console.svc.plus`
+  - `cn-console.onwalk.net`
 - Delivery mode: `GitHub Actions + GHCR + Caddy + Docker Compose`
 
 This document defines the deployment baseline for the China-facing frontend node. The source of truth is this upstream repository. The control-plane repository may consume the repo through git submodule, but should not become the primary place where this deployment design lives.
@@ -26,7 +26,7 @@ The result should support repeatable releases, quick rollback by image tag, and 
 
 ### Host constraints
 
-- `47.120.61.35` is a single-node host
+- `cn-console.svc.plus` is a single-node host
 - deployment user is `root`
 - local image build on the host is explicitly disallowed
 - IO pressure should be minimized during release
@@ -140,16 +140,16 @@ Temporary nature:
 
 Primary domain:
 
-- `cn.svc.plus`
+- `cn-console.svc.plus`
 
 Secondary domain:
 
-- `cn.onwalk.net`
+- `cn-console.onwalk.net`
 
 Current routing decision:
 
 - Caddy accepts both domains
-- requests for `cn.onwalk.net` are redirected permanently to `cn.svc.plus`
+- requests for `cn-console.onwalk.net` are redirected permanently to `cn-console.svc.plus`
 
 Reason:
 
@@ -200,7 +200,7 @@ Rollback steps:
 1. set `FRONTEND_IMAGE` to a previous known-good tag
 2. rerun `frontend-assets`
 3. restart `dashboard` and `caddy`
-4. verify `cn.svc.plus`
+4. verify `cn-console.svc.plus`
 
 This avoids rebuilding and keeps rollback cheap on the weak-IO host.
 
@@ -261,7 +261,7 @@ Mitigation:
 ### Near term
 
 - populate required GitHub `vars` and `secrets`
-- run the workflow against `47.120.61.35`
+  - run the workflow against `root@cn-console.svc.plus`
 - validate DNS, TLS, static assets, login flow, and upstream API proxy behavior
 
 ### Later

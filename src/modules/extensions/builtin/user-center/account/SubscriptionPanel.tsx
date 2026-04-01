@@ -5,6 +5,7 @@ import useSWR from "swr";
 
 import { openStripePortal } from "@components/billing/stripe-client";
 import Card from "../components/Card";
+import { fetchAccountPolicy, fetchAccountUsageSummary } from "../lib/fetchAccountUsage";
 
 const fetcher = (url: string) =>
   fetch(url, {
@@ -48,6 +49,8 @@ export default function SubscriptionPanel() {
     "/api/auth/subscriptions",
     fetcher,
   );
+  const { data: usageSummary } = useSWR("account-usage-summary", fetchAccountUsageSummary);
+  const { data: accountPolicy } = useSWR("account-policy", fetchAccountPolicy);
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -123,6 +126,49 @@ export default function SubscriptionPanel() {
       </div>
 
       {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+
+      {usageSummary ? (
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <div className="rounded-xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] p-4 shadow-sm">
+            <p className="text-xs uppercase tracking-wide text-[var(--color-primary)]">
+              Authoritative Usage
+            </p>
+            <p className="mt-2 text-2xl font-semibold text-[var(--color-heading)]">
+              {usageSummary.totalBytes.toLocaleString()} B
+            </p>
+            <p className="mt-1 text-sm text-[var(--color-text-subtle)]">
+              统计由 accounts.svc.plus 汇总，非本地客户端计数。
+            </p>
+          </div>
+          <div className="rounded-xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] p-4 shadow-sm">
+            <p className="text-xs uppercase tracking-wide text-[var(--color-primary)]">
+              Balance / Quota
+            </p>
+            <p className="mt-2 text-2xl font-semibold text-[var(--color-heading)]">
+              {typeof usageSummary.currentBalance === "number"
+                ? usageSummary.currentBalance.toFixed(2)
+                : "—"}
+            </p>
+            <p className="mt-1 text-sm text-[var(--color-text-subtle)]">
+              剩余配额 {typeof usageSummary.remainingIncludedQuota === "number"
+                ? `${usageSummary.remainingIncludedQuota.toLocaleString()} B`
+                : "—"}
+            </p>
+          </div>
+          <div className="rounded-xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] p-4 shadow-sm">
+            <p className="text-xs uppercase tracking-wide text-[var(--color-primary)]">
+              Policy / Sync
+            </p>
+            <p className="mt-2 text-base font-semibold text-[var(--color-heading)]">
+              {accountPolicy?.preferredStrategy || "—"}
+            </p>
+            <p className="mt-1 text-sm text-[var(--color-text-subtle)]">
+              统计延迟约 {usageSummary.syncDelaySeconds ?? 0} 秒，策略组{" "}
+              {accountPolicy?.eligibleNodeGroups?.join(", ") || "—"}
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       {isLoading ? (
         <p className="mt-4 text-sm text-[var(--color-text-subtle)]">

@@ -3,10 +3,10 @@
 ## Production Baseline
 
 - Runtime: `Caddy + Docker Compose`
-- Deploy host: `47.120.61.35`
+- Deploy host: `root@cn-console.svc.plus`
 - Domains:
-  - `cn.svc.plus`
-  - `cn.onwalk.net`
+  - `cn-console.svc.plus`
+  - `cn-console.onwalk.net`
 - Frontend release workflow: `.github/workflows/service_release_frontend-deploy.yml`
 
 ## Operating Model
@@ -21,10 +21,9 @@ The stack is static-first:
 - The Next.js standalone container serves dynamic HTML, auth endpoints, and API proxy routes. Static assets and hashed CSS/JS files are extracted by the `frontend-assets` helper task, so the runtime no longer needs to compile anything on the single-node host.
 - `docs.svc.plus` is the source of truth for rendered docs/blog pages; the browser does not call it directly.
 
-Releases are orchestrated through `.github/workflows/service_release_frontend-deploy.yml`. That workflow clones the knowledge repository, runs the Docker build/push sequence, renders `.env.runtime`, and ships `docker-compose.yml`, `Caddyfile`, and the runtime env file to the host. The control-plane workflow `.github/workflows/service_release_apiserver-deploy.yml` then updates Cloudflare DNS for the release domain (via `scripts/github-actions/update-release-dns.sh`) so `cn.svc.plus` and the redirected alias `cn.onwalk.net` point at the new environment.
-Releases are orchestrated through `.github/workflows/service_release_frontend-deploy.yml`. That workflow builds/pushes the image, renders `.env.runtime` including `DOCS_SERVICE_URL` / `DOCS_SERVICE_INTERNAL_URL`, and ships `docker-compose.yml`, `Caddyfile`, and the runtime env file to the host. The control-plane workflow `.github/workflows/service_release_apiserver-deploy.yml` then updates Cloudflare DNS for the release domain (via `scripts/github-actions/update-release-dns.sh`) so `cn.svc.plus` and the redirected alias `cn.onwalk.net` point at the new environment.
+Releases are orchestrated through `.github/workflows/service_release_frontend-deploy.yml`. That workflow builds/pushes the image, renders `.env.runtime` including `DOCS_SERVICE_URL` / `DOCS_SERVICE_INTERNAL_URL`, and ships `docker-compose.yml`, `Caddyfile`, and the runtime env file to the host. The control-plane workflow `.github/workflows/service_release_apiserver-deploy.yml` then updates Cloudflare DNS for the release domain (via `scripts/github-actions/update-release-dns.sh`) so `cn-console.svc.plus` and the redirected alias `cn-console.onwalk.net` point at the new environment.
 
-This baseline is intentional for the weak-IO single-node host (47.120.61.35). No images are built on the target machine, keeping the deployment lightweight: the host only logs into GHCR, pulls the `dashboard` image, extracts assets into `frontend_static`, and starts `dashboard` plus `caddy` containers via `docker compose`.
+This baseline is intentional for the weak-IO single-node host `root@cn-console.svc.plus`. No images are built on the target machine, keeping the deployment lightweight: the host only logs into GHCR, pulls the `dashboard` image, extracts assets into `frontend_static`, and starts `dashboard` plus `caddy` containers via `docker compose`.
 
 `docs.svc.plus` is now the dedicated docs/blog service for the frontend delivery path.
 

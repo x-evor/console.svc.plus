@@ -1,0 +1,332 @@
+# Feature flag inventory for the dashboard and public site.
+# This file is a human-readable catalog of page-level and module-level flags.
+
+meta:
+  app: console.svc.plus
+  scope:
+    - public-site
+    - dashboard
+    - xworkmate
+    - cloud-iac
+    - docs
+  source:
+    - src/config/feature-toggles.json
+    - src/modules/extensions/builtin
+    - src/app
+
+runtime:
+  current_implementation:
+    toggles_json: src/config/feature-toggles.json
+    loader: src/lib/featureToggles.ts
+    extension_flags: src/lib/featureFlags.ts
+  notes:
+    - "feature-toggles.json is the active runtime source for path-based gating."
+    - "This YAML is an inventory and planning file; it does not currently drive runtime behavior."
+
+sections:
+  globalNavigation:
+    enabled: true
+    description: Top-level navigation and auth entry points.
+    default_channel: stable
+    routes:
+      - path: /
+        status: enabled
+        channel: stable
+      - path: /docs
+        status: enabled
+        channel: beta
+      - path: /blogs
+        status: enabled
+        note: Public content listing, not currently toggle-gated in code.
+      - path: /services
+        status: enabled
+        note: Public service directory.
+      - path: /prices
+        status: enabled
+      - path: /support
+        status: enabled
+      - path: /about
+        status: enabled
+      - path: /login
+        status: enabled
+        channel: stable
+      - path: /register
+        status: enabled
+        channel: stable
+      - path: /panel
+        status: enabled
+        channel: stable
+      - path: /panel/management
+        status: enabled
+        note: Shown only to admin/operator users.
+      - path: /cloud_iac
+        status: enabled
+        channel: develop
+      - path: /download
+        status: enabled
+        channel: stable
+      - path: /insight
+        status: enabled
+        channel: develop
+      - path: /xworkmate
+        status: enabled
+
+  appModules:
+    enabled: true
+    description: Path-based module gating used by route handlers and content loaders.
+    routes:
+      - path: /docs
+        status: enabled
+        uses: src/app/docs/page.tsx
+      - path: /docs/[collection]
+        status: enabled
+        uses: src/app/docs/[collection]/page.tsx
+      - path: /docs/[collection]/[...slug]
+        status: enabled
+        uses: src/app/docs/[collection]/[...slug]/page.tsx
+      - path: /download
+        status: enabled
+        uses: src/app/download/page.tsx
+      - path: /download/[...segments]
+        status: enabled
+        uses: src/app/download/[...segments]/page.tsx
+      - path: /cloud_iac
+        status: enabled
+        uses: src/app/cloud_iac/page.tsx
+      - path: /cloud_iac/[provider]
+        status: enabled
+        uses: src/app/cloud_iac/[provider]/page.tsx
+      - path: /cloud_iac/[provider]/[service]
+        status: enabled
+        uses: src/app/cloud_iac/[provider]/[service]/page.tsx
+      - path: /insight
+        status: enabled
+        uses: src/app/services/insight/page.tsx
+      - path: /editor
+        status: enabled
+        uses: src/app/editor/page.tsx
+      - path: /editor/wechat
+        status: enabled
+      - path: /editor/xiaohongshu
+        status: enabled
+      - path: /xworkmate
+        status: enabled
+        uses: src/app/xworkmate/page.tsx
+      - path: /xworkmate/admin
+        status: enabled
+        uses: src/app/xworkmate/admin/page.tsx
+      - path: /xworkmate/integrations
+        status: enabled
+        uses: src/app/xworkmate/integrations/page.tsx
+
+  cmsExperience:
+    enabled: true
+    description: CMS/homepage experience gating.
+    routes:
+      - path: /homepage
+        status: enabled
+        children:
+          - path: /homepage/dynamic
+            status: enabled
+
+extensions:
+  builtin.user-center:
+    enabled: true
+    description: Core dashboard user center and account management extension.
+    routes:
+      - path: /panel
+        id: dashboard
+        enabled: true
+        sidebar_section: workspace
+      - path: /panel/agent
+        id: agents
+        enabled: true
+        env_var: NEXT_PUBLIC_FEATURE_AGENT_MODULE
+        default_enabled: true
+        sidebar_section: productivity
+      - path: /panel/api
+        id: apis
+        enabled: true
+        env_var: NEXT_PUBLIC_FEATURE_API_MODULE
+        default_enabled: true
+        sidebar_section: productivity
+      - path: /panel/account
+        id: accounts
+        enabled: true
+        sidebar_section: management
+      - path: /panel/subscription
+        id: subscription
+        enabled: true
+        env_var: NEXT_PUBLIC_FEATURE_SUBSCRIPTION_MODULE
+        default_enabled: true
+        sidebar_section: management
+      - path: /panel/ldp
+        id: ldp
+        enabled: true
+        env_var: NEXT_PUBLIC_FEATURE_LDP_MODULE
+        default_enabled: false
+        sidebar_section: management
+      - path: /panel/appearance
+        id: appearance
+        enabled: true
+        sidebar_section: preferences
+      - path: /panel/management
+        id: management
+        enabled: true
+        roles:
+          - admin
+          - operator
+        permissions:
+          - admin.settings.read
+          - admin.users.metrics.read
+          - admin.users.list.read
+          - admin.agents.status.read
+          - admin.blacklist.read
+        sidebar_hidden: true
+
+  builtin.infra:
+    enabled: true
+    description: Infrastructure and ops extension.
+    routes:
+      - path: /panel/deployments
+        id: deployments
+        enabled: true
+        sidebar_section: infra
+      - path: /panel/resources
+        id: resources
+        enabled: true
+        sidebar_section: infra
+      - path: /panel/api-keys
+        id: apiKeys
+        enabled: true
+        sidebar_section: infra
+      - path: /panel/observability
+        id: logs
+        enabled: true
+        sidebar_section: infra
+      - path: /panel/settings
+        id: settings
+        enabled: true
+        sidebar_section: preferences
+
+pages:
+  public:
+    - path: /
+      component: src/app/page.tsx
+      status: enabled
+    - path: /services
+      component: src/app/services/page.tsx
+      status: enabled
+    - path: /about
+      component: src/app/about/page.tsx
+      status: enabled
+    - path: /prices
+      component: src/app/prices/page.tsx
+      status: enabled
+    - path: /support
+      component: src/app/support/page.tsx
+      status: enabled
+    - path: /support/discussions
+      component: src/app/support/discussions/page.tsx
+      status: enabled
+    - path: /blogs
+      component: src/app/blogs/page.tsx
+      status: enabled
+    - path: /blogs/[...slug]
+      component: src/app/blogs/[...slug]/page.tsx
+      status: enabled
+    - path: /terms
+      component: src/app/terms/page.tsx
+      status: enabled
+    - path: /privacy
+      component: src/app/privacy/page.tsx
+      status: enabled
+    - path: /download
+      component: src/app/download/page.tsx
+      status: gated_by_appModules
+    - path: /download/[...segments]
+      component: src/app/download/[...segments]/page.tsx
+      status: gated_by_appModules
+    - path: /docs
+      component: src/app/docs/page.tsx
+      status: gated_by_appModules
+    - path: /docs/[collection]
+      component: src/app/docs/[collection]/page.tsx
+      status: gated_by_appModules
+    - path: /docs/[collection]/[...slug]
+      component: src/app/docs/[collection]/[...slug]/page.tsx
+      status: gated_by_appModules
+    - path: /cloud_iac
+      component: src/app/cloud_iac/page.tsx
+      status: gated_by_appModules
+    - path: /cloud_iac/[provider]
+      component: src/app/cloud_iac/[provider]/page.tsx
+      status: gated_by_appModules
+    - path: /cloud_iac/[provider]/[service]
+      component: src/app/cloud_iac/[provider]/[service]/page.tsx
+      status: gated_by_appModules
+    - path: /editor
+      component: src/app/editor/page.tsx
+      status: redirect_external
+    - path: /editor/wechat
+      component: src/app/editor/wechat/page.tsx
+      status: enabled
+    - path: /editor/xiaohongshu
+      component: src/app/editor/xiaohongshu/page.tsx
+      status: enabled
+    - path: /xworkmate
+      component: src/app/xworkmate/page.tsx
+      status: enabled
+    - path: /xworkmate/admin
+      component: src/app/xworkmate/admin/page.tsx
+      status: enabled
+    - path: /xworkmate/integrations
+      component: src/app/xworkmate/integrations/page.tsx
+      status: enabled
+
+  auth:
+    - path: /login
+      component: src/app/(auth)/login/page.tsx
+      status: gated_by_globalNavigation
+    - path: /register
+      component: src/app/(auth)/register/page.tsx
+      status: gated_by_globalNavigation
+    - path: /email-verification
+      component: src/app/(auth)/email-verification/page.tsx
+      status: gated_by_globalNavigation
+    - path: /logout
+      component: src/app/logout/page.tsx
+      status: enabled
+
+  panel:
+    - path: /panel
+      component: src/app/panel/page.tsx
+      status: extension_route
+    - path: /panel/account
+      component: src/app/panel/account/page.tsx
+      status: extension_route
+    - path: /panel/agent
+      component: src/app/panel/agent/page.tsx
+      status: extension_route
+    - path: /panel/api
+      component: src/app/panel/api/page.tsx
+      status: extension_route
+    - path: /panel/appearance
+      component: src/app/panel/appearance/page.tsx
+      status: extension_route
+    - path: /panel/ldp
+      component: src/app/panel/ldp/page.tsx
+      status: extension_route
+    - path: /panel/management
+      component: src/app/panel/management/page.tsx
+      status: extension_route
+    - path: /panel/subscription
+      component: src/app/panel/subscription/page.tsx
+      status: extension_route
+    - path: /panel/[...segments]
+      component: src/app/panel/[...segments]/page.tsx
+      status: catch_all_extension
+
+recommendations:
+  - "If this file is intended to become runtime-configurable, wire it into src/lib/featureToggles.ts and keep feature-toggles.json as the generated artifact."
+  - "If this file is intended only for documentation, keep it synchronized with feature-toggles.json and extension definitions."
