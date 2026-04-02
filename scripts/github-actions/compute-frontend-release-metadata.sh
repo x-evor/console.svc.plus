@@ -4,7 +4,7 @@ set -euo pipefail
 IMAGE_TAG_INPUT="${1-}"
 IMAGE_TAG="${IMAGE_TAG_INPUT}"
 if [[ -z "${IMAGE_TAG}" ]]; then
-  IMAGE_TAG="${GITHUB_SHA}"
+  IMAGE_TAG="${GITHUB_SHA::7}"
 fi
 
 GHCR_NAMESPACE="${GITHUB_REPOSITORY_OWNER,,}"
