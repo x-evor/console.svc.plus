@@ -1,6 +1,24 @@
 name: Build And Push GHCR Image
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/build-push-ghcr-image.yml'
+      - 'Dockerfile'
+      - 'package.json'
+      - 'yarn.lock'
+      - 'scripts/github-actions/build-and-push-frontend-image.sh'
+      - 'scripts/github-actions/compute-frontend-release-metadata.sh'
+      - 'scripts/github-actions/render-frontend-build-args.sh'
+      - 'scripts/github-actions/prepare-frontend-build-context.sh'
+      - 'scripts/prebuild.sh'
+      - 'contentlayer.config.ts'
+      - 'next.config.js'
+      - 'next.config.mjs'
+      - 'src/**'
+      - 'public/**'
   workflow_call:
     inputs:
       image_tag:
