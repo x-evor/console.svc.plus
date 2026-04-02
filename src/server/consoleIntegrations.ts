@@ -23,6 +23,12 @@ const APISIX_TOKEN_KEYS = ['AI_GATEWAY_ACCESS_TOKEN', 'AI_GATEWAY_API_KEY'] as c
 const VAULT_URL_KEYS = ['VAULT_SERVER_URL', 'VAULT_ADDR', 'vault_addr'] as const
 const VAULT_NAMESPACE_KEYS = ['VAULT_NAMESPACE'] as const
 const VAULT_TOKEN_KEYS = ['VAULT_TOKEN', 'VAULT_SERVER_ROOT_ACCESS_TOKEN'] as const
+const EXTERNAL_SERVICES_KEYS = [
+  'EXTERNAL_SERVICES',
+  'NEXT_PUBLIC_EXTERNAL_SERVICES',
+  'EXTERNAL_SERVICE',
+  'NEXT_PUBLIC_EXTERNAL_SERVICE',
+] as const
 
 function readEnvValue(...keys: readonly string[]): string | undefined {
   for (const key of keys) {
@@ -59,6 +65,18 @@ function normalizeHttpUrl(value?: string): string {
   }
 }
 
+function parseServiceList(value?: string): string[] {
+  const raw = value?.trim() ?? ''
+  if (!raw) {
+    return []
+  }
+
+  return raw
+    .split(/[\n,;]+/)
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0)
+}
+
 function normalizeWsUrl(value?: string): string {
   const raw = value?.trim() ?? ''
   if (raw.length === 0) {
@@ -92,6 +110,7 @@ export function getConsoleIntegrationDefaults(): IntegrationDefaults {
     vaultSecretKey: '',
     apisixUrl: normalizeHttpUrl(readEnvValue(...APISIX_URL_KEYS)),
     apisixTokenConfigured: Boolean(readEnvValue(...APISIX_TOKEN_KEYS)),
+    externalServices: parseServiceList(readEnvValue(...EXTERNAL_SERVICES_KEYS)),
   }
 }
 

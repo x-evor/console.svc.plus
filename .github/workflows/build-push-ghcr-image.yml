@@ -1,0 +1,69 @@
+name: Build And Push GHCR Image
+
+on:
+  workflow_call:
+    inputs:
+      image_tag:
+        description: Optional image tag. Defaults to the current commit SHA.
+        required: false
+        type: string
+      push_latest:
+        description: Also publish the `latest` tag.
+        required: false
+        default: false
+        type: boolean
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Optional image tag. Defaults to the current commit SHA.
+        required: false
+        type: string
+      push_latest:
+        description: Also publish the `latest` tag.
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: build-push-ghcr-image-console-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    env:
+      PRIMARY_DOMAIN: console.svc.plus
+      NEXT_PUBLIC_RUNTIME_ENVIRONMENT: prod
+      NEXT_PUBLIC_RUNTIME_REGION: cn
+    steps:
+      - name: Check Out Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log In To GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ vars.GHCR_USERNAME || github.repository_owner }}
+          password: ${{ secrets.GHCR_TOKEN || github.token }}
+
+      - name: Compute Image Metadata
+        id: metadata
+        env:
+          IMAGE_TAG_INPUT: ${{ inputs.image_tag }}
+        run: |
+          bash scripts/github-actions/compute-frontend-release-metadata.sh "${IMAGE_TAG_INPUT}"
+
+      - name: Publish Frontend Image
+        env:
+          IMAGE_REF: ${{ steps.metadata.outputs.image_ref }}
+          IMAGE_LATEST_REF: ${{ steps.metadata.outputs.image_latest_ref }}
+          PUSH_LATEST: ${{ inputs.push_latest }}
+        run: |
+          bash scripts/github-actions/build-and-push-frontend-image.sh

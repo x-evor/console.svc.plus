@@ -90,6 +90,7 @@ export type IntegrationDefaults = {
   vaultSecretKey: string
   apisixUrl: string
   apisixTokenConfigured: boolean
+  externalServices?: string[]
 }
 
 export function normalizeMainSessionKey(value?: string | null): string {
