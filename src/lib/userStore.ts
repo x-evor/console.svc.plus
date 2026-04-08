@@ -65,16 +65,6 @@ const KNOWN_ROLE_MAP: Record<string, UserRole> = {
   member: 'user',
 }
 
-const GUEST_SESSION_STORAGE_KEY = 'xcontrol.guest.session'
-const GUEST_SESSION_TTL_MS = 60 * 60 * 1000
-const GUEST_SANDBOX_TENANT_ID = 'guest-sandbox'
-const GUEST_SANDBOX_TENANT_NAME = 'Guest Sandbox'
-
-type GuestSession = {
-  uuid: string
-  issuedAt: number
-}
-
 function normalizeRole(input?: string | null): UserRole {
   if (!input || typeof input !== 'string') {
     return 'guest'
@@ -88,92 +78,6 @@ function normalizeRole(input?: string | null): UserRole {
   return KNOWN_ROLE_MAP[normalized] ?? 'guest'
 }
 
-function createUUID(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID()
-  }
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
-}
-
-function readGuestSession(): GuestSession | null {
-  if (typeof window === 'undefined') {
-    return null
-  }
-  const raw = window.sessionStorage.getItem(GUEST_SESSION_STORAGE_KEY)
-  if (!raw) {
-    return null
-  }
-
-  try {
-    const parsed = JSON.parse(raw) as GuestSession
-    if (
-      typeof parsed?.uuid === 'string' &&
-      parsed.uuid.trim().length > 0 &&
-      typeof parsed?.issuedAt === 'number' &&
-      Number.isFinite(parsed.issuedAt)
-    ) {
-      return {
-        uuid: parsed.uuid.trim(),
-        issuedAt: parsed.issuedAt,
-      }
-    }
-  } catch (error) {
-    console.warn('Failed to parse guest session payload', error)
-  }
-
-  return null
-}
-
-function writeGuestSession(session: GuestSession) {
-  if (typeof window === 'undefined') {
-    return
-  }
-  window.sessionStorage.setItem(GUEST_SESSION_STORAGE_KEY, JSON.stringify(session))
-}
-
-function resolveGuestUUID(now = Date.now()): string {
-  const existing = readGuestSession()
-  if (!existing || now - existing.issuedAt >= GUEST_SESSION_TTL_MS) {
-    const next: GuestSession = { uuid: createUUID(), issuedAt: now }
-    writeGuestSession(next)
-    return next.uuid
-  }
-  return existing.uuid
-}
-
-function buildGuestUser(): User {
-  const identifier = resolveGuestUUID()
-  return {
-    id: identifier,
-    uuid: identifier,
-    email: 'sandbox@svc.plus',
-    name: 'Guest user',
-    username: 'guest',
-    mfaEnabled: false,
-    mfaPending: false,
-    mfa: {
-      totpEnabled: false,
-      totpPending: false,
-    },
-    role: 'guest',
-    groups: ['guest', 'sandbox'],
-    permissions: ['read'],
-    isGuest: true,
-    isUser: false,
-    isOperator: false,
-    isAdmin: false,
-    isReadOnly: true,
-    tenantId: GUEST_SANDBOX_TENANT_ID,
-    tenants: [
-      {
-        id: GUEST_SANDBOX_TENANT_ID,
-        name: GUEST_SANDBOX_TENANT_NAME,
-        role: 'guest',
-      },
-    ],
-  }
-}
-
 async function fetchSessionUser(): Promise<User | null> {
   try {
     const response = await fetch('/api/auth/session', {
@@ -185,7 +89,7 @@ async function fetchSessionUser(): Promise<User | null> {
     })
 
     if (!response.ok) {
-      return buildGuestUser()
+      return null
     }
 
     const payload = (await response.json()) as {
@@ -217,7 +121,7 @@ async function fetchSessionUser(): Promise<User | null> {
 
     const sessionUser = payload?.user
     if (!sessionUser) {
-      return buildGuestUser()
+      return null
     }
 
     const { id, uuid, email, name, username, mfaEnabled, mfa, mfaPending, role, groups, permissions } = sessionUser
@@ -229,7 +133,7 @@ async function fetchSessionUser(): Promise<User | null> {
           : ''
 
     if (!identifier) {
-      return buildGuestUser()
+      return null
     }
     const normalizedName = typeof name === 'string' && name.trim().length > 0 ? name.trim() : undefined
     const normalizedUsername =
@@ -309,18 +213,6 @@ async function fetchSessionUser(): Promise<User | null> {
         .filter((tenant): tenant is TenantMembership => Boolean(tenant))
       : undefined
 
-    const effectiveTenantId = normalizedRole === 'guest' ? GUEST_SANDBOX_TENANT_ID : normalizedTenantId
-    const effectiveTenants =
-      normalizedRole === 'guest'
-        ? [
-          {
-            id: GUEST_SANDBOX_TENANT_ID,
-            name: GUEST_SANDBOX_TENANT_NAME,
-            role: 'guest' as UserRole,
-          },
-        ]
-        : normalizedTenants
-
     return {
       id: identifier,
       uuid: identifier,
@@ -339,13 +231,13 @@ async function fetchSessionUser(): Promise<User | null> {
       isUser: normalizedRole === 'user',
       isOperator: normalizedRole === 'operator',
       isAdmin: normalizedRole === 'admin',
-      isReadOnly: normalizedRole === 'guest' ? true : normalizedReadOnly,
-      tenantId: effectiveTenantId,
-      tenants: effectiveTenants,
+      isReadOnly: normalizedReadOnly,
+      tenantId: normalizedTenantId,
+      tenants: normalizedTenants,
     }
   } catch (error) {
     console.warn('Failed to resolve user session', error)
-    return buildGuestUser()
+    return null
   }
 }
 

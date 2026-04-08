@@ -2,14 +2,17 @@
 
 import type { VlessNode } from './vless'
 
-const PRIMARY_ENDPOINT = '/api/agent-server/v1/nodes'
+const PRIMARY_ENDPOINT = '/api/auth/sync/config?since_version=0'
 const FALLBACK_ENDPOINT = '/api/agent/nodes'
 
-type AgentNodePayload = {
-  nodes?: unknown
-  message?: unknown
-  error?: unknown
-}
+type AgentNodePayload =
+  | {
+      nodes?: unknown
+      profiles?: unknown
+      message?: unknown
+      error?: unknown
+    }
+  | VlessNode[]
 
 type AgentNodesError = Error & {
   status?: number
@@ -34,7 +37,7 @@ async function requestAgentNodes(url: string): Promise<VlessNode[]> {
     },
   })
 
-  const payload = (await response.json().catch(() => null)) as AgentNodePayload | VlessNode[] | null
+  const payload = (await response.json().catch(() => null)) as AgentNodePayload | null
 
   if (!response.ok) {
     const error = new Error(extractMessage(Array.isArray(payload) ? null : payload, response.status)) as AgentNodesError
@@ -45,8 +48,13 @@ async function requestAgentNodes(url: string): Promise<VlessNode[]> {
   if (Array.isArray(payload)) {
     return payload as VlessNode[]
   }
-  if (payload && Array.isArray((payload as AgentNodePayload).nodes)) {
+
+  if (payload && Array.isArray((payload as { nodes?: unknown }).nodes)) {
     return (payload as { nodes: VlessNode[] }).nodes
+  }
+
+  if (payload && Array.isArray((payload as { profiles?: unknown }).profiles)) {
+    return (payload as { profiles: VlessNode[] }).profiles
   }
 
   throw new Error('unexpected_agent_nodes_payload')

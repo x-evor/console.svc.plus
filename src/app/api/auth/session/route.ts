@@ -2,17 +2,9 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 import { SESSION_COOKIE_NAME, clearSessionCookie } from "@lib/authGateway";
-import {
-  getAccountServiceApiBaseUrl,
-  getAccountServiceBaseUrl,
-} from "@server/serviceConfig";
-import {
-  buildInternalServiceHeaders,
-  isServiceTokenConfigured,
-} from "@server/internalServiceAuth";
+import { getAccountServiceApiBaseUrl } from "@server/serviceConfig";
 
 const ACCOUNT_API_BASE = getAccountServiceApiBaseUrl();
-const ACCOUNT_BASE = getAccountServiceBaseUrl();
 
 type AccountUser = {
   id?: string;
@@ -45,13 +37,6 @@ type AccountUser = {
 
 type SessionResponse = {
   user?: AccountUser | null;
-  error?: string;
-};
-
-type SandboxGuestResponse = {
-  email?: string;
-  proxyUuid?: string;
-  proxyUuidExpiresAt?: string;
   error?: string;
 };
 
@@ -94,69 +79,10 @@ async function fetchSession(token: string, requestHost?: string | null) {
   }
 }
 
-async function fetchSandboxGuest(): Promise<AccountUser | null> {
-  if (!isServiceTokenConfigured()) {
-    return null;
-  }
-
-  try {
-    const response = await fetch(`${ACCOUNT_BASE}/api/internal/sandbox/guest`, {
-      method: "GET",
-      headers: buildInternalServiceHeaders({
-        Accept: "application/json",
-      }),
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const payload = (await response
-      .json()
-      .catch(() => null)) as SandboxGuestResponse | null;
-    const proxyUuid =
-      typeof payload?.proxyUuid === "string" ? payload.proxyUuid.trim() : "";
-    if (!proxyUuid) {
-      return null;
-    }
-
-    const proxyUuidExpiresAt =
-      typeof payload?.proxyUuidExpiresAt === "string" &&
-      payload.proxyUuidExpiresAt.trim().length > 0
-        ? payload.proxyUuidExpiresAt.trim()
-        : undefined;
-
-    // Shape this as a pseudo-session user for the Guest/Demo experience.
-    return {
-      id: proxyUuid,
-      uuid: proxyUuid,
-      proxyUuid,
-      proxyUuidExpiresAt,
-      name: "Guest user",
-      username: "guest",
-      email: "sandbox@svc.plus",
-      role: "guest",
-      groups: ["guest", "sandbox"],
-      permissions: ["read"],
-      readOnly: true,
-      tenantId: "guest-sandbox",
-      tenants: [{ id: "guest-sandbox", name: "Guest Sandbox", role: "guest" }],
-      mfaEnabled: false,
-      mfaPending: false,
-    };
-  } catch (error) {
-    console.error("Sandbox guest session proxy failed", error);
-    return null;
-  }
-}
-
 export async function GET(request: NextRequest) {
-  void request;
   const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
   if (!token) {
-    const sandboxGuest = await fetchSandboxGuest();
-    return NextResponse.json({ user: sandboxGuest });
+    return NextResponse.json({ user: null });
   }
 
   const requestHost = request.headers.get("host");
