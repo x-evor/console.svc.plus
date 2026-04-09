@@ -5,7 +5,7 @@ import useSWR from "swr";
 
 import { openStripePortal } from "@components/billing/stripe-client";
 import Card from "../components/Card";
-import { fetchAccountPolicy, fetchAccountUsageSummary } from "../lib/fetchAccountUsage";
+import { fetchAccountBillingSummary, fetchAccountPolicy, fetchAccountUsageSummary } from "../lib/fetchAccountUsage";
 
 const fetcher = (url: string) =>
   fetch(url, {
@@ -50,6 +50,7 @@ export default function SubscriptionPanel() {
     fetcher,
   );
   const { data: usageSummary } = useSWR("account-usage-summary", fetchAccountUsageSummary);
+  const { data: billingSummary } = useSWR("account-billing-summary", fetchAccountBillingSummary);
   const { data: accountPolicy } = useSWR("account-policy", fetchAccountPolicy);
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
@@ -139,6 +140,9 @@ export default function SubscriptionPanel() {
             <p className="mt-1 text-sm text-[var(--color-text-subtle)]">
               统计由 accounts.svc.plus 汇总，非本地客户端计数。
             </p>
+            <p className="mt-1 text-xs text-[var(--color-text-subtle)]">
+              数据源：{usageSummary.sourceOfTruth || "—"}
+            </p>
           </div>
           <div className="rounded-xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] p-4 shadow-sm">
             <p className="text-xs uppercase tracking-wide text-[var(--color-primary)]">
@@ -154,6 +158,10 @@ export default function SubscriptionPanel() {
                 ? `${usageSummary.remainingIncludedQuota.toLocaleString()} B`
                 : "—"}
             </p>
+            <p className="mt-1 text-xs text-[var(--color-text-subtle)]">
+              套餐 {usageSummary.billingProfile?.packageName || billingSummary?.billingProfile?.packageName || "default"}，
+              规则 {usageSummary.billingProfile?.pricingRuleVersion || billingSummary?.billingProfile?.pricingRuleVersion || "—"}
+            </p>
           </div>
           <div className="rounded-xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] p-4 shadow-sm">
             <p className="text-xs uppercase tracking-wide text-[var(--color-primary)]">
@@ -166,6 +174,47 @@ export default function SubscriptionPanel() {
               统计延迟约 {usageSummary.syncDelaySeconds ?? 0} 秒，策略组{" "}
               {accountPolicy?.eligibleNodeGroups?.join(", ") || "—"}
             </p>
+            <p className="mt-1 text-xs text-[var(--color-text-subtle)]">
+              状态 {usageSummary.arrears ? "欠费" : "正常"} / {usageSummary.throttleState || "—"} / {usageSummary.suspendState || "—"}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
+      {billingSummary?.ledger?.length ? (
+        <div className="mt-4 rounded-xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] p-4 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-[var(--color-heading)]">Recent Billing Ledger</h3>
+              <p className="text-xs text-[var(--color-text-subtle)]">
+                展示 accounts.svc.plus 返回的最新按量计费分录。
+              </p>
+            </div>
+            <p className="text-xs text-[var(--color-text-subtle)]">
+              数据源：{billingSummary.sourceOfTruth || "—"}
+            </p>
+          </div>
+          <div className="mt-3 space-y-2">
+            {billingSummary.ledger.slice(0, 5).map((entry) => (
+              <div
+                key={entry.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[color:var(--color-surface-border)] px-3 py-2 text-sm"
+              >
+                <div>
+                  <p className="font-medium text-[var(--color-text)]">{entry.entryType}</p>
+                  <p className="text-xs text-[var(--color-text-subtle)]">
+                    {entry.pricingRuleVersion || "—"} · {entry.bucketStart ? formatDate(entry.bucketStart) : "—"}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium text-[var(--color-text)]">{entry.ratedBytes.toLocaleString()} B</p>
+                  <p className="text-xs text-[var(--color-text-subtle)]">
+                    {typeof entry.amountDelta === "number" ? entry.amountDelta.toFixed(2) : "—"} / 余额{" "}
+                    {typeof entry.balanceAfter === "number" ? entry.balanceAfter.toFixed(2) : "—"}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       ) : null}

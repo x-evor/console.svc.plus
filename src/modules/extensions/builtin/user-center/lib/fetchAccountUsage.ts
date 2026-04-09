@@ -7,6 +7,7 @@ type AccountUsageError = Error & {
 export type AccountUsageSummary = {
   accountUuid: string
   totalBytes: number
+  sourceOfTruth?: string
   uplinkBytes?: number
   downlinkBytes?: number
   currentBalance?: number
@@ -14,6 +15,8 @@ export type AccountUsageSummary = {
   syncDelaySeconds?: number
   suspendState?: string
   throttleState?: string
+  arrears?: boolean
+  billingProfile?: AccountBillingProfile
 }
 
 export type AccountPolicy = {
@@ -22,6 +25,41 @@ export type AccountPolicy = {
   eligibleNodeGroups?: string[]
   authState?: string
   degradeMode?: string
+}
+
+export type AccountBillingProfile = {
+  packageName?: string
+  includedQuotaBytes?: number
+  basePricePerByte?: number
+  regionMultiplier?: number
+  lineMultiplier?: number
+  pricingRuleVersion?: string
+}
+
+export type BillingLedgerEntry = {
+  id: string
+  entryType: string
+  ratedBytes: number
+  amountDelta: number
+  balanceAfter: number
+  pricingRuleVersion?: string
+  bucketStart?: string
+  bucketEnd?: string
+  createdAt?: string
+}
+
+export type AccountBillingSummary = {
+  accountUuid: string
+  sourceOfTruth?: string
+  quotaState?: {
+    currentBalance?: number
+    remainingIncludedQuota?: number
+    arrears?: boolean
+    throttleState?: string
+    suspendState?: string
+  }
+  billingProfile?: AccountBillingProfile
+  ledger?: BillingLedgerEntry[]
 }
 
 function toError(payload: unknown, status: number): AccountUsageError {
@@ -58,4 +96,8 @@ export function fetchAccountUsageSummary(): Promise<AccountUsageSummary> {
 
 export function fetchAccountPolicy(): Promise<AccountPolicy> {
   return requestJSON<AccountPolicy>('/api/account/policy')
+}
+
+export function fetchAccountBillingSummary(): Promise<AccountBillingSummary> {
+  return requestJSON<AccountBillingSummary>('/api/account/billing/summary')
 }

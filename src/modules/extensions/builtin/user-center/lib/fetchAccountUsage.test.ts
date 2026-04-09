@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { fetchAccountPolicy, fetchAccountUsageSummary } from './fetchAccountUsage'
+import { fetchAccountBillingSummary, fetchAccountPolicy, fetchAccountUsageSummary } from './fetchAccountUsage'
 
 describe('fetchAccountUsage', () => {
   afterEach(() => {
@@ -9,7 +9,7 @@ describe('fetchAccountUsage', () => {
 
   it('loads the authoritative usage summary from the account api', async () => {
     vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-      new Response(JSON.stringify({ accountUuid: 'acct-1', totalBytes: 384 }), {
+      new Response(JSON.stringify({ accountUuid: 'acct-1', totalBytes: 384, sourceOfTruth: 'postgresql' }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       }),
@@ -18,6 +18,7 @@ describe('fetchAccountUsage', () => {
     await expect(fetchAccountUsageSummary()).resolves.toEqual({
       accountUuid: 'acct-1',
       totalBytes: 384,
+      sourceOfTruth: 'postgresql',
     })
   })
 
@@ -32,6 +33,30 @@ describe('fetchAccountUsage', () => {
     await expect(fetchAccountPolicy()).resolves.toEqual({
       accountUuid: 'acct-1',
       preferredStrategy: 'ewma',
+    })
+  })
+
+  it('loads the authoritative billing summary from the account api', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          accountUuid: 'acct-1',
+          sourceOfTruth: 'postgresql',
+          billingProfile: { packageName: 'starter', pricingRuleVersion: 'pricing-v1' },
+          ledger: [{ id: 'ledger-1', entryType: 'traffic_charge', ratedBytes: 50, amountDelta: -12.5, balanceAfter: 87.5 }],
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      ),
+    )
+
+    await expect(fetchAccountBillingSummary()).resolves.toEqual({
+      accountUuid: 'acct-1',
+      sourceOfTruth: 'postgresql',
+      billingProfile: { packageName: 'starter', pricingRuleVersion: 'pricing-v1' },
+      ledger: [{ id: 'ledger-1', entryType: 'traffic_charge', ratedBytes: 50, amountDelta: -12.5, balanceAfter: 87.5 }],
     })
   })
 })
