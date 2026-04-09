@@ -57,10 +57,7 @@ export default function UserOverview({ hideMfaMainPrompt = false }: UserOverview
   const username = user?.username ?? '—'
   const email = user?.email ?? '—'
   const docsUrl = mfaCopy.actions.docsUrl
-  const normalizedEmail = user?.email?.toLowerCase() ?? ''
-  const isGuestSandboxReadOnly = Boolean(
-    user?.isReadOnly && (normalizedEmail === 'sandbox@svc.plus'),
-  )
+  const isGuestSandboxReadOnly = Boolean(user?.isGuest && user?.isReadOnly)
   const guestUuidExpiresAtText = useMemo(() => {
     if (!isGuestSandboxReadOnly || !user?.proxyUuidExpiresAt) {
       return null

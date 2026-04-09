@@ -65,6 +65,8 @@ const KNOWN_ROLE_MAP: Record<string, UserRole> = {
   member: 'user',
 }
 
+const GUEST_SANDBOX_TENANT_ID = 'guest-sandbox'
+const GUEST_SANDBOX_TENANT_NAME = 'Guest Sandbox'
 function normalizeRole(input?: string | null): UserRole {
   if (!input || typeof input !== 'string') {
     return 'guest'
@@ -162,11 +164,9 @@ async function fetchSessionUser(): Promise<User | null> {
         .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
         .map((value) => value.trim())
       : []
-    const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : ''
     const inferredReadOnly =
       rawRole === 'readonly' ||
       rawRole === 'read_only' ||
-      normalizedEmail === 'sandbox@svc.plus' ||
       normalizedGroups.some((value) => value.toLowerCase() === 'readonly role')
     const normalizedReadOnly = Boolean(sessionUser.readOnly) || inferredReadOnly
     const normalizedProxyUuid =

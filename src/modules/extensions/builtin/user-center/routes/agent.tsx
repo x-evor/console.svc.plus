@@ -42,10 +42,7 @@ export default function UserCenterAgentRoute() {
   const user = useUserStore((state) => state.user)
   const { data: nodes, error, isLoading, mutate } = useSWR<VlessNode[]>('user-center-agent-nodes', fetchAgentNodes)
   const [boundNode, setBoundNode] = useState<VlessNode | null>(null)
-  const normalizedEmail = user?.email?.toLowerCase() ?? ''
-  const isGuestSandboxReadOnly = Boolean(
-    user?.isReadOnly && (normalizedEmail === 'sandbox@svc.plus'),
-  )
+  const isGuestSandboxReadOnly = Boolean(user?.isGuest && user?.isReadOnly)
   const visibleNodes = useMemo(() => {
     return (nodes ?? []).filter((node) => {
       if (isGuestSandboxReadOnly) {
@@ -95,7 +92,7 @@ export default function UserCenterAgentRoute() {
 
     // Guest sandbox behavior: if root has bound a preferred node, ensure it is first,
     // but still show all regions/nodes to keep the demo experience useful.
-    if (isGuestSandboxReadOnly && normalizedEmail && boundAddress) {
+    if (isGuestSandboxReadOnly && boundAddress) {
       const matched = nodes?.find((n) => n.address === boundAddress)
       const preferred = matched ?? boundNode ?? null
       if (preferred) {
@@ -110,7 +107,7 @@ export default function UserCenterAgentRoute() {
     }
 
     return base
-  }, [isGuestSandboxReadOnly, nodes, visibleNodes, normalizedEmail, boundAddress, boundNode])
+  }, [isGuestSandboxReadOnly, nodes, visibleNodes, boundAddress, boundNode])
 
   const groupedNodes = useMemo(() => {
     const groups: Record<string, VlessNode[]> = {
