@@ -18,11 +18,17 @@ type AgentNodesError = Error & {
   status?: number
 }
 
+function isAgentNodeErrorPayload(
+  payload: AgentNodePayload | null,
+): payload is Exclude<AgentNodePayload, VlessNode[]> {
+  return !!payload && !Array.isArray(payload)
+}
+
 function extractMessage(payload: AgentNodePayload | null, status: number): string {
-  if (payload && typeof payload.message === 'string' && payload.message.trim().length > 0) {
+  if (isAgentNodeErrorPayload(payload) && typeof payload.message === 'string' && payload.message.trim().length > 0) {
     return payload.message
   }
-  if (payload && typeof payload.error === 'string' && payload.error.trim().length > 0) {
+  if (isAgentNodeErrorPayload(payload) && typeof payload.error === 'string' && payload.error.trim().length > 0) {
     return payload.error
   }
   return `Request failed (${status})`
