@@ -14,6 +14,14 @@ const DEFAULT_FORWARD_HEADERS = [
   'x-trace-id',
 ] as const
 
+const RESPONSE_HEADERS_TO_STRIP = new Set([
+  'connection',
+  'content-encoding',
+  'content-length',
+  'keep-alive',
+  'transfer-encoding',
+])
+
 const BODYLESS_METHODS = new Set(['GET', 'HEAD'])
 
 type ProxyOptions = {
@@ -107,7 +115,8 @@ export async function proxyRequestToUpstream(request: NextRequest, options: Prox
 
   const responseHeaders = new Headers()
   upstreamResponse.headers.forEach((value, key) => {
-    if (key.toLowerCase() === 'set-cookie') {
+    const normalizedKey = key.toLowerCase()
+    if (normalizedKey === 'set-cookie' || RESPONSE_HEADERS_TO_STRIP.has(normalizedKey)) {
       return
     }
     responseHeaders.set(key, value)
