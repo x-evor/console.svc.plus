@@ -68,7 +68,7 @@ jobs:
       push_latest: ${{ steps.push.outputs.push_latest }}
     steps:
       - name: Check Out Repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@v5
 
       - name: Resolve Inputs
         id: inputs
@@ -121,7 +121,7 @@ jobs:
       image_tag: ${{ needs.prep.outputs.image_tag }}
     steps:
       - name: Check Out Repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@v5
 
       - name: Set Up Docker Buildx
         run: |
@@ -159,10 +159,10 @@ jobs:
       GHCR_PASSWORD: ${{ secrets.GHCR_TOKEN || github.token }}
     steps:
       - name: Check Out Repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@v5
 
       - name: Set Up Python
-        uses: actions/setup-python@42375524a763eb7d2e0d429c75e7d708d93f2851
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
@@ -220,7 +220,7 @@ jobs:
     if: ${{ always() && needs.deploy.result == 'success' }}
     steps:
       - name: Check Out Repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@v5
 
       - name: Verify Frontend Release
         run: |
