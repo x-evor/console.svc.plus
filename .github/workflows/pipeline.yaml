@@ -149,10 +149,16 @@ jobs:
       TARGET_HOST: ${{ needs.prep.outputs.target_host }}
       RUN_APPLY: ${{ needs.prep.outputs.run_apply }}
       FRONTEND_IMAGE: ${{ needs.prep.outputs.image_ref }}
-      PLAYBOOKS_REPO: https://github.com/x-evor/playbooks.git
     steps:
       - name: Check Out Repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Check Out Playbooks Repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          repository: x-evor/playbooks
+          path: playbooks
+          token: ${{ github.token }}
 
       - name: Set Up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
@@ -176,16 +182,11 @@ jobs:
           ssh-keyscan -H "${TARGET_HOST}" >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
-      - name: Check Out Playbooks Repository
-        run: |
-          git clone "${PLAYBOOKS_REPO}" /tmp/playbooks
-
       - name: Run Deploy Playbook
+        working-directory: playbooks
         env:
           ANSIBLE_HOST_KEY_CHECKING: "False"
         run: |
-          cd /tmp/playbooks
-
           ansible_args=(
             -i inventory.ini
             deploy_console_svc_plus.yml
