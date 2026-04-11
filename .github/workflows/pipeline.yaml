@@ -32,11 +32,6 @@ on:
         required: true
         default: true
         type: boolean
-      internal_service_token:
-        description: Optional ACP auth token
-        required: false
-        default: ""
-        type: string
 
 permissions:
   contents: read
@@ -52,6 +47,9 @@ env:
   NEXT_PUBLIC_RUNTIME_ENVIRONMENT: prod
   NEXT_PUBLIC_RUNTIME_REGION: cn
   GHCR_REGISTRY: ghcr.io
+  GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+  GHCR_PASSWORD: ${{ secrets.GHCR_TOKEN }}
+  INTERNAL_SERVICE_TOKEN: ${{ secrets.INTERNAL_SERVICE_TOKEN }}
 
 jobs:
   prep:
@@ -60,7 +58,6 @@ jobs:
     outputs:
       target_host: ${{ steps.inputs.outputs.target_host }}
       run_apply: ${{ steps.inputs.outputs.run_apply }}
-      internal_service_token: ${{ steps.inputs.outputs.internal_service_token }}
       image_tag: ${{ steps.metadata.outputs.image_tag }}
       image_ref: ${{ steps.metadata.outputs.image_ref }}
       image_latest_ref: ${{ steps.metadata.outputs.image_latest_ref }}
@@ -76,22 +73,18 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           INPUT_TARGET_HOST: ${{ inputs.target_host }}
           INPUT_RUN_APPLY: ${{ inputs.run_apply }}
-          INPUT_INTERNAL_SERVICE_TOKEN: ${{ inputs.internal_service_token }}
         run: |
           if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
             target_host="${INPUT_TARGET_HOST}"
             run_apply="${INPUT_RUN_APPLY}"
-            internal_service_token="${INPUT_INTERNAL_SERVICE_TOKEN}"
           else
             target_host="jp-xhttp-contabo.svc.plus"
             run_apply="true"
-            internal_service_token=""
           fi
 
           {
             printf 'target_host=%s\n' "${target_host}"
             printf 'run_apply=%s\n' "${run_apply}"
-            printf 'internal_service_token=%s\n' "${internal_service_token}"
           } >> "${GITHUB_OUTPUT}"
 
       - name: Compute Image Metadata
@@ -130,8 +123,7 @@ jobs:
 
       - name: Log In To GHCR
         env:
-          GHCR_USERNAME: ${{ vars.GHCR_USERNAME || github.repository_owner }}
-          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN || github.token }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
         run: |
           echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
 
@@ -153,10 +145,7 @@ jobs:
       TARGET_HOST: ${{ needs.prep.outputs.target_host }}
       RUN_APPLY: ${{ needs.prep.outputs.run_apply }}
       FRONTEND_IMAGE: ${{ needs.prep.outputs.image_ref }}
-      INTERNAL_SERVICE_TOKEN: ${{ needs.prep.outputs.internal_service_token }}
       PLAYBOOKS_REPO: git@github.com:x-evor/playbooks.git
-      GHCR_USERNAME: ${{ vars.GHCR_USERNAME || github.repository_owner }}
-      GHCR_PASSWORD: ${{ secrets.GHCR_TOKEN || github.token }}
     steps:
       - name: Check Out Repository
         uses: actions/checkout@v5
@@ -192,21 +181,19 @@ jobs:
         run: |
           cd /tmp/playbooks
 
-          if [[ "${RUN_APPLY}" == "true" ]]; then
-            dns_sync="true"
-          else
-            dns_sync="false"
-          fi
-
           ansible_args=(
             -i inventory.ini
             deploy_console_svc_plus.yml
+            -D
             -l "${TARGET_HOST}"
-            -e "console_service_sync_dns=${dns_sync}"
+            -e "FRONTEND_IMAGE=${FRONTEND_IMAGE}"
+            -e "GHCR_USERNAME=${GHCR_USERNAME}"
+            -e "GHCR_PASSWORD=${GHCR_PASSWORD}"
+            -e "INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}"
           )
 
           if [[ "${RUN_APPLY}" != "true" ]]; then
-            ansible_args+=(--check --diff)
+            ansible_args=(-C "${ansible_args[@]}")
           fi
 
           ansible-playbook "${ansible_args[@]}"
