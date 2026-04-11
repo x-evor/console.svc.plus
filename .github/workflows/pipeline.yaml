@@ -32,11 +32,6 @@ on:
         required: true
         default: true
         type: boolean
-      internal_service_token:
-        description: Optional ACP auth token
-        required: false
-        default: ""
-        type: string
 
 permissions:
   contents: read
@@ -51,7 +46,16 @@ env:
   SECONDARY_DOMAIN: console.onwalk.net
   NEXT_PUBLIC_RUNTIME_ENVIRONMENT: prod
   NEXT_PUBLIC_RUNTIME_REGION: cn
+  ACCOUNT_SERVICE_URL: https://accounts.svc.plus
+  CLOUDFLARE_ZONE_TAG: bf3427f83a2c52c8285ab3d741a6ee27
+  CLOUDFLARE_WEB_ANALYTICS_SITE_TAG: 0973e84ec8872c67c570f8072e92e21b
+  CLOUDFLARE_ACCOUNT_ID: e71be5efb76a6c54f78f008da4404f00
   GHCR_REGISTRY: ghcr.io
+  GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+  GHCR_PASSWORD: ${{ secrets.GHCR_TOKEN }}
+  INTERNAL_SERVICE_TOKEN: ${{ secrets.INTERNAL_SERVICE_TOKEN }}
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_DNS_API_TOKEN: ${{ secrets.CLOUDFLARE_DNS_API_TOKEN }}
 
 jobs:
   prep:
@@ -60,7 +64,6 @@ jobs:
     outputs:
       target_host: ${{ steps.inputs.outputs.target_host }}
       run_apply: ${{ steps.inputs.outputs.run_apply }}
-      internal_service_token: ${{ steps.inputs.outputs.internal_service_token }}
       image_tag: ${{ steps.metadata.outputs.image_tag }}
       image_ref: ${{ steps.metadata.outputs.image_ref }}
       image_latest_ref: ${{ steps.metadata.outputs.image_latest_ref }}
@@ -68,7 +71,7 @@ jobs:
       push_latest: ${{ steps.push.outputs.push_latest }}
     steps:
       - name: Check Out Repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@v5
 
       - name: Resolve Inputs
         id: inputs
@@ -76,22 +79,18 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           INPUT_TARGET_HOST: ${{ inputs.target_host }}
           INPUT_RUN_APPLY: ${{ inputs.run_apply }}
-          INPUT_INTERNAL_SERVICE_TOKEN: ${{ inputs.internal_service_token }}
         run: |
           if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
             target_host="${INPUT_TARGET_HOST}"
             run_apply="${INPUT_RUN_APPLY}"
-            internal_service_token="${INPUT_INTERNAL_SERVICE_TOKEN}"
           else
             target_host="jp-xhttp-contabo.svc.plus"
             run_apply="true"
-            internal_service_token=""
           fi
 
           {
             printf 'target_host=%s\n' "${target_host}"
             printf 'run_apply=%s\n' "${run_apply}"
-            printf 'internal_service_token=%s\n' "${internal_service_token}"
           } >> "${GITHUB_OUTPUT}"
 
       - name: Compute Image Metadata
@@ -114,14 +113,12 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     needs: prep
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DNS_API_TOKEN }}
     outputs:
       image_ref: ${{ needs.prep.outputs.image_ref }}
       image_tag: ${{ needs.prep.outputs.image_tag }}
     steps:
       - name: Check Out Repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@v5
 
       - name: Set Up Docker Buildx
         run: |
@@ -130,8 +127,7 @@ jobs:
 
       - name: Log In To GHCR
         env:
-          GHCR_USERNAME: ${{ vars.GHCR_USERNAME || github.repository_owner }}
-          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN || github.token }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
         run: |
           echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
 
@@ -153,16 +149,13 @@ jobs:
       TARGET_HOST: ${{ needs.prep.outputs.target_host }}
       RUN_APPLY: ${{ needs.prep.outputs.run_apply }}
       FRONTEND_IMAGE: ${{ needs.prep.outputs.image_ref }}
-      INTERNAL_SERVICE_TOKEN: ${{ needs.prep.outputs.internal_service_token }}
       PLAYBOOKS_REPO: git@github.com:x-evor/playbooks.git
-      GHCR_USERNAME: ${{ vars.GHCR_USERNAME || github.repository_owner }}
-      GHCR_PASSWORD: ${{ secrets.GHCR_TOKEN || github.token }}
     steps:
       - name: Check Out Repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@v5
 
       - name: Set Up Python
-        uses: actions/setup-python@42375524a763eb7d2e0d429c75e7d708d93f2851
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
@@ -192,21 +185,29 @@ jobs:
         run: |
           cd /tmp/playbooks
 
-          if [[ "${RUN_APPLY}" == "true" ]]; then
-            dns_sync="true"
-          else
-            dns_sync="false"
-          fi
-
           ansible_args=(
             -i inventory.ini
             deploy_console_svc_plus.yml
+            -D
             -l "${TARGET_HOST}"
-            -e "console_service_sync_dns=${dns_sync}"
+            -e "FRONTEND_IMAGE=${FRONTEND_IMAGE}"
+            -e "GHCR_USERNAME=${GHCR_USERNAME}"
+            -e "GHCR_PASSWORD=${GHCR_PASSWORD}"
+            -e "INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}"
+            -e "ACCOUNT_SERVICE_URL=${ACCOUNT_SERVICE_URL}"
+            -e "PRIMARY_DOMAIN=${PRIMARY_DOMAIN}"
+            -e "SECONDARY_DOMAIN=${SECONDARY_DOMAIN}"
+            -e "NEXT_PUBLIC_RUNTIME_ENVIRONMENT=${NEXT_PUBLIC_RUNTIME_ENVIRONMENT}"
+            -e "NEXT_PUBLIC_RUNTIME_REGION=${NEXT_PUBLIC_RUNTIME_REGION}"
+            -e "CLOUDFLARE_ZONE_TAG=${CLOUDFLARE_ZONE_TAG}"
+            -e "CLOUDFLARE_WEB_ANALYTICS_SITE_TAG=${CLOUDFLARE_WEB_ANALYTICS_SITE_TAG}"
+            -e "CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID}"
+            -e "CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}"
+            -e "CLOUDFLARE_DNS_API_TOKEN=${CLOUDFLARE_DNS_API_TOKEN}"
           )
 
           if [[ "${RUN_APPLY}" != "true" ]]; then
-            ansible_args+=(--check --diff)
+            ansible_args=(-C "${ansible_args[@]}")
           fi
 
           ansible-playbook "${ansible_args[@]}"
@@ -220,7 +221,7 @@ jobs:
     if: ${{ always() && needs.deploy.result == 'success' }}
     steps:
       - name: Check Out Repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@v5
 
       - name: Verify Frontend Release
         run: |
