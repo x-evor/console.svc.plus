@@ -8,7 +8,7 @@ type AccessReason = "unauthenticated" | "forbidden";
 export type AccessDecision = {
   allowed: boolean;
   reason?: AccessReason;
-  userRole: UserRole;
+  userRole: UserRole | null;
   userTenants?: TenantMembership[];
   tenantId?: string;
 };
@@ -20,7 +20,7 @@ export type AccessRule = {
   permissions?: string[];
 };
 
-const EVERYONE_ROLES: UserRole[] = ["guest", "user", "operator", "admin"];
+const KNOWN_ROLES: UserRole[] = ["user", "operator", "admin"];
 
 function normalizeRoles(roles?: UserRole[]): UserRole[] | undefined {
   if (!roles || roles.length === 0) {
@@ -28,7 +28,7 @@ function normalizeRoles(roles?: UserRole[]): UserRole[] | undefined {
   }
   const known = new Set<UserRole>();
   for (const role of roles) {
-    if (EVERYONE_ROLES.includes(role)) {
+    if (KNOWN_ROLES.includes(role)) {
       known.add(role);
     }
   }
@@ -59,25 +59,27 @@ export function resolveAccess(
     normalizedRule.permissions,
   );
 
-  const role: UserRole = user?.role ?? "guest";
-  const isAuthenticated = Boolean(user);
   const allowGuests =
     normalizedRule.allowGuests ??
-    (!normalizedRoles || normalizedRoles.includes("guest"));
-  const requiresLogin =
-    normalizedRule.requireLogin ??
-    (!allowGuests ||
-      Boolean(normalizedPermissions && normalizedPermissions.length > 0) ||
-      Boolean(normalizedRoles && !normalizedRoles.includes("guest")));
+    (!normalizedRule.requireLogin &&
+      !normalizedRoles &&
+      !normalizedPermissions);
+  const requiresLogin = Boolean(normalizedRule.requireLogin);
 
-  if (!isAuthenticated && requiresLogin) {
-    if (allowGuests) {
-      // Guests explicitly allowed to pass through.
-    } else {
-      return { allowed: false, reason: "unauthenticated", userRole: role };
+  if (!user) {
+    if (
+      requiresLogin ||
+      !allowGuests ||
+      Boolean(normalizedRoles?.length) ||
+      Boolean(normalizedPermissions?.length)
+    ) {
+      return { allowed: false, reason: "unauthenticated", userRole: null };
     }
+
+    return { allowed: true, userRole: null };
   }
 
+  const role: UserRole = user.role;
   const userPermissions = new Set(user?.permissions ?? []);
   const roleAllowed = normalizedRoles
     ? normalizedRoles.includes(role)
@@ -96,22 +98,16 @@ export function resolveAccess(
     normalizedPermissions.length > 0
   ) {
     if (!roleAllowed && !permissionAllowed) {
-      if (!isAuthenticated && allowGuests) {
-        return { allowed: false, reason: "unauthenticated", userRole: role };
-      }
       return {
         allowed: false,
-        reason: isAuthenticated ? "forbidden" : "unauthenticated",
+        reason: "forbidden",
         userRole: role,
       };
     }
   } else if (normalizedRoles && !roleAllowed) {
-    if (!isAuthenticated && allowGuests) {
-      return { allowed: false, reason: "unauthenticated", userRole: role };
-    }
     return {
       allowed: false,
-      reason: isAuthenticated ? "forbidden" : "unauthenticated",
+      reason: "forbidden",
       userRole: role,
     };
   }
@@ -129,7 +125,7 @@ export function resolveAccess(
     if (missing) {
       return {
         allowed: false,
-        reason: isAuthenticated ? "forbidden" : "unauthenticated",
+        reason: "forbidden",
         userRole: role,
       };
     }

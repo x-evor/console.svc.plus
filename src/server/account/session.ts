@@ -8,7 +8,7 @@ import { getAccountServiceApiBaseUrl } from "@server/serviceConfig";
 
 const ACCOUNT_API_BASE = getAccountServiceApiBaseUrl();
 
-export type AccountUserRole = "guest" | "user" | "operator" | "admin";
+export type AccountUserRole = "user" | "operator" | "admin";
 
 export type AccountTenantMembership = {
   id: string;
@@ -70,15 +70,15 @@ const KNOWN_ROLE_MAP: Record<string, AccountUserRole> = {
   member: "user",
 };
 
-function normalizeRole(value: unknown): AccountUserRole {
+function normalizeRole(value: unknown): AccountUserRole | null {
   if (typeof value !== "string") {
-    return "guest";
+    return null;
   }
   const normalized = value.trim().toLowerCase();
   if (!normalized) {
-    return "guest";
+    return null;
   }
-  return KNOWN_ROLE_MAP[normalized] ?? "guest";
+  return KNOWN_ROLE_MAP[normalized] ?? null;
 }
 
 function normalizeString(value: unknown): string | undefined {
@@ -125,7 +125,7 @@ function normalizeTenants(
       entry.name = name;
     }
     const role = normalizeRole(raw.role);
-    if (role !== "guest") {
+    if (role) {
       entry.role = role;
     }
     normalized.push(entry);
@@ -147,6 +147,9 @@ function buildUser(
   const name = normalizeString(raw.name);
   const username = normalizeString(raw.username) ?? name;
   const role = normalizeRole(raw.role);
+  if (!role) {
+    return null;
+  }
   const groups = normalizeStringList(raw.groups);
   const permissions = normalizeStringList(raw.permissions);
   const tenantId = normalizeString(raw.tenantId);

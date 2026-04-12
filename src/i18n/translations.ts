@@ -544,7 +544,6 @@ export type Translation = {
       title: string
       register: string
       login: string
-      demo: string
       welcome: string
       logout: string
       userCenter: string
@@ -668,7 +667,6 @@ export const translations: Record<'en' | 'zh', Translation> = {
         title: 'Account',
         register: 'Register',
         login: 'Login',
-        demo: 'Guest user（演示模式）',
         welcome: 'Welcome, {username}',
         logout: 'Sign out',
         userCenter: 'User Center',
@@ -711,7 +709,7 @@ export const translations: Record<'en' | 'zh', Translation> = {
       userNotFound: 'We could not find an account with that username.',
       genericError: 'We could not sign you in. Please try again later.',
       serviceUnavailable: 'The account service is temporarily unavailable. Please try again shortly.',
-      disclaimer: 'This Guest user（演示模式） login keeps your username in memory only to personalize navigation while you browse.',
+      disclaimer: 'Your session stays on this device only and is used solely to keep the console signed in while you browse.',
     },
     termsTitle: 'Terms of Service',
     termsPoints: [
@@ -1482,7 +1480,6 @@ export const translations: Record<'en' | 'zh', Translation> = {
         title: '账户',
         register: '注册',
         login: '登录',
-        demo: 'Guest user（演示模式）',
         welcome: '欢迎，{username}',
         logout: '退出登录',
         userCenter: '用户中心',
@@ -1525,7 +1522,7 @@ export const translations: Record<'en' | 'zh', Translation> = {
       userNotFound: '未找到该用户名对应的账户。',
       genericError: '登录失败，请稍后再试。',
       serviceUnavailable: '账户服务暂时不可用，请稍后再试。',
-      disclaimer: '此 Guest user（演示模式） 登录仅会在浏览期间保留用户名，以便展示个性化的导航体验。',
+      disclaimer: '登录态仅保存在当前设备，用于在浏览期间保持控制台会话。',
     },
     termsTitle: '服务条款',
     termsPoints: [

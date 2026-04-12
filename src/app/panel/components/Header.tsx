@@ -10,10 +10,6 @@ import { useLanguage } from "@i18n/LanguageProvider";
 import { translations } from "@i18n/translations";
 
 const ROLE_BADGES: Record<UserRole, { label: string; className: string }> = {
-  guest: {
-    label: "Guest",
-    className: "bg-[var(--color-badge-muted)] text-[var(--color-text-subtle)]",
-  },
   user: {
     label: "User",
     className:
@@ -55,9 +51,10 @@ export default function Header({
   isCollapsed,
 }: HeaderProps) {
   const { language } = useLanguage();
+  const navCopy = translations[language].nav.account;
   const user = useUserStore((state) => state.user);
   const isLoading = useUserStore((state) => state.isLoading);
-  const role: UserRole = user?.role ?? "guest";
+  const role: UserRole = user?.role ?? "user";
   const badge = ROLE_BADGES[role];
   const shouldRenderPublicEmail = hasPublicUserEmail({
     email: user?.email,
@@ -67,7 +64,7 @@ export default function Header({
     user?.name ??
     user?.username ??
     (shouldRenderPublicEmail ? user?.email : undefined) ??
-    "Guest user";
+    navCopy.title;
   const accountInitial = resolveAccountInitial(accountLabel);
   const statusBadge = isLoading ? "Syncing" : badge.label;
   const badgeClasses = isLoading

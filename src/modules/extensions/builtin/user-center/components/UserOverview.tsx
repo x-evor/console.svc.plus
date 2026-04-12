@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Copy } from 'lucide-react'
@@ -9,32 +9,9 @@ import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'
 import { hasPublicUserEmail } from '@lib/publicUserIdentity'
 import { useUserStore } from '@lib/userStore'
-import { fetchGuestNodeBinding } from '../lib/guestNodeBinding'
 
 import Card from './Card'
 import VlessQrCard from './VlessQrCard'
-
-function resolveDisplayName(
-  user: {
-    name?: string
-    username: string
-    email: string
-  } | null,
-) {
-  if (!user) {
-    return '访客'
-  }
-
-  if (user.name && user.name.trim().length > 0) {
-    return user.name.trim()
-  }
-
-  if (user.username && user.username.trim().length > 0) {
-    return user.username.trim()
-  }
-
-  return user.email
-}
 
 type UserOverviewProps = {
   hideMfaMainPrompt?: boolean
@@ -46,33 +23,18 @@ export default function UserOverview({ hideMfaMainPrompt = false }: UserOverview
   const copy = translations[language].userCenter.overview
   const mfaCopy = translations[language].userCenter.mfa
   const user = useUserStore((state) => state.user)
-  const isLoading = useUserStore((state) => state.isLoading)
-  const refresh = useUserStore((state) => state.refresh)
   const logout = useUserStore((state) => state.logout)
   const [copied, setCopied] = useState(false)
-  const [guestBoundNodeAddress, setGuestBoundNodeAddress] = useState<string | null>(null)
   const shouldRenderPublicEmail = hasPublicUserEmail({
     email: user?.email,
     role: user?.role,
   })
 
-  const displayName = useMemo(() => resolveDisplayName(user), [user])
-  const uuid = user?.proxyUuid ?? user?.uuid ?? user?.id ?? '—'
-  const vlessUuid = user?.proxyUuid ?? user?.uuid ?? user?.id ?? null
+  const uuid = user?.uuid ?? user?.id ?? '—'
+  const vlessUuid = user?.uuid ?? user?.id ?? null
   const username = user?.username ?? '—'
   const email = shouldRenderPublicEmail ? user?.email : '—'
   const docsUrl = mfaCopy.actions.docsUrl
-  const isGuestSandboxReadOnly = Boolean(user?.isGuest && user?.isReadOnly)
-  const guestUuidExpiresAtText = useMemo(() => {
-    if (!isGuestSandboxReadOnly || !user?.proxyUuidExpiresAt) {
-      return null
-    }
-    const date = new Date(user.proxyUuidExpiresAt)
-    if (Number.isNaN(date.getTime())) {
-      return null
-    }
-    return date.toLocaleString()
-  }, [isGuestSandboxReadOnly, user?.proxyUuidExpiresAt])
 
   const mfaStatusLabel = useMemo(() => {
     if (user?.mfaEnabled) {
@@ -88,7 +50,7 @@ export default function UserOverview({ hideMfaMainPrompt = false }: UserOverview
   const shouldShowMfaMainPrompt = !hideMfaMainPrompt && !user?.isReadOnly
 
   const handleCopy = useCallback(async () => {
-    const identifier = user?.proxyUuid ?? user?.uuid ?? user?.id
+    const identifier = user?.uuid ?? user?.id
     if (!identifier) {
       return
     }
@@ -112,7 +74,7 @@ export default function UserOverview({ hideMfaMainPrompt = false }: UserOverview
     } catch (error) {
       console.warn('Failed to copy UUID', error)
     }
-  }, [user?.id, user?.proxyUuid, user?.uuid])
+  }, [user?.id, user?.uuid])
 
   const handleGoToSetup = useCallback(() => {
     router.push('/panel/account?setupMfa=1')
@@ -124,66 +86,10 @@ export default function UserOverview({ hideMfaMainPrompt = false }: UserOverview
     router.refresh()
   }, [logout, router])
 
-  useEffect(() => {
-    if (!isGuestSandboxReadOnly) {
-      setGuestBoundNodeAddress(null)
-      return
-    }
-    let cancelled = false
-    void (async () => {
-      const binding = await fetchGuestNodeBinding()
-      if (cancelled) {
-        return
-      }
-      setGuestBoundNodeAddress(binding?.address ?? null)
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [isGuestSandboxReadOnly])
-
-  useEffect(() => {
-    if (!isGuestSandboxReadOnly || !user?.proxyUuidExpiresAt) {
-      return
-    }
-    const expiresAt = new Date(user.proxyUuidExpiresAt).getTime()
-    if (!Number.isFinite(expiresAt)) {
-      return
-    }
-    const delay = Math.max(1000, expiresAt - Date.now() + 1500)
-    const timer = window.setTimeout(() => {
-      void refresh()
-    }, delay)
-    return () => {
-      window.clearTimeout(timer)
-    }
-  }, [isGuestSandboxReadOnly, refresh, user?.proxyUuidExpiresAt])
-
   return (
     <div className="space-y-6 text-[var(--color-text)] transition-colors">
       <div>
         <p className="text-sm text-[var(--color-text-subtle)] opacity-90">{copy.uuidNote}</p>
-        {isGuestSandboxReadOnly ? (
-          <p className="mt-2 rounded-[var(--radius-md)] border border-[color:var(--color-warning-muted)] bg-[var(--color-warning-muted)] px-3 py-2 text-xs text-[var(--color-warning-foreground)]">
-            {language === 'zh'
-              ? (
-                <>
-                  Guest user（演示模式）为只读模式：可浏览控制台、可使用 VLESS 二维码，但不能修改任何配置。UUID 每 1 小时自动刷新{guestUuidExpiresAtText ? `（下次刷新约 ${guestUuidExpiresAtText}）` : ''}。
-                  <Link href="/register" className="ml-1 text-[var(--color-primary)] hover:underline">
-                    立即注册账号以获得持久访问权限 &rarr;
-                  </Link>
-                </>
-              )
-              : (
-                <>
-                  Guest user (demo mode) runs in read-only mode: browse safely and use the VLESS QR code, but no configuration changes are allowed. UUID rotates every hour{guestUuidExpiresAtText ? ` (next refresh around ${guestUuidExpiresAtText})` : ''}.
-                  <Link href="/register" className="ml-1 text-[var(--color-primary)] hover:underline">
-                    Register for persistent access &rarr;
-                  </Link>
-                </>
-              )}
-          </p>
-        ) : null}
       </div>
 
       {shouldShowMfaMainPrompt && requiresSetup ? (
@@ -241,8 +147,6 @@ export default function UserOverview({ hideMfaMainPrompt = false }: UserOverview
         <VlessQrCard
           uuid={vlessUuid}
           copy={copy.cards.vless}
-          allowGuestReadOnlyFallbackNode={isGuestSandboxReadOnly}
-          boundNodeAddress={guestBoundNodeAddress}
         />
 
         <Card>

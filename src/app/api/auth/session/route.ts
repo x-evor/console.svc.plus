@@ -10,8 +10,6 @@ const ACCOUNT_API_BASE = getAccountServiceApiBaseUrl();
 type AccountUser = {
   id?: string;
   uuid?: string;
-  proxyUuid?: string;
-  proxyUuidExpiresAt?: string;
   name?: string;
   username?: string;
   email: string;
@@ -41,13 +39,15 @@ type SessionResponse = {
   error?: string;
 };
 
-function normalizeRole(role: unknown): string {
+type AuthenticatedRole = "user" | "operator" | "admin";
+
+function normalizeRole(role: unknown): AuthenticatedRole | null {
   if (typeof role !== "string") {
-    return "user";
+    return null;
   }
   const normalized = role.trim().toLowerCase();
   if (!normalized) {
-    return "user";
+    return null;
   }
   if (normalized === "root" || normalized === "super_admin") {
     return "admin";
@@ -55,7 +55,14 @@ function normalizeRole(role: unknown): string {
   if (normalized === "readonly" || normalized === "read_only") {
     return "user";
   }
-  return normalized;
+  if (
+    normalized === "user" ||
+    normalized === "operator" ||
+    normalized === "admin"
+  ) {
+    return normalized;
+  }
+  return null;
 }
 
 async function fetchSession(token: string, requestHost?: string | null) {
@@ -113,6 +120,11 @@ export async function GET(request: NextRequest) {
   const derivedMfaPending = derivedMfaPendingSource && !derivedMfaEnabled;
 
   const normalizedRole = normalizeRole(rawUser.role);
+  if (!normalizedRole) {
+    const response = NextResponse.json({ user: null });
+    clearSessionCookie(response, requestHost ?? undefined);
+    return response;
+  }
   const rawRole =
     typeof rawUser.role === "string" ? rawUser.role.trim().toLowerCase() : "";
   const normalizedGroups = Array.isArray(rawUser.groups)
@@ -143,15 +155,6 @@ export async function GET(request: NextRequest) {
     normalizedGroups.some((group) => group.toLowerCase() === "readonly role") ||
     rawRole === "readonly" ||
     rawRole === "read_only";
-  const normalizedProxyUuid =
-    typeof rawUser.proxyUuid === "string" && rawUser.proxyUuid.trim().length > 0
-      ? rawUser.proxyUuid.trim()
-      : undefined;
-  const normalizedProxyUuidExpiresAt =
-    typeof rawUser.proxyUuidExpiresAt === "string" &&
-    rawUser.proxyUuidExpiresAt.trim().length > 0
-      ? rawUser.proxyUuidExpiresAt.trim()
-      : undefined;
 
   const normalizedTenantId =
     typeof rawUser.tenantId === "string" && rawUser.tenantId.trim().length > 0
@@ -229,8 +232,6 @@ export async function GET(request: NextRequest) {
       groups: normalizedGroups,
       permissions: normalizedPermissions,
       readOnly: normalizedReadOnly,
-      proxyUuid: normalizedProxyUuid,
-      proxyUuidExpiresAt: normalizedProxyUuidExpiresAt,
       tenantId: normalizedTenantId,
       tenants: normalizedTenants,
     },

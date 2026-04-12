@@ -3,7 +3,7 @@
 import { create } from 'zustand'
 import { resolvePublicUserEmail } from '@lib/publicUserIdentity'
 
-export type UserRole = 'guest' | 'user' | 'operator' | 'admin'
+export type UserRole = 'user' | 'operator' | 'admin'
 
 export type TenantMembership = {
   id: string
@@ -14,8 +14,6 @@ export type TenantMembership = {
 type User = {
   id: string
   uuid: string
-  proxyUuid?: string
-  proxyUuidExpiresAt?: string
   email: string
   name?: string
   username: string
@@ -24,7 +22,6 @@ type User = {
   role: UserRole
   groups: string[]
   permissions: string[]
-  isGuest: boolean
   isUser: boolean
   isOperator: boolean
   isAdmin: boolean
@@ -68,15 +65,15 @@ const KNOWN_ROLE_MAP: Record<string, UserRole> = {
 
 function normalizeRole(input?: string | null): UserRole {
   if (!input || typeof input !== 'string') {
-    return 'guest'
+    return 'user'
   }
 
   const normalized = input.trim().toLowerCase()
   if (!normalized) {
-    return 'guest'
+    return 'user'
   }
 
-  return KNOWN_ROLE_MAP[normalized] ?? 'guest'
+  return KNOWN_ROLE_MAP[normalized] ?? 'user'
 }
 
 async function fetchSessionUser(): Promise<User | null> {
@@ -105,8 +102,6 @@ async function fetchSessionUser(): Promise<User | null> {
         role?: string
         groups?: string[]
         permissions?: string[]
-        proxyUuid?: string
-        proxyUuidExpiresAt?: string
         readOnly?: boolean
         tenantId?: string
         tenants?: TenantMembership[]
@@ -172,14 +167,6 @@ async function fetchSessionUser(): Promise<User | null> {
       rawRole === 'read_only' ||
       normalizedGroups.some((value) => value.toLowerCase() === 'readonly role')
     const normalizedReadOnly = Boolean(sessionUser.readOnly) || inferredReadOnly
-    const normalizedProxyUuid =
-      typeof sessionUser.proxyUuid === 'string' && sessionUser.proxyUuid.trim().length > 0
-        ? sessionUser.proxyUuid.trim()
-        : undefined
-    const normalizedProxyUuidExpiresAt =
-      typeof sessionUser.proxyUuidExpiresAt === 'string' && sessionUser.proxyUuidExpiresAt.trim().length > 0
-        ? sessionUser.proxyUuidExpiresAt.trim()
-        : undefined
 
     const normalizedTenantId =
       typeof sessionUser.tenantId === 'string' && sessionUser.tenantId.trim().length > 0
@@ -219,8 +206,6 @@ async function fetchSessionUser(): Promise<User | null> {
     return {
       id: identifier,
       uuid: identifier,
-      proxyUuid: normalizedProxyUuid,
-      proxyUuidExpiresAt: normalizedProxyUuidExpiresAt,
       email: publicEmail,
       name: normalizedName,
       username: normalizedUsername ?? publicEmail,
@@ -230,7 +215,6 @@ async function fetchSessionUser(): Promise<User | null> {
       role: normalizedRole,
       groups: normalizedGroups,
       permissions: normalizedPermissions,
-      isGuest: normalizedRole === 'guest',
       isUser: normalizedRole === 'user',
       isOperator: normalizedRole === 'operator',
       isAdmin: normalizedRole === 'admin',

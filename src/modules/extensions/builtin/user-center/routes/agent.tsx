@@ -1,15 +1,13 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import useSWR from 'swr'
 import { Server, MapPin, Plus, ExternalLink, RefreshCw } from 'lucide-react'
 
 import Breadcrumbs from '@/app/panel/components/Breadcrumbs'
 import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'
-import { useUserStore } from '@lib/userStore'
 import { fetchAgentNodes } from '../lib/fetchAgentNodes'
-import { fetchGuestNodeBinding } from '../lib/guestNodeBinding'
 
 
 interface VlessNode {
@@ -39,75 +37,14 @@ function isDisplayableNode(node: VlessNode): boolean {
 export default function UserCenterAgentRoute() {
   const { language } = useLanguage()
   const t = translations[language].userCenter
-  const user = useUserStore((state) => state.user)
   const { data: nodes, error, isLoading, mutate } = useSWR<VlessNode[]>('user-center-agent-nodes', fetchAgentNodes)
-  const [boundNode, setBoundNode] = useState<VlessNode | null>(null)
-  const isGuestSandboxReadOnly = Boolean(user?.isGuest && user?.isReadOnly)
   const visibleNodes = useMemo(() => {
-    return (nodes ?? []).filter((node) => {
-      if (isGuestSandboxReadOnly) {
-        // Guest read-only mode still needs to expose the bound node even when the
-        // node belongs to the shared internal pool.
-        const address = (node.address || '').trim()
-        return address && address !== '*'
-      }
-      return isDisplayableNode(node)
-    })
-  }, [nodes, isGuestSandboxReadOnly])
-  const [boundAddress, setBoundAddress] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!isGuestSandboxReadOnly) {
-      setBoundNode(null)
-      setBoundAddress(null)
-      return
-    }
-    let cancelled = false
-    void (async () => {
-      const binding = await fetchGuestNodeBinding()
-      if (cancelled) {
-        return
-      }
-      setBoundAddress(binding?.address ?? null)
-      if (!binding?.address) {
-        setBoundNode(null)
-        return
-      }
-      setBoundNode({
-        name: binding.name || 'Guest Node',
-        address: binding.address,
-        port: 443,
-        transport: 'tcp',
-        security: 'tls',
-      } as any)
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [isGuestSandboxReadOnly])
+    return (nodes ?? []).filter((node) => isDisplayableNode(node))
+  }, [nodes])
 
   const effectiveNodes = useMemo(() => {
-    // Default behavior: show all displayable nodes.
-    const base = visibleNodes.length > 0 ? [...visibleNodes] : []
-
-    // Guest read-only behavior: if an admin bound a preferred node, ensure it is first,
-    // but still show all regions/nodes to keep the demo experience useful.
-    if (isGuestSandboxReadOnly && boundAddress) {
-      const matched = nodes?.find((n) => n.address === boundAddress)
-      const preferred = matched ?? boundNode ?? null
-      if (preferred) {
-        const rest = base.filter((n) => n.address !== preferred.address)
-        return [preferred, ...rest]
-      }
-    }
-
-    // Fallback if no nodes were returned by the API but the guest binding exists.
-    if (isGuestSandboxReadOnly && boundNode && base.length === 0) {
-      return [boundNode]
-    }
-
-    return base
-  }, [isGuestSandboxReadOnly, nodes, visibleNodes, boundAddress, boundNode])
+    return visibleNodes.length > 0 ? [...visibleNodes] : []
+  }, [visibleNodes])
 
   const groupedNodes = useMemo(() => {
     const groups: Record<string, VlessNode[]> = {
@@ -164,7 +101,7 @@ export default function UserCenterAgentRoute() {
 
       <div className="grid gap-6">
 
-        {error && !(isGuestSandboxReadOnly && boundNode) && (
+        {error && (
           <div className="rounded-xl border border-[color:var(--color-danger-border)] bg-[var(--color-danger-muted)]/30 px-4 py-3 text-sm text-[var(--color-danger-foreground)]">
             {language === 'zh'
               ? `节点列表加载失败：${error.message}`

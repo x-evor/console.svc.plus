@@ -33,16 +33,12 @@ export type VlessQrCopy = {
 interface VlessQrCardProps {
   uuid: string | null | undefined
   copy: VlessQrCopy
-  allowGuestReadOnlyFallbackNode?: boolean
-  boundNodeAddress?: string | null
 }
 
 
 export default function VlessQrCard({
   uuid,
   copy,
-  allowGuestReadOnlyFallbackNode = false,
-  boundNodeAddress,
 }: VlessQrCardProps) {
   const { data: allNodes, error: nodesError } = useSWR<VlessNode[]>('user-center-agent-nodes', fetchAgentNodes)
 
@@ -52,16 +48,10 @@ export default function VlessQrCard({
       const address = (node.address || '').trim()
       if (!address || address === '*') return false
 
-      if (allowGuestReadOnlyFallbackNode) {
-        // Guest read-only mode still needs to expose the bound node, even when it
-        // would otherwise be filtered out as an internal shared node.
-        return true
-      }
-
       // Skip the redundant Internal Agents (Shared Token) node
       return !(name.includes('internal agents') && name.includes('shared token'))
     })
-  }, [allNodes, allowGuestReadOnlyFallbackNode])
+  }, [allNodes])
   const [selectedNode, setSelectedNode] = useState<VlessNode | null>(null)
   const [preferredTransport, setPreferredTransport] = useState<VlessTransport>('tcp')
   const [isSelectorOpen, setIsSelectorOpen] = useState(false)
@@ -74,36 +64,11 @@ export default function VlessQrCard({
   const rawNode = useMemo(() => {
     if (selectedNode) return selectedNode
 
-    // 1. Try to use the node bound by root management (search in all nodes, including filtered ones)
-    if (boundNodeAddress) {
-      const matched = (allNodes ?? []).find((node) => node.address === boundNodeAddress)
-      if (matched) {
-        return matched
-      }
-
-      // If the guest read-only binding points to a node that is not present in the
-      // live list, synthesize a minimal fallback so QR generation still works.
-      if (allowGuestReadOnlyFallbackNode) {
-        return {
-          name: 'Guest Node',
-          address: boundNodeAddress,
-          port: 443,
-          transport: 'tcp',
-          security: 'tls',
-          flow: 'xtls-rprx-vision',
-          // These templates are needed for URI generation if the API missed them
-          uri_scheme_tcp: 'vless://${UUID}@${DOMAIN}:${PORT}?encryption=none&flow=${FLOW}&security=tls&sni=${SNI}&fp=${FP}&type=tcp#${TAG}',
-          uri_scheme_xhttp: 'vless://${UUID}@${DOMAIN}:${PORT}?encryption=none&security=tls&sni=${SNI}&fp=${FP}&type=xhttp&mode=${MODE}&path=${PATH}#${TAG}',
-        } as VlessNode
-      }
-    }
-
-    // 2. Default to the first visible (non-filtered) node
+    // Default to the first visible (non-filtered) node.
     if (nodes && nodes[0]) return nodes[0]
 
-    // 3. No fallback node
     return undefined
-  }, [allNodes, allowGuestReadOnlyFallbackNode, boundNodeAddress, nodes, selectedNode])
+  }, [nodes, selectedNode])
 
   const effectiveNode = useMemo((): VlessNode | undefined => {
     if (!rawNode) return undefined
@@ -297,10 +262,7 @@ export default function VlessQrCard({
           <div className="rounded-md border border-[color:var(--color-warning-border)] bg-[var(--color-warning-muted)] p-3 text-xs text-[var(--color-warning-foreground)]">
             <p className="font-semibold">❌ 运行节点配置缺失</p>
             <p className="mt-1">
-              {allowGuestReadOnlyFallbackNode
-                ? '演示模式账号未发现有效的节点映射。请确认后端已完成 guest 节点绑定逻辑。'
-                : `无法从服务器获取代理节点列表${nodesError ? `（${nodesError.message}）` : ''}。请检查 API 接口是否正常。`
-              }
+              {`无法从服务器获取代理节点列表${nodesError ? `（${nodesError.message}）` : ''}。请检查 API 接口是否正常。`}
             </p>
           </div>
         ) : !effectiveNode ? (

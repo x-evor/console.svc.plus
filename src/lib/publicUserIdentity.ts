@@ -10,11 +10,7 @@ export function resolvePublicUserEmail(input: {
   email?: string | null;
   role?: string | null;
 }): string {
-  const normalizedRole = normalizeRole(input.role);
-  if (normalizedRole === "guest") {
-    return "";
-  }
-
+  void normalizeRole(input.role);
   return normalizeText(input.email);
 }
 
@@ -22,9 +18,6 @@ export function hasPublicUserEmail(input: {
   email?: string | null;
   role?: string | null;
 }): boolean {
-  if (normalizeRole(input.role) === "guest") {
-    return false;
-  }
-
+  void normalizeRole(input.role);
   return normalizeText(input.email).length > 0;
 }

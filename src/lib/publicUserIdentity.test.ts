@@ -6,16 +6,7 @@ import {
 } from "@lib/publicUserIdentity";
 
 describe("publicUserIdentity", () => {
-  it("hides guest email values from the public session payload", () => {
-    expect(
-      resolvePublicUserEmail({
-        email: "sandbox@svc.plus",
-        role: "guest",
-      }),
-    ).toBe("");
-  });
-
-  it("preserves non-guest emails", () => {
+  it("returns the public email value when present", () => {
     expect(
       resolvePublicUserEmail({
         email: "admin@svc.plus",
@@ -24,14 +15,16 @@ describe("publicUserIdentity", () => {
     ).toBe("admin@svc.plus");
   });
 
+  it("normalizes empty public emails", () => {
+    expect(
+      resolvePublicUserEmail({
+        email: "   ",
+      }),
+    ).toBe("");
+  });
+
   it("detects whether a public email should be rendered", () => {
     expect(hasPublicUserEmail({ email: "" })).toBe(false);
-    expect(
-      hasPublicUserEmail({
-        email: "sandbox@svc.plus",
-        role: "guest",
-      }),
-    ).toBe(false);
     expect(
       hasPublicUserEmail({
         email: "admin@svc.plus",

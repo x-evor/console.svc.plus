@@ -93,7 +93,6 @@ type PersistedPairingRequiredLookup = {
 
 const PAIRING_REQUIRED_SESSION_STORAGE_KEY = "openclaw:pairing-required-state";
 const PAIRING_REQUIRED_STATE_TTL_MS = 1000 * 60 * 60 * 12;
-const PAIRING_REQUIRED_GUEST_TTL_MS = 1000 * 60 * 60;
 
 export type OpenClawAssistantViewState = {
   connectionState: ConnectionState;
@@ -436,7 +435,6 @@ export function OpenClawAssistantPane({
   const [errorMessage, setErrorMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
-  const [guestSessionExpired, setGuestSessionExpired] = useState(false);
 
   const defaultsLoaded = useOpenClawConsoleStore(
     (state) => state.defaultsLoaded,
@@ -482,9 +480,7 @@ export function OpenClawAssistantPane({
   const minimalPage = variant === "page";
   const pairingPersistenceUserId =
     sessionUser?.uuid?.trim() || sessionUser?.id?.trim() || "anonymous";
-  const pairingPersistenceTtlMs = sessionUser?.isGuest
-    ? PAIRING_REQUIRED_GUEST_TTL_MS
-    : PAIRING_REQUIRED_STATE_TTL_MS;
+  const pairingPersistenceTtlMs = PAIRING_REQUIRED_STATE_TTL_MS;
   const pairingPersistenceScope = buildPairingPersistenceScope({
     openclawUrl,
     openclawOrigin,
@@ -572,13 +568,6 @@ export function OpenClawAssistantPane({
         "当前没有可用的 OpenClaw 地址。先到融合设置填写 gateway / vault / APISIX，再回来启动 XWorkmate。",
         "No OpenClaw endpoint is available yet. Configure gateway, vault, and APISIX first, then return to XWorkmate.",
       ),
-      guestSessionExpired: pickCopy(
-        isChinese,
-        "演示模式已超过 1 小时。请注册或登录后继续使用助手。",
-        "Demo mode has exceeded 1 hour. Register or sign in to continue using the assistant.",
-      ),
-      login: pickCopy(isChinese, "登录", "Sign in"),
-      register: pickCopy(isChinese, "注册", "Register"),
       openIntegrations: pickCopy(
         isChinese,
         "打开接口集成",
@@ -724,7 +713,6 @@ export function OpenClawAssistantPane({
           return;
         }
         lastPairingRequiredSignatureRef.current = signature;
-        setGuestSessionExpired(false);
         persistPairingRequiredState({
           signature,
           errorMessage: formattedMessage,
@@ -1059,23 +1047,14 @@ export function OpenClawAssistantPane({
     if (persisted.state) {
       lastPairingRequiredSignatureRef.current = persisted.state.signature;
       lastConnectPairingSignatureRef.current = persisted.state.signature;
-      setGuestSessionExpired(false);
       setConnectionState("error");
       setErrorMessage(persisted.state.errorMessage);
-      return;
-    }
-
-    if (sessionUser?.isGuest && persisted.expired) {
       lastPairingRequiredSignatureRef.current = null;
-      lastConnectPairingSignatureRef.current = "guest-session-expired";
-      setGuestSessionExpired(true);
-      setConnectionState("error");
-      setErrorMessage(copy.guestSessionExpired);
     }
-  }, [copy.guestSessionExpired, pairingPersistenceScope, sessionUser?.isGuest]);
+  }, [pairingPersistenceScope]);
 
   useEffect(() => {
-    if (!defaultsLoaded || bootstrappedRef.current || guestSessionExpired) {
+    if (!defaultsLoaded || bootstrappedRef.current) {
       return;
     }
 
@@ -1088,7 +1067,6 @@ export function OpenClawAssistantPane({
   }, [
     connectGateway,
     defaultsLoaded,
-    guestSessionExpired,
     initialSessionKey,
     openclawUrl,
   ]);
@@ -1096,7 +1074,6 @@ export function OpenClawAssistantPane({
   useEffect(() => {
     lastConnectPairingSignatureRef.current = null;
     lastPairingRequiredSignatureRef.current = null;
-    setGuestSessionExpired(false);
   }, [
     openclawOrigin,
     openclawToken,
@@ -1553,24 +1530,6 @@ export function OpenClawAssistantPane({
               <div className="whitespace-pre-wrap rounded-[var(--radius-lg)] border border-[color:var(--color-danger-border)] bg-[var(--color-danger-muted)]/40 px-3 py-2 text-sm text-[var(--color-danger-foreground)]">
                 {errorMessage}
               </div>
-              {guestSessionExpired ? (
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => router.push("/login")}
-                    className="tactile-button tactile-button-primary px-3 text-xs"
-                  >
-                    {copy.login}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => router.push("/register")}
-                    className="tactile-button tactile-button-soft px-3 text-xs text-[var(--color-text)]"
-                  >
-                    {copy.register}
-                  </button>
-                </div>
-              ) : null}
             </div>
           ) : null}
 
