@@ -4,9 +4,11 @@
 
 - Runtime: `Caddy + Docker Compose`
 - Deploy host: `root@cn-console.svc.plus`
-- Domains:
-  - `cn-console.svc.plus`
-- Frontend release workflow: `.github/workflows/service_release_frontend-deploy.yml`
+- Public domains:
+  - `www.svc.plus`
+  - `console.svc.plus`
+- Canonical public origin: `https://www.svc.plus`
+- Frontend release workflow: `.github/workflows/pipeline.yaml`
 
 ## Operating Model
 
@@ -20,7 +22,14 @@ The stack is static-first:
 - The Next.js standalone container serves dynamic HTML, auth endpoints, and API proxy routes. Static assets and hashed CSS/JS files are extracted by the `frontend-assets` helper task, so the runtime no longer needs to compile anything on the single-node host.
 - `docs.svc.plus` is the source of truth for rendered docs/blog pages; the browser does not call it directly.
 
-Releases are orchestrated through `.github/workflows/service_release_frontend-deploy.yml`. That workflow builds/pushes the image, renders `.env.runtime` including `DOCS_SERVICE_URL` / `DOCS_SERVICE_INTERNAL_URL`, and ships `docker-compose.yml`, `Caddyfile`, and the runtime env file to the host. The control-plane workflow `.github/workflows/service_release_apiserver-deploy.yml` then updates Cloudflare DNS for the release domain (via `scripts/github-actions/update-release-dns.sh`) so `cn-console.svc.plus` points at the new environment.
+Releases are orchestrated through `.github/workflows/pipeline.yaml`. That workflow builds/pushes the image, renders `.env.runtime` including `DOCS_SERVICE_URL` / `DOCS_SERVICE_INTERNAL_URL`, and ships `docker-compose.yml`, `Caddyfile`, and the runtime env file to the host. The control-plane DNS automation then updates Cloudflare DNS for the release domains (via `scripts/github-actions/update-release-dns.sh`) so both `www.svc.plus` and `console.svc.plus` resolve to the same environment.
+
+The release contract now uses:
+
+- `CANONICAL_DOMAIN=www.svc.plus`
+- `SERVED_DOMAINS=www.svc.plus,console.svc.plus`
+
+Validation must pass for both domains. A release is incomplete if either host serves a different runtime version, static asset family, or `dashboardUrl`.
 
 This baseline is intentional for the weak-IO single-node host `root@cn-console.svc.plus`. No images are built on the target machine, keeping the deployment lightweight: the host only logs into GHCR, pulls the `dashboard` image, extracts assets into `frontend_static`, and starts `dashboard` plus `caddy` containers via `docker compose`.
 

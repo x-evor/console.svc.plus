@@ -13,16 +13,16 @@ require_env() {
 }
 
 emit_lines() {
-  require_env PRIMARY_DOMAIN
+  require_env CANONICAL_DOMAIN
 
-  local primary_domain="${PRIMARY_DOMAIN}"
+  local canonical_domain="${CANONICAL_DOMAIN}"
   printf 'NODE_BUILDER_IMAGE=%s\n' "${NODE_BUILDER_IMAGE:-node:22-bookworm}"
   printf 'NODE_RUNTIME_IMAGE=%s\n' "${NODE_RUNTIME_IMAGE:-node:22-slim}"
   printf 'CONTENTLAYER_BUILD=%s\n' "${CONTENTLAYER_BUILD:-true}"
-  printf 'NEXT_PUBLIC_APP_BASE_URL=%s\n' "${NEXT_PUBLIC_APP_BASE_URL:-https://${primary_domain}}"
-  printf 'NEXT_PUBLIC_SITE_URL=%s\n' "${NEXT_PUBLIC_SITE_URL:-https://${primary_domain}}"
-  printf 'NEXT_PUBLIC_LOGIN_URL=%s\n' "${NEXT_PUBLIC_LOGIN_URL:-https://${primary_domain}/login}"
-  printf 'NEXT_PUBLIC_DOCS_BASE_URL=%s\n' "${NEXT_PUBLIC_DOCS_BASE_URL:-https://${primary_domain}/docs}"
+  printf 'NEXT_PUBLIC_APP_BASE_URL=%s\n' "${NEXT_PUBLIC_APP_BASE_URL:-https://${canonical_domain}}"
+  printf 'NEXT_PUBLIC_SITE_URL=%s\n' "${NEXT_PUBLIC_SITE_URL:-https://${canonical_domain}}"
+  printf 'NEXT_PUBLIC_LOGIN_URL=%s\n' "${NEXT_PUBLIC_LOGIN_URL:-https://${canonical_domain}/login}"
+  printf 'NEXT_PUBLIC_DOCS_BASE_URL=%s\n' "${NEXT_PUBLIC_DOCS_BASE_URL:-https://${canonical_domain}/docs}"
   printf 'NEXT_PUBLIC_RUNTIME_ENVIRONMENT=%s\n' "${NEXT_PUBLIC_RUNTIME_ENVIRONMENT:-prod}"
   printf 'NEXT_PUBLIC_RUNTIME_REGION=%s\n' "${NEXT_PUBLIC_RUNTIME_REGION:-cn}"
   printf 'NEXT_PUBLIC_GISCUS_REPO=%s\n' "${NEXT_PUBLIC_GISCUS_REPO:-x-evor/console.svc.plus}"

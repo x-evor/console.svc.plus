@@ -1,6 +1,6 @@
 # Release Process
 
-This page tracks release summaries for published versions of `console.svc.plus`.
+This page tracks release summaries for published versions of the public web console served under `www.svc.plus` and `console.svc.plus`.
 
 ## Current Release
 
@@ -49,3 +49,5 @@ Published commit: `0fab89e`
 
 - GitHub Release: `https://github.com/x-evor/console.svc.plus/releases/tag/v0.2`
 - Related docs: `docs/README.md`, `docs/en/README.md`, `docs/zh/README.md`
+- Release validation must verify both `www.svc.plus` and `console.svc.plus` against the same `releaseImageRef`, `releaseImageTag`, and `releaseCommit`.
+- `www.svc.plus` is the canonical public domain for metadata, sitemap, `dashboardUrl`, and shared links.

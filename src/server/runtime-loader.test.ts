@@ -24,6 +24,6 @@ describe("runtime-loader", () => {
     const config = loadRuntimeConfig({ hostname: "console.svc.plus" });
 
     expect(config.authUrl).toBe("https://accounts.svc.plus");
-    expect(config.dashboardUrl).toBe("https://console.svc.plus");
+    expect(config.dashboardUrl).toBe("https://www.svc.plus");
   });
 });

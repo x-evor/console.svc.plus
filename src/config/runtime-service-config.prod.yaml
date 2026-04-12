@@ -4,10 +4,10 @@ regions:
   cn:
     apiBaseUrl: https://rag-server-svc-plus-266500572462.asia-northeast1.run.app
     authUrl: https://accounts.svc.plus
-    dashboardUrl: https://console.svc.plus
+    dashboardUrl: https://www.svc.plus
     docsServiceUrl: https://docs.svc.plus
   global:
     apiBaseUrl: https://rag-server-svc-plus-266500572462.asia-northeast1.run.app
     authUrl: https://accounts.svc.plus
-    dashboardUrl: https://console.svc.plus
+    dashboardUrl: https://www.svc.plus
     docsServiceUrl: https://docs.svc.plus

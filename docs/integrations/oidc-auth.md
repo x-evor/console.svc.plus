@@ -6,7 +6,7 @@ This guide describes how to configure GitHub and Google OAuth login for the Clou
 
 ```
 ┌──────────────┐      ┌──────────────────┐      ┌──────────────────┐
-│  Browser     │      │ console.svc.plus │      │accounts.svc.plus │
+│  Browser     │      │   www.svc.plus   │      │accounts.svc.plus │
 │  (User)      │      │   (Frontend)     │      │   (Backend)      │
 └──────┬───────┘      └────────┬─────────┘      └────────┬─────────┘
        │  1. Click "Login      │                         │
@@ -40,7 +40,7 @@ This guide describes how to configure GitHub and Google OAuth login for the Clou
 
 - A GitHub account with access to **Settings > Developer Settings**
 - A Google account with access to [Google Cloud Console](https://console.cloud.google.com/)
-- Running `accounts.svc.plus` and `console.svc.plus` services
+- Running `accounts.svc.plus` and the frontend served under `www.svc.plus` / `console.svc.plus`
 
 ---
 
@@ -55,7 +55,7 @@ This guide describes how to configure GitHub and Google OAuth login for the Clou
 | Field | Value |
 |---|---|
 | **Application name** | `Cloud Neutral Console` |
-| **Homepage URL** | `https://console.svc.plus` |
+| **Homepage URL** | `https://www.svc.plus` |
 | **Authorization callback URL** | `https://accounts.svc.plus/api/auth/oauth/callback/github` |
 | **Enable Device Flow** | ☐ (unchecked) |
 
@@ -119,7 +119,7 @@ No additional GitHub permissions are required.
 |---|---|
 | **Application type** | `Web application` |
 | **Name** | `Cloud Neutral Console` |
-| **Authorized JavaScript origins** | `https://console.svc.plus` |
+| **Authorized JavaScript origins** | `https://www.svc.plus` |
 | **Authorized redirect URIs** | `https://accounts.svc.plus/api/auth/oauth/callback/google` |
 
 4. Click **"Create"**
@@ -150,7 +150,7 @@ GOOGLE_CLIENT_SECRET=<your_google_client_secret>
 
 # ── General OAuth ──
 OAUTH_REDIRECT_URL=https://accounts.svc.plus/api/auth/oauth/callback
-OAUTH_FRONTEND_URL=https://console.svc.plus
+OAUTH_FRONTEND_URL=https://www.svc.plus
 ```
 
 These variables are referenced in `config/account.yaml`:
@@ -159,7 +159,7 @@ These variables are referenced in `config/account.yaml`:
 auth:
   oauth:
     redirectUrl: "${OAUTH_REDIRECT_URL}"
-    frontendUrl: "${OAUTH_FRONTEND_URL:-https://console.svc.plus}"
+    frontendUrl: "${OAUTH_FRONTEND_URL:-https://www.svc.plus}"
     github:
       clientId: "${GITHUB_CLIENT_ID}"
       clientSecret: "${GITHUB_CLIENT_SECRET}"
@@ -172,7 +172,7 @@ auth:
 
 ---
 
-## 4. Frontend Configuration (console.svc.plus)
+## 4. Frontend Configuration (`www.svc.plus` canonical, `console.svc.plus` secondary)
 
 The frontend resolves the accounts service URL **server-side** via `getAccountServiceBaseUrl()`, which reads:
 
@@ -209,7 +209,7 @@ If not set, the function falls back to a runtime default. **No `NEXT_PUBLIC_*` e
 
 ### OAuth login redirects to wrong domain
 
-Check that `OAUTH_FRONTEND_URL` in accounts.svc.plus matches the console domain where users should be redirected after authentication.
+Check that `OAUTH_FRONTEND_URL` in accounts.svc.plus matches the canonical public domain where users should be redirected after authentication. The current default is `https://www.svc.plus`.
 
 ### Google "Access blocked: This app's request is invalid"
 

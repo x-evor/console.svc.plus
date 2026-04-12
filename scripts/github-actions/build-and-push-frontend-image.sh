@@ -14,7 +14,7 @@ require_env() {
 }
 
 require_env IMAGE_REF
-require_env PRIMARY_DOMAIN
+require_env CANONICAL_DOMAIN
 
 BUILD_ARGS_FILE="$(mktemp)"
 trap 'rm -f "${BUILD_ARGS_FILE}"' EXIT

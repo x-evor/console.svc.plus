@@ -6,8 +6,9 @@
 - Topology: `Caddy + Docker Compose + GitHub Actions`
 - Deploy host: `root@cn-console.svc.plus`
 - Public domains:
-  - `https://cn-console.svc.plus`
-- Primary origin: `https://cn-console.svc.plus`
+  - `https://www.svc.plus`
+  - `https://console.svc.plus`
+- Canonical public origin: `https://www.svc.plus`
 
 ## Current Delivery Model
 
@@ -23,7 +24,7 @@ This is intentionally static-first for the current weak-IO single-node host. Dyn
 
 ## Control Plane & DNS Stage
 
-The control repo (`github-org-x-evor`) tracks `console.svc.plus` through `console.svc.plus.code-workspace` and keeps the `subrepos/accounts.svc.plus` pointer in sync via `skills/cross-repo-upstream-submodule-sync`. Releases resolve metadata with that workspace and the `config/single-node-release` manifests. After `.github/workflows/service_release_frontend-deploy.yml` finishes pushing the new image, the control-plane workflow `.github/workflows/service_release_apiserver-deploy.yml` calls `scripts/github-actions/update-release-dns.sh` to update Cloudflare DNS so the new endpoint is reachable under `cn-console.svc.plus`.
+The control repo (`github-org-x-evor`) tracks `console.svc.plus` through `console.svc.plus.code-workspace` and keeps the `subrepos/accounts.svc.plus` pointer in sync via `skills/cross-repo-upstream-submodule-sync`. Releases resolve metadata with that workspace and the `config/single-node-release` manifests. After `.github/workflows/pipeline.yaml` finishes pushing the new image, the control-plane DNS automation calls `scripts/github-actions/update-release-dns.sh` to update Cloudflare DNS so the new endpoint is reachable under `cn-console.svc.plus`.
 
 ## Runtime Layout
 
@@ -52,7 +53,7 @@ Containers:
 Workflow:
 
 ```text
-.github/workflows/service_release_frontend-deploy.yml
+.github/workflows/pipeline.yaml
 ```
 
 Secrets required:
@@ -67,6 +68,8 @@ Secrets required:
 
 Repository/environment variables recommended:
 
+- `CANONICAL_DOMAIN`
+- `SERVED_DOMAINS`
 - `APP_BASE_URL`
 - `NEXT_PUBLIC_APP_BASE_URL`
 - `NEXT_PUBLIC_SITE_URL`
@@ -94,10 +97,10 @@ Repository/environment variables recommended:
 2. Docker builds the frontend image with the public `NEXT_PUBLIC_*` values needed at build time.
 3. The image is pushed to GHCR.
 4. The workflow updates Cloudflare DNS for the release domain.
-5. The workflow renders `.env.runtime`, including docs service runtime endpoints and the `cn-console` origin settings.
+5. The workflow renders `.env.runtime`, including the canonical public origin and both served frontend domains.
 6. The workflow uploads `docker-compose.yml`, `Caddyfile`, and `.env.runtime` to the host.
 7. The host pulls the new image, refreshes the static asset volume, and starts `dashboard + caddy`.
-8. The workflow verifies `cn-console.svc.plus`.
+8. The workflow verifies both `www.svc.plus` and `console.svc.plus`, and fails the release if either domain serves a different runtime version.
 
 ## Verification Commands
 
@@ -113,7 +116,7 @@ rm -f deploy/single-node/.env.runtime
 python3 - <<'PY'
 from pathlib import Path
 import yaml
-yaml.safe_load(Path('.github/workflows/service_release_frontend-deploy.yml').read_text())
+yaml.safe_load(Path('.github/workflows/pipeline.yaml').read_text())
 print('workflow yaml ok')
 PY
 ```
@@ -122,8 +125,10 @@ Remote checks:
 
 ```bash
 ssh root@cn-console.svc.plus "cd /opt/console-svc-plus && docker compose --env-file .env.runtime ps"
-ssh root@cn-console.svc.plus "curl -fsSI -H 'Host: cn-console.svc.plus' http://127.0.0.1/"
-curl -fsSIL https://cn-console.svc.plus
+ssh root@cn-console.svc.plus "curl -fsSI -H 'Host: www.svc.plus' http://127.0.0.1/"
+ssh root@cn-console.svc.plus "curl -fsSI -H 'Host: console.svc.plus' http://127.0.0.1/"
+curl -fsSIL https://www.svc.plus
+curl -fsSIL https://console.svc.plus
 ```
 
 ## Failure Signatures
@@ -132,7 +137,7 @@ curl -fsSIL https://cn-console.svc.plus
   The workflow token or package visibility is wrong.
 - `frontend-assets` fails
   The image layout changed and no longer contains `/app/dashboard/static` or `/app/dashboard/public`.
-- `cn-console.svc.plus` returns `502`
+- `www.svc.plus` or `console.svc.plus` returns `502`
   Caddy is up, but the `dashboard` container failed or is not reachable on port `3000`.
 
 ## Rollback
@@ -146,4 +151,4 @@ ssh root@cn-console.svc.plus "cd /opt/console-svc-plus && docker compose --env-f
 ssh root@cn-console.svc.plus "cd /opt/console-svc-plus && docker compose --env-file .env.runtime up -d dashboard caddy"
 ```
 
-4. Verify `https://cn-console.svc.plus` again before closing the incident.
+4. Verify `https://www.svc.plus` and `https://console.svc.plus` again before closing the incident.

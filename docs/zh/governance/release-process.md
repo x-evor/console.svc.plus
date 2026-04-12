@@ -2,7 +2,7 @@
 
 > English: `../../governance/release-process.md`
 
-本页用于记录 `console.svc.plus` 已发布版本的发布说明与变更摘要。
+本页用于记录公开控制台在 `www.svc.plus` 与 `console.svc.plus` 下发布版本的说明与变更摘要。
 
 ## 当前版本
 
@@ -50,4 +50,6 @@
 ## 备注
 
 - GitHub Release：`https://github.com/x-evor/console.svc.plus/releases/tag/v0.2`
+- 发布校验必须同时验证 `www.svc.plus` 与 `console.svc.plus` 的 `releaseImageRef`、`releaseImageTag`、`releaseCommit` 完全一致。
+- `www.svc.plus` 是 metadata、sitemap、`dashboardUrl` 与公开分享链接的首选域名。
 - 相关文档：`docs/README.md`、`docs/en/README.md`、`docs/zh/README.md`

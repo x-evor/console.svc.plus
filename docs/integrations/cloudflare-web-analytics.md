@@ -48,7 +48,7 @@ CLOUDFLARE_WEB_ANALYTICS_SITE_TAG=
 
 ### 本地开发
 
-写入 `console.svc.plus/.env.local`：
+写入当前前端仓库的 `.env.local`：
 
 ```bash
 CLOUDFLARE_API_TOKEN=...
@@ -58,7 +58,7 @@ CLOUDFLARE_WEB_ANALYTICS_SITE_TAG=...
 
 ### 线上部署
 
-把同名变量写入 `console.svc.plus` 的部署环境（例如 Vercel/Cloud Run 的环境变量配置）。
+把同名变量写入前端部署环境。
 
 > 注意：这些变量属于服务端密钥，不要暴露到 `NEXT_PUBLIC_*`。
 
@@ -67,7 +67,7 @@ CLOUDFLARE_WEB_ANALYTICS_SITE_TAG=...
 部署后访问：
 
 ```bash
-curl -fsSL https://console.svc.plus/api/marketing/home-stats
+curl -fsSL https://www.svc.plus/api/marketing/home-stats
 ```
 
 期望返回中 `visits.daily/weekly/monthly` 为数字（非 `null`）。
@@ -77,4 +77,3 @@ curl -fsSL https://console.svc.plus/api/marketing/home-stats
 1. token 权限是否包含 Analytics Read
 2. Account ID 是否与 siteTag 属于同一账号
 3. 环境变量是否已在当前运行实例生效（重启/重新部署后再测）
-

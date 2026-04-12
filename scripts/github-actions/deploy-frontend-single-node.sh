@@ -21,7 +21,8 @@ require_env SINGLE_NODE_VPS_SSH_PRIVATE_KEY
 require_env GHCR_USERNAME
 require_env GHCR_PASSWORD
 require_env FRONTEND_IMAGE
-require_env PRIMARY_DOMAIN
+require_env CANONICAL_DOMAIN
+require_env SERVED_DOMAINS
 
 GHCR_REGISTRY="${GHCR_REGISTRY:-ghcr.io}"
 

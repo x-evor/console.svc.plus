@@ -15,7 +15,7 @@ const DEFAULT_DESCRIPTION =
 const DEFAULT_OG_IMAGE = '/icons/webchat.jpg'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://console.svc.plus'),
+  metadataBase: new URL('https://www.svc.plus'),
   title: {
     default: DEFAULT_TITLE,
     template: '%s | Cloud-Neutral',
@@ -93,8 +93,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               '@context': 'https://schema.org',
               '@type': 'Organization',
               name: 'Cloud-Neutral',
-              url: 'https://console.svc.plus',
-              logo: 'https://console.svc.plus/icons/cloudnative_32.png',
+              url: 'https://www.svc.plus',
+              logo: 'https://www.svc.plus/icons/cloudnative_32.png',
               description: DEFAULT_DESCRIPTION,
             }).replace(/</g, '\\u003c'),
           }}
@@ -106,7 +106,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               '@context': 'https://schema.org',
               '@type': 'WebSite',
               name: 'Cloud-Neutral',
-              url: 'https://console.svc.plus',
+              url: 'https://www.svc.plus',
               description: DEFAULT_DESCRIPTION,
             }).replace(/</g, '\\u003c'),
           }}

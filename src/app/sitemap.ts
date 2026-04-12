@@ -3,7 +3,7 @@ import type { MetadataRoute } from 'next'
 import { getBlogList } from '@/lib/docsServiceClient'
 import { PRODUCT_LIST } from '@/modules/products/registry'
 
-const baseUrl = 'https://console.svc.plus'
+const baseUrl = 'https://www.svc.plus'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 3600 // Revalidate every hour

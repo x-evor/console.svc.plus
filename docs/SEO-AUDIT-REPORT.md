@@ -214,7 +214,7 @@ export default function NotFound() {
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://console.svc.plus'),
+  metadataBase: new URL('https://www.svc.plus'),
   title: {
     default: 'Cloud-Neutral | Unified Cloud Native Tools',
     template: '%s | Cloud-Neutral',
@@ -232,7 +232,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://console.svc.plus',
+    url: 'https://www.svc.plus',
     title: 'Cloud-Neutral | Unified Cloud Native Tools',
     description: 'Unified tools for your cloud native stack',
     siteName: 'Cloud-Neutral',
@@ -274,7 +274,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#6366f1" />
-        <link rel="canonical" href="https://console.svc.plus" />
+        <link rel="canonical" href="https://www.svc.plus" />
         {/* ... rest of head */}
       </head>
       {/* ... rest of layout */}
@@ -343,7 +343,7 @@ Disallow: /admin/
 Disallow: /api/
 Disallow: /internal/
 
-Sitemap: https://console.svc.plus/sitemap.xml
+Sitemap: https://www.svc.plus/sitemap.xml
 ```
 
 ---
@@ -360,8 +360,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'Cloud-Neutral',
-    url: 'https://console.svc.plus',
-    logo: 'https://console.svc.plus/logo.png',
+    url: 'https://www.svc.plus',
+    logo: 'https://www.svc.plus/logo.png',
     sameAs: [
       'https://twitter.com/cloudneutral',
       'https://github.com/x-evor',
@@ -372,10 +372,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'Cloud-Neutral',
-    url: 'https://console.svc.plus',
+    url: 'https://www.svc.plus',
     potentialAction: {
       '@type': 'SearchAction',
-      target: 'https://console.svc.plus/search?q={search_term_string}',
+      target: 'https://www.svc.plus/search?q={search_term_string}',
       'query-input': 'required name=search_term_string',
     },
   }

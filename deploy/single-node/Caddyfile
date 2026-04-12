@@ -1,4 +1,4 @@
-{$PRIMARY_DOMAIN} {
+{$SERVED_DOMAINS} {
   encode zstd gzip
 
   handle_path /_next/static/* {
