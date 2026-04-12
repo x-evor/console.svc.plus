@@ -26,6 +26,15 @@ require_env SECONDARY_DOMAIN
 
 GHCR_REGISTRY="${GHCR_REGISTRY:-ghcr.io}"
 
+reject_remote_build_configuration() {
+  local compose_file="$1"
+
+  if grep -Eq '^[[:space:]]*(build|dockerfile):' "${compose_file}"; then
+    echo "Deployment package must reference prebuilt images only; compose build directives are forbidden." >&2
+    exit 1
+  fi
+}
+
 WORK_DIR="$(mktemp -d)"
 trap 'rm -rf "${WORK_DIR}"' EXIT
 
@@ -39,6 +48,8 @@ bash "${SCRIPT_DIR}/render-frontend-runtime-env.sh" "${RUNTIME_ENV_FILE}"
 
 cp "${DEPLOY_SOURCE_DIR}/docker-compose.yml" "${WORK_DIR}/docker-compose.yml"
 cp "${DEPLOY_SOURCE_DIR}/Caddyfile" "${WORK_DIR}/Caddyfile"
+
+reject_remote_build_configuration "${WORK_DIR}/docker-compose.yml"
 
 tar -C "${WORK_DIR}" -czf "${RELEASE_ARCHIVE}" \
   docker-compose.yml \

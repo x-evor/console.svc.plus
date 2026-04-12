@@ -79,19 +79,7 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           INPUT_TARGET_HOST: ${{ inputs.target_host }}
           INPUT_RUN_APPLY: ${{ inputs.run_apply }}
-        run: |
-          if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
-            target_host="${INPUT_TARGET_HOST}"
-            run_apply="${INPUT_RUN_APPLY}"
-          else
-            target_host="jp-xhttp-contabo.svc.plus"
-            run_apply="true"
-          fi
-
-          {
-            printf 'target_host=%s\n' "${target_host}"
-            printf 'run_apply=%s\n' "${run_apply}"
-          } >> "${GITHUB_OUTPUT}"
+        run: bash scripts/github-actions/resolve-workflow-inputs.sh
 
       - name: Compute Image Metadata
         id: metadata
@@ -102,42 +90,35 @@ jobs:
         id: push
         env:
           REF: ${{ github.ref }}
-        run: |
-          if [[ "${REF}" == "refs/heads/main" ]]; then
-            echo "push_latest=true" >> "${GITHUB_OUTPUT}"
-          else
-            echo "push_latest=false" >> "${GITHUB_OUTPUT}"
-          fi
+        run: bash scripts/github-actions/resolve-push-latest.sh
 
   build:
     name: Build
     runs-on: ubuntu-latest
     needs: prep
     outputs:
-      image_ref: ${{ needs.prep.outputs.image_ref }}
-      image_tag: ${{ needs.prep.outputs.image_tag }}
+      image_ref: ${{ steps.publish.outputs.image_ref }}
+      image_tag: ${{ steps.publish.outputs.image_tag }}
     steps:
       - name: Check Out Repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Set Up Docker Buildx
-        run: |
-          docker buildx create --name console-builder --use >/dev/null 2>&1 || docker buildx use console-builder
-          docker buildx inspect --bootstrap
+        run: bash scripts/github-actions/setup-docker-buildx.sh
 
       - name: Log In To GHCR
         env:
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-        run: |
-          echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
+        run: bash scripts/github-actions/login-ghcr.sh
 
       - name: Publish Frontend Image
+        id: publish
         env:
           IMAGE_REF: ${{ needs.prep.outputs.image_ref }}
+          IMAGE_TAG: ${{ needs.prep.outputs.image_tag }}
           IMAGE_LATEST_REF: ${{ needs.prep.outputs.image_latest_ref }}
           PUSH_LATEST: ${{ needs.prep.outputs.push_latest }}
-        run: |
-          bash scripts/github-actions/build-and-push-frontend-image.sh
+        run: bash scripts/github-actions/publish-frontend-image.sh
 
   deploy:
     name: Deploy
@@ -148,7 +129,7 @@ jobs:
     env:
       TARGET_HOST: ${{ needs.prep.outputs.target_host }}
       RUN_APPLY: ${{ needs.prep.outputs.run_apply }}
-      FRONTEND_IMAGE: ${{ needs.prep.outputs.image_ref }}
+      FRONTEND_IMAGE: ${{ needs.build.outputs.image_ref }}
     steps:
       - name: Check Out Repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -174,45 +155,13 @@ jobs:
         env:
           SINGLE_NODE_VPS_SSH_PRIVATE_KEY: ${{ secrets.SINGLE_NODE_VPS_SSH_PRIVATE_KEY }}
           TARGET_HOST: ${{ needs.prep.outputs.target_host }}
-        run: |
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          printf '%s\n' "${SINGLE_NODE_VPS_SSH_PRIVATE_KEY}" | tr -d '\r' > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H "${TARGET_HOST}" >> ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
+        run: bash scripts/github-actions/configure-ssh-for-deploy.sh
 
       - name: Run Deploy Playbook
         working-directory: playbooks
         env:
           ANSIBLE_HOST_KEY_CHECKING: "False"
-        run: |
-          ansible_args=(
-            -i inventory.ini
-            deploy_console_svc_plus.yml
-            -D
-            -l "${TARGET_HOST}"
-            -e "FRONTEND_IMAGE=${FRONTEND_IMAGE}"
-            -e "GHCR_USERNAME=${GHCR_USERNAME}"
-            -e "GHCR_PASSWORD=${GHCR_PASSWORD}"
-            -e "INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}"
-            -e "ACCOUNT_SERVICE_URL=${ACCOUNT_SERVICE_URL}"
-            -e "PRIMARY_DOMAIN=${PRIMARY_DOMAIN}"
-            -e "SECONDARY_DOMAIN=${SECONDARY_DOMAIN}"
-            -e "NEXT_PUBLIC_RUNTIME_ENVIRONMENT=${NEXT_PUBLIC_RUNTIME_ENVIRONMENT}"
-            -e "NEXT_PUBLIC_RUNTIME_REGION=${NEXT_PUBLIC_RUNTIME_REGION}"
-            -e "CLOUDFLARE_ZONE_TAG=${CLOUDFLARE_ZONE_TAG}"
-            -e "CLOUDFLARE_WEB_ANALYTICS_SITE_TAG=${CLOUDFLARE_WEB_ANALYTICS_SITE_TAG}"
-            -e "CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID}"
-            -e "CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}"
-            -e "CLOUDFLARE_DNS_API_TOKEN=${CLOUDFLARE_DNS_API_TOKEN}"
-          )
-
-          if [[ "${RUN_APPLY}" != "true" ]]; then
-            ansible_args=(-C "${ansible_args[@]}")
-          fi
-
-          ansible-playbook "${ansible_args[@]}"
+        run: bash ../scripts/github-actions/run-console-deploy-playbook.sh
 
   validate:
     name: Validate
@@ -227,4 +176,7 @@ jobs:
 
       - name: Verify Frontend Release
         run: |
-          bash scripts/github-actions/verify-frontend-release.sh "${PRIMARY_DOMAIN}" "${SECONDARY_DOMAIN}"
+          bash scripts/github-actions/verify-frontend-release.sh \
+            "${PRIMARY_DOMAIN}" \
+            "${SECONDARY_DOMAIN}" \
+            "${{ needs.build.outputs.image_ref }}"
