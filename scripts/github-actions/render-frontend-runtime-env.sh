@@ -23,11 +23,9 @@ require_env() {
 
 require_env FRONTEND_IMAGE
 require_env PRIMARY_DOMAIN
-require_env SECONDARY_DOMAIN
 
 append_env FRONTEND_IMAGE "${FRONTEND_IMAGE}"
 append_env PRIMARY_DOMAIN "${PRIMARY_DOMAIN}"
-append_env SECONDARY_DOMAIN "${SECONDARY_DOMAIN}"
 
 append_env NODE_ENV "production"
 append_env PORT "${PORT:-3000}"

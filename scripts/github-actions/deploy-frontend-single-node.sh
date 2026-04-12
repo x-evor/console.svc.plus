@@ -22,7 +22,6 @@ require_env GHCR_USERNAME
 require_env GHCR_PASSWORD
 require_env FRONTEND_IMAGE
 require_env PRIMARY_DOMAIN
-require_env SECONDARY_DOMAIN
 
 GHCR_REGISTRY="${GHCR_REGISTRY:-ghcr.io}"
 

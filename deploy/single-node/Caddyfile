@@ -1,8 +1,5 @@
-{$PRIMARY_DOMAIN}, {$SECONDARY_DOMAIN} {
+{$PRIMARY_DOMAIN} {
   encode zstd gzip
-
-  @secondary host {$SECONDARY_DOMAIN}
-  redir @secondary https://{$PRIMARY_DOMAIN}{uri} permanent
 
   handle_path /_next/static/* {
     root * /srv

@@ -43,7 +43,6 @@ concurrency:
 
 env:
   PRIMARY_DOMAIN: console.svc.plus
-  SECONDARY_DOMAIN: console.onwalk.net
   NEXT_PUBLIC_RUNTIME_ENVIRONMENT: prod
   NEXT_PUBLIC_RUNTIME_REGION: cn
   ACCOUNT_SERVICE_URL: https://accounts.svc.plus
@@ -177,5 +176,4 @@ jobs:
       - name: Verify Frontend Release
         run: |
           bash scripts/github-actions/verify-frontend-release.sh \
-            "${PRIMARY_DOMAIN}" \
-            "${SECONDARY_DOMAIN}"
+            "${PRIMARY_DOMAIN}"

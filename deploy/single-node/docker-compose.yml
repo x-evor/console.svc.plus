@@ -37,7 +37,6 @@ services:
       - "443:443"
     environment:
       PRIMARY_DOMAIN: ${PRIMARY_DOMAIN:?set PRIMARY_DOMAIN in .env.runtime}
-      SECONDARY_DOMAIN: ${SECONDARY_DOMAIN:?set SECONDARY_DOMAIN in .env.runtime}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - frontend_static:/srv:ro

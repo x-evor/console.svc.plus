@@ -7,7 +7,6 @@
 - Deploy host: `root@cn-console.svc.plus`
 - Public domains:
   - `https://cn-console.svc.plus`
-  - `https://cn-console.onwalk.net`
 - Primary origin: `https://cn-console.svc.plus`
 
 ## Current Delivery Model
@@ -24,7 +23,7 @@ This is intentionally static-first for the current weak-IO single-node host. Dyn
 
 ## Control Plane & DNS Stage
 
-The control repo (`github-org-x-evor`) tracks `console.svc.plus` through `console.svc.plus.code-workspace` and keeps the `subrepos/accounts.svc.plus` pointer in sync via `skills/cross-repo-upstream-submodule-sync`. Releases resolve metadata with that workspace and the `config/single-node-release` manifests. After `.github/workflows/service_release_frontend-deploy.yml` finishes pushing the new image, the control-plane workflow `.github/workflows/service_release_apiserver-deploy.yml` calls `scripts/github-actions/update-release-dns.sh` to update Cloudflare DNS so the new endpoint is reachable under `cn-console.svc.plus` and `cn-console.onwalk.net`.
+The control repo (`github-org-x-evor`) tracks `console.svc.plus` through `console.svc.plus.code-workspace` and keeps the `subrepos/accounts.svc.plus` pointer in sync via `skills/cross-repo-upstream-submodule-sync`. Releases resolve metadata with that workspace and the `config/single-node-release` manifests. After `.github/workflows/service_release_frontend-deploy.yml` finishes pushing the new image, the control-plane workflow `.github/workflows/service_release_apiserver-deploy.yml` calls `scripts/github-actions/update-release-dns.sh` to update Cloudflare DNS so the new endpoint is reachable under `cn-console.svc.plus`.
 
 ## Runtime Layout
 
@@ -94,11 +93,11 @@ Repository/environment variables recommended:
 1. GitHub Actions checks out the repo.
 2. Docker builds the frontend image with the public `NEXT_PUBLIC_*` values needed at build time.
 3. The image is pushed to GHCR.
-4. The workflow runs a matrix DNS stage, updating one public domain per job.
+4. The workflow updates Cloudflare DNS for the release domain.
 5. The workflow renders `.env.runtime`, including docs service runtime endpoints and the `cn-console` origin settings.
 6. The workflow uploads `docker-compose.yml`, `Caddyfile`, and `.env.runtime` to the host.
 7. The host pulls the new image, refreshes the static asset volume, and starts `dashboard + caddy`.
-8. The workflow verifies `cn-console.svc.plus` and `cn-console.onwalk.net`.
+8. The workflow verifies `cn-console.svc.plus`.
 
 ## Verification Commands
 
@@ -125,7 +124,6 @@ Remote checks:
 ssh root@cn-console.svc.plus "cd /opt/console-svc-plus && docker compose --env-file .env.runtime ps"
 ssh root@cn-console.svc.plus "curl -fsSI -H 'Host: cn-console.svc.plus' http://127.0.0.1/"
 curl -fsSIL https://cn-console.svc.plus
-curl -fsSIL https://cn-console.onwalk.net
 ```
 
 ## Failure Signatures
@@ -136,8 +134,6 @@ curl -fsSIL https://cn-console.onwalk.net
   The image layout changed and no longer contains `/app/dashboard/static` or `/app/dashboard/public`.
 - `cn-console.svc.plus` returns `502`
   Caddy is up, but the `dashboard` container failed or is not reachable on port `3000`.
-- `cn-console.onwalk.net` does not redirect
-  Check the deployed `Caddyfile` and domain DNS.
 
 ## Rollback
 
