@@ -2,11 +2,31 @@ import { NextResponse } from 'next/server'
 
 import { loadRuntimeConfig } from '@server/runtime-loader'
 
-function resolveReleaseImageMetadata(frontendImage: string | undefined) {
+type TReleaseImageMetadata = {
+  releaseImageRef: string | null
+  releaseImageTag: string | null
+  releaseCommit: string | null
+}
+
+function resolveReleaseCommit(releaseImageTag: string | null): string | null {
+  if (!releaseImageTag) {
+    return null
+  }
+
+  const normalizedTag = releaseImageTag.trim()
+  const prefixedShaMatch = normalizedTag.match(/^sha-([0-9a-f]{7,40})$/i)
+  if (prefixedShaMatch) {
+    return prefixedShaMatch[1] ?? null
+  }
+
+  return /^[0-9a-f]{7,40}$/i.test(normalizedTag) ? normalizedTag : null
+}
+
+function resolveReleaseImageMetadata(frontendImage: string | undefined): TReleaseImageMetadata {
   const releaseImageRef = frontendImage?.trim() || null
   const releaseImageTagMatch = releaseImageRef?.match(/:([^:@]+)$/)
   const releaseImageTag = releaseImageTagMatch?.[1] ?? null
-  const releaseCommit = releaseImageTag && /^[0-9a-f]{7,40}$/i.test(releaseImageTag) ? releaseImageTag : null
+  const releaseCommit = resolveReleaseCommit(releaseImageTag)
 
   return {
     releaseImageRef,

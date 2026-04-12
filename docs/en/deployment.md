@@ -3,7 +3,7 @@
 ## Production Baseline
 
 - Runtime: `Caddy + Docker Compose`
-- Deploy host: `root@cn-console.svc.plus`
+- Deploy host: `root@jp-xhttp-contabo.svc.plus`
 - Public domains:
   - `www.svc.plus`
   - `console.svc.plus`
@@ -31,7 +31,7 @@ The release contract now uses:
 
 Validation must pass for both domains. A release is incomplete if either host serves a different runtime version, static asset family, or `dashboardUrl`.
 
-This baseline is intentional for the weak-IO single-node host `root@cn-console.svc.plus`. No images are built on the target machine, keeping the deployment lightweight: the host only logs into GHCR, pulls the `dashboard` image, extracts assets into `frontend_static`, and starts `dashboard` plus `caddy` containers via `docker compose`.
+This baseline is intentional for the weak-IO single-node host `root@jp-xhttp-contabo.svc.plus`. No images are built on the target machine, keeping the deployment lightweight: the host only logs into GHCR, pulls the `dashboard` image, extracts assets into `frontend_static`, and starts `dashboard` plus `caddy` containers via `docker compose`.
 
 `docs.svc.plus` is now the dedicated docs/blog service for the frontend delivery path.
 

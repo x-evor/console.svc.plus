@@ -4,7 +4,7 @@
 
 - Runtime: `console.svc.plus`
 - Topology: `Caddy + Docker Compose + GitHub Actions`
-- Deploy host: `root@cn-console.svc.plus`
+- Deploy host: `root@jp-xhttp-contabo.svc.plus`
 - Public domains:
   - `https://www.svc.plus`
   - `https://console.svc.plus`
@@ -24,7 +24,7 @@ This is intentionally static-first for the current weak-IO single-node host. Dyn
 
 ## Control Plane & DNS Stage
 
-The control repo (`github-org-x-evor`) tracks `console.svc.plus` through `console.svc.plus.code-workspace` and keeps the `subrepos/accounts.svc.plus` pointer in sync via `skills/cross-repo-upstream-submodule-sync`. Releases resolve metadata with that workspace and the `config/single-node-release` manifests. After `.github/workflows/pipeline.yaml` finishes pushing the new image, the control-plane DNS automation calls `scripts/github-actions/update-release-dns.sh` to update Cloudflare DNS so the new endpoint is reachable under `cn-console.svc.plus`.
+The control repo (`github-org-x-evor`) tracks `console.svc.plus` through `console.svc.plus.code-workspace` and keeps the `subrepos/accounts.svc.plus` pointer in sync via `skills/cross-repo-upstream-submodule-sync`. Releases resolve metadata with that workspace and the `config/single-node-release` manifests. After `.github/workflows/pipeline.yaml` finishes pushing the new image, the control-plane DNS automation calls `scripts/github-actions/update-release-dns.sh` to update Cloudflare DNS so the new endpoint is reachable through the current production host `jp-xhttp-contabo.svc.plus`.
 
 ## Runtime Layout
 
@@ -124,9 +124,9 @@ PY
 Remote checks:
 
 ```bash
-ssh root@cn-console.svc.plus "cd /opt/console-svc-plus && docker compose --env-file .env.runtime ps"
-ssh root@cn-console.svc.plus "curl -fsSI -H 'Host: www.svc.plus' http://127.0.0.1/"
-ssh root@cn-console.svc.plus "curl -fsSI -H 'Host: console.svc.plus' http://127.0.0.1/"
+ssh root@jp-xhttp-contabo.svc.plus "cd /opt/console-svc-plus && docker compose --env-file .env.runtime ps"
+ssh root@jp-xhttp-contabo.svc.plus "curl -fsSI -H 'Host: www.svc.plus' http://127.0.0.1/"
+ssh root@jp-xhttp-contabo.svc.plus "curl -fsSI -H 'Host: console.svc.plus' http://127.0.0.1/"
 curl -fsSIL https://www.svc.plus
 curl -fsSIL https://console.svc.plus
 ```
@@ -147,8 +147,8 @@ curl -fsSIL https://console.svc.plus
 3. Restart the services:
 
 ```bash
-ssh root@cn-console.svc.plus "cd /opt/console-svc-plus && docker compose --env-file .env.runtime run --rm frontend-assets"
-ssh root@cn-console.svc.plus "cd /opt/console-svc-plus && docker compose --env-file .env.runtime up -d dashboard caddy"
+ssh root@jp-xhttp-contabo.svc.plus "cd /opt/console-svc-plus && docker compose --env-file .env.runtime run --rm frontend-assets"
+ssh root@jp-xhttp-contabo.svc.plus "cd /opt/console-svc-plus && docker compose --env-file .env.runtime up -d dashboard caddy"
 ```
 
 4. Verify `https://www.svc.plus` and `https://console.svc.plus` again before closing the incident.

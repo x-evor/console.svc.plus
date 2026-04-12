@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CANONICAL_DOMAIN="${1:?usage: verify-frontend-release.sh <canonical-domain> <served-domains>}"
-SERVED_DOMAINS="${2:?usage: verify-frontend-release.sh <canonical-domain> <served-domains>}"
+CANONICAL_DOMAIN="${1:?usage: verify-frontend-release.sh <canonical-domain> <served-domains> <expected-image-ref>}"
+SERVED_DOMAINS="${2:?usage: verify-frontend-release.sh <canonical-domain> <served-domains> <expected-image-ref>}"
+EXPECTED_IMAGE_REF="${3:?usage: verify-frontend-release.sh <canonical-domain> <served-domains> <expected-image-ref>}"
 EXPECTED_DASHBOARD_URL="https://${CANONICAL_DOMAIN}"
 
 curl_headers=(
@@ -16,6 +17,35 @@ trim() {
   value="${value#"${value%%[![:space:]]*}"}"
   value="${value%"${value##*[![:space:]]}"}"
   printf '%s' "${value}"
+}
+
+parse_image_ref() {
+  local image_ref="$1"
+
+  IMAGE_REF="${image_ref}" python3 - <<'PY'
+import os
+import re
+import sys
+
+image_ref = os.environ["IMAGE_REF"].strip()
+match = re.search(r":([^:@]+)$", image_ref)
+tag = match.group(1) if match else ""
+commit = ""
+
+if re.fullmatch(r"[0-9a-f]{7,40}", tag, flags=re.IGNORECASE):
+    commit = tag
+else:
+    prefixed_match = re.fullmatch(r"sha-([0-9a-f]{7,40})", tag, flags=re.IGNORECASE)
+    if prefixed_match:
+        commit = prefixed_match.group(1)
+
+if not image_ref or not tag or not commit:
+    sys.exit(1)
+
+print(image_ref)
+print(tag)
+print(commit)
+PY
 }
 
 parse_release_metadata() {
@@ -101,6 +131,16 @@ verify_domain() {
   printf '%s\t%s\t%s\t%s\t%s\n' "${domain}" "${actual_image_ref}" "${actual_image_tag}" "${actual_release_commit}" "${actual_dashboard_url}"
 }
 
+mapfile -t expected_release_lines < <(parse_image_ref "${EXPECTED_IMAGE_REF}")
+EXPECTED_RELEASE_IMAGE_REF="${expected_release_lines[0]-}"
+EXPECTED_RELEASE_IMAGE_TAG="${expected_release_lines[1]-}"
+EXPECTED_RELEASE_COMMIT="${expected_release_lines[2]-}"
+
+if [[ -z "${EXPECTED_RELEASE_IMAGE_REF}" || -z "${EXPECTED_RELEASE_IMAGE_TAG}" || -z "${EXPECTED_RELEASE_COMMIT}" ]]; then
+  echo "Expected image ref is invalid: ${EXPECTED_IMAGE_REF}" >&2
+  exit 1
+fi
+
 mapfile -t served_domains < <(
   printf '%s' "${SERVED_DOMAINS}" | tr ',' '\n' | while IFS= read -r domain; do
     domain="$(trim "${domain}")"
@@ -138,31 +178,26 @@ reference_dashboard_url=""
 for row in "${verification_rows[@]}"; do
   IFS=$'\t' read -r domain actual_image_ref actual_image_tag actual_release_commit actual_dashboard_url <<< "${row}"
 
+  if [[ "${actual_image_ref}" != "${EXPECTED_RELEASE_IMAGE_REF}" ]]; then
+    echo "Release image mismatch for ${domain}: expected ${EXPECTED_RELEASE_IMAGE_REF}, got ${actual_image_ref}" >&2
+    exit 1
+  fi
+
+  if [[ "${actual_image_tag}" != "${EXPECTED_RELEASE_IMAGE_TAG}" ]]; then
+    echo "Release tag mismatch for ${domain}: expected ${EXPECTED_RELEASE_IMAGE_TAG}, got ${actual_image_tag}" >&2
+    exit 1
+  fi
+
+  if [[ "${actual_release_commit}" != "${EXPECTED_RELEASE_COMMIT}" ]]; then
+    echo "Release commit mismatch for ${domain}: expected ${EXPECTED_RELEASE_COMMIT}, got ${actual_release_commit}" >&2
+    exit 1
+  fi
+
   if [[ -z "${reference_image_ref}" ]]; then
     reference_image_ref="${actual_image_ref}"
     reference_image_tag="${actual_image_tag}"
     reference_release_commit="${actual_release_commit}"
     reference_dashboard_url="${actual_dashboard_url}"
     continue
-  fi
-
-  if [[ "${actual_image_ref}" != "${reference_image_ref}" ]]; then
-    echo "Release image mismatch across served domains: ${domain} returned ${actual_image_ref}, expected ${reference_image_ref}" >&2
-    exit 1
-  fi
-
-  if [[ "${actual_image_tag}" != "${reference_image_tag}" ]]; then
-    echo "Release tag mismatch across served domains: ${domain} returned ${actual_image_tag}, expected ${reference_image_tag}" >&2
-    exit 1
-  fi
-
-  if [[ "${actual_release_commit}" != "${reference_release_commit}" ]]; then
-    echo "Release commit mismatch across served domains: ${domain} returned ${actual_release_commit}, expected ${reference_release_commit}" >&2
-    exit 1
-  fi
-
-  if [[ "${actual_dashboard_url}" != "${reference_dashboard_url}" ]]; then
-    echo "dashboardUrl mismatch across served domains: ${domain} returned ${actual_dashboard_url}, expected ${reference_dashboard_url}" >&2
-    exit 1
   fi
 done
