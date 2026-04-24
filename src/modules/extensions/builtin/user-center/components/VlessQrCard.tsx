@@ -33,14 +33,39 @@ export type VlessQrCopy = {
 interface VlessQrCardProps {
   uuid: string | null | undefined
   copy: VlessQrCopy
+  defaultTransport?: VlessTransport
+  visibleTransports?: VlessTransport[]
+}
+
+const DEFAULT_TRANSPORT: VlessTransport = 'xhttp'
+const DEFAULT_VISIBLE_TRANSPORTS: VlessTransport[] = ['xhttp']
+
+function normalizeVisibleTransports(transports?: VlessTransport[]): VlessTransport[] {
+  const visible = (transports ?? DEFAULT_VISIBLE_TRANSPORTS).filter(
+    (transport, index, values) => values.indexOf(transport) === index,
+  )
+
+  return visible.length > 0 ? visible : DEFAULT_VISIBLE_TRANSPORTS
+}
+
+function resolveInitialTransport(defaultTransport: VlessTransport | undefined, visibleTransports: VlessTransport[]): VlessTransport {
+  if (defaultTransport && visibleTransports.includes(defaultTransport)) {
+    return defaultTransport
+  }
+
+  return visibleTransports[0] ?? DEFAULT_TRANSPORT
 }
 
 
 export default function VlessQrCard({
   uuid,
   copy,
+  defaultTransport,
+  visibleTransports,
 }: VlessQrCardProps) {
   const { data: allNodes, error: nodesError } = useSWR<VlessNode[]>('user-center-agent-nodes', fetchAgentNodes)
+
+  const transportOptions = useMemo(() => normalizeVisibleTransports(visibleTransports), [visibleTransports])
 
   const nodes = useMemo(() => {
     return (allNodes ?? []).filter((node) => {
@@ -53,13 +78,25 @@ export default function VlessQrCard({
     })
   }, [allNodes])
   const [selectedNode, setSelectedNode] = useState<VlessNode | null>(null)
-  const [preferredTransport, setPreferredTransport] = useState<VlessTransport>('tcp')
+  const [preferredTransport, setPreferredTransport] = useState<VlessTransport>(() =>
+    resolveInitialTransport(defaultTransport, transportOptions),
+  )
   const [isSelectorOpen, setIsSelectorOpen] = useState(false)
 
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generationError, setGenerationError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    setPreferredTransport((currentTransport) => {
+      if (transportOptions.includes(currentTransport)) {
+        return currentTransport
+      }
+
+      return resolveInitialTransport(defaultTransport, transportOptions)
+    })
+  }, [defaultTransport, transportOptions])
 
   const rawNode = useMemo(() => {
     if (selectedNode) return selectedNode
@@ -238,7 +275,7 @@ export default function VlessQrCard({
         </div>
 
         <div className="flex gap-2">
-          {(['tcp', 'xhttp'] as const).map((transport) => (
+          {transportOptions.map((transport) => (
             <button
               key={transport}
               type="button"
